@@ -1325,27 +1325,50 @@ function resetVoteForTesting() {
 }
 
 function loadPublicVoteOpts() {
-  if (localStorage.getItem('voted_public')) {
-    const voteArea = document.getElementById('vote-area');
-    const voteDone = document.getElementById('vote-done');
-    if (voteArea) voteArea.style.display = 'none';
-    if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Ya votaste! Tu voto fue registrado. Gracias por participar. 🎤'; }
-    return;
-  }
+  const voteArea   = document.getElementById('vote-area');
+  const voteDone   = document.getElementById('vote-done');
+  const voteClosed = document.getElementById('vote-closed-banner');
+  const voteBtn    = document.getElementById('vote-btn');
+
+  // Ocultar todo primero
+  if (voteClosed) voteClosed.style.display = 'none';
+  if (voteDone)   voteDone.style.display   = 'none';
+
   if (!votingOpen) {
-    const voteArea   = document.getElementById('vote-area');
-    const voteClosed = document.getElementById('vote-closed-banner');
+    // Votación cerrada — mensaje de despedida o próximo evento
     if (voteArea)   voteArea.style.display   = 'none';
     if (voteClosed) voteClosed.style.display = 'block';
+    const msgEl = document.getElementById('vote-closed-msg');
+    if (msgEl) {
+      const ce = localState.settings?.currentEvent;
+      if (showRunning && ce?.name) {
+        msgEl.innerHTML = `¡Gracias por participar!<br><br>
+          <span style="color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">${esc(ce.name)}</span><br>
+          ${ce.date ? `<span style="font-size:13px">${esc(ce.date)}${ce.venue ? ' · ' + esc(ce.venue) : ''}</span>` : ''}`;
+      } else {
+        msgEl.textContent = '¡Gracias por participar! Te esperamos en nuestro próximo evento.';
+      }
+    }
     return;
+  }
+
+  // Votación abierta — mostrar formulario
+  if (voteArea) voteArea.style.display = 'block';
+
+  const prevRaw  = localStorage.getItem('voted_public');
+  const prevVote = prevRaw ? JSON.parse(prevRaw) : null;
+
+  if (prevVote) {
+    // Ya votó — mostrar banner editable
+    if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Ya votaste! Podés modificar tu voto antes de que cierre la votación.'; }
+    if (voteBtn)  voteBtn.textContent = 'ACTUALIZAR VOTO';
+  } else {
+    if (voteBtn) voteBtn.textContent = 'ENVIAR VOTOS';
   }
 
   const parts = sorted().filter(p => p.songConfirmed);
   const el    = document.getElementById('vote-cards-container');
   if (!el) return;
-
-  // Si ya hay filas renderizadas, no re-renderizar para conservar estado.
-  if (el.querySelector('.vote-row')) return;
 
   if (!parts.length) {
     el.innerHTML = '<div style="color:var(--text2);padding:16px;text-align:center">No hay participantes registrados aún</div>';
@@ -1356,14 +1379,16 @@ function loadPublicVoteOpts() {
     const song   = p.songTitle || p.song || '';
     const artist = p.songArtist || '';
     const detail = [song, artist].filter(Boolean).join(' · ');
+    const wasSong = prevVote?.song?.includes(p.id);
+    const wasPerf = prevVote?.perf?.includes(p.id);
     return `<div class="vote-row">
       <div class="vote-row-info">
         <div class="vote-row-name">${esc(p.name)}</div>
         ${detail ? `<div class="vote-row-song">${esc(detail)}</div>` : ''}
       </div>
       <div class="vote-row-btns">
-        <button class="vote-pill" id="vb-song-${p.id}" onclick="toggleVoteBtn('song','${p.id}')">Mejor Canción</button>
-        <button class="vote-pill" id="vb-perf-${p.id}" onclick="toggleVoteBtn('perf','${p.id}')">Mejor Performance</button>
+        <button class="vote-pill${wasSong ? ' selected' : ''}" id="vb-song-${p.id}" onclick="toggleVoteBtn('song','${p.id}')">Mejor Canción</button>
+        <button class="vote-pill${wasPerf ? ' selected' : ''}" id="vb-perf-${p.id}" onclick="toggleVoteBtn('perf','${p.id}')">Mejor Performance</button>
       </div>
     </div>`;
   }).join('');
@@ -1376,7 +1401,6 @@ function toggleVoteBtn(type, pid) {
 }
 
 async function submitPublicVote() {
-  if (localStorage.getItem('voted_public')) return;
   if (!votingOpen) { mcAlert('La votación está cerrada.'); return; }
 
   const songVotes = [...document.querySelectorAll('.vote-pill.selected[id^="vb-song-"]')].map(b => b.id.replace('vb-song-', ''));
@@ -1391,9 +1415,27 @@ async function submitPublicVote() {
   btn.innerHTML = '<span class="spinner"></span>';
   btn.disabled  = true;
 
+  // Leer voto anterior para restar
+  const prevRaw  = localStorage.getItem('voted_public');
+  const prevVote = prevRaw ? JSON.parse(prevRaw) : { song: [], perf: [] };
+
   try {
     if (firebaseOk) {
       const updates = {};
+      // Restar votos anteriores
+      (prevVote.song || []).forEach(pid => {
+        if (allParticipants[pid]) {
+          const cur = updates[`participants/${pid}/voteSong`] ?? (parseInt(allParticipants[pid].voteSong) || 0);
+          updates[`participants/${pid}/voteSong`] = Math.max(0, cur - 1);
+        }
+      });
+      (prevVote.perf || []).forEach(pid => {
+        if (allParticipants[pid]) {
+          const cur = updates[`participants/${pid}/votePerf`] ?? (parseInt(allParticipants[pid].votePerf) || 0);
+          updates[`participants/${pid}/votePerf`] = Math.max(0, cur - 1);
+        }
+      });
+      // Sumar votos nuevos
       songVotes.forEach(pid => {
         if (allParticipants[pid]) {
           const cur = updates[`participants/${pid}/voteSong`] ?? (parseInt(allParticipants[pid].voteSong) || 0);
@@ -1408,17 +1450,21 @@ async function submitPublicVote() {
       });
       if (Object.keys(updates).length) await dbUpdate(dbRef(db), updates);
     } else {
+      (prevVote.song || []).forEach(pid => { if (allParticipants[pid]) allParticipants[pid].voteSong = Math.max(0, (parseInt(allParticipants[pid].voteSong) || 0) - 1); });
+      (prevVote.perf || []).forEach(pid => { if (allParticipants[pid]) allParticipants[pid].votePerf = Math.max(0, (parseInt(allParticipants[pid].votePerf) || 0) - 1); });
       songVotes.forEach(pid => { if (allParticipants[pid]) allParticipants[pid].voteSong = (parseInt(allParticipants[pid].voteSong) || 0) + 1; });
       perfVotes.forEach(pid => { if (allParticipants[pid]) allParticipants[pid].votePerf = (parseInt(allParticipants[pid].votePerf) || 0) + 1; });
       saveLocal();
     }
-    localStorage.setItem('voted_public', '1');
-    document.getElementById('vote-done').style.display = 'block';
-    document.getElementById('vote-area').style.display  = 'none';
+    localStorage.setItem('voted_public', JSON.stringify({ song: songVotes, perf: perfVotes }));
+    const voteDone = document.getElementById('vote-done');
+    const voteBtn2 = document.getElementById('vote-btn');
+    if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Voto registrado! Podés modificarlo mientras la votación esté abierta.'; }
+    if (voteBtn2) { voteBtn2.innerHTML = 'ACTUALIZAR VOTO'; voteBtn2.disabled = false; }
   } catch(e) {
     console.error(e);
     mcAlert('Error al enviar el voto. Intentá de nuevo.');
-    btn.innerHTML = '✅ ENVIAR VOTOS';
+    btn.innerHTML = prevRaw ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTOS';
     btn.disabled  = false;
     return;
   }

@@ -247,18 +247,19 @@ if ('serviceWorker' in navigator) {
     </div>
     <div id="event-banner-vote" class="event-banner" style="display:none"></div>
 
-    <div id="vote-closed-banner" style="display:none;background:linear-gradient(135deg,rgba(170,61,80,.18),rgba(122,37,53,.18));border:1px solid #aa3d50;color:#e8a0ac;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.5px;text-align:center">
-      🔒 <strong>LA VOTACIÓN ESTÁ CERRADA</strong> · ¡Gracias por participar!
+    <!-- Votación cerrada -->
+    <div id="vote-closed-banner" style="display:none;text-align:center;padding:24px 16px">
+      <div style="font-size:38px;margin-bottom:10px">🎤</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#e8a0ac;margin-bottom:6px">LA VOTACIÓN ESTÁ CERRADA</div>
+      <div id="vote-closed-msg" style="font-size:14px;color:var(--text2);line-height:1.6"></div>
     </div>
-    <div id="vote-done" class="alert alert-success" style="display:none"></div>
 
-    <div style="text-align:center;margin-bottom:10px">
-      <button class="btn btn-outline btn-sm" onclick="resetVoteForTesting()" style="font-size:11px;opacity:.6">🧪 Votar de nuevo (modo prueba)</button>
-    </div>
+    <!-- Voto registrado (banner sobre el formulario) -->
+    <div id="vote-done" class="alert alert-success" style="display:none;margin-bottom:10px"></div>
 
     <div id="vote-area">
       <div id="vote-cards-container" style="margin-bottom:10px"></div>
-      <button class="btn btn-gold" id="vote-btn" onclick="submitPublicVote()">ENVIAR VOTOS</button>
+      <button class="btn btn-gold" id="vote-btn" onclick="submitPublicVote()" style="width:100%">ENVIAR VOTOS</button>
     </div>
   </div>
 
