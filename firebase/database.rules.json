@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "participants": {
+      ".read": true,
+      ".write": true,
+      "$pid": {
+        ".validate": "newData.hasChildren(['name', 'email', 'timestamp'])"
+      }
+    },
+    "settings": {
+      ".read": true,
+      ".write": true
+    },
+    "history": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

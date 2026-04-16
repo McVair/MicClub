@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MIC CLUB">
+<meta name="description" content="MIC CLUB · Las Alas de Mi Voz · Karaoke Gamificado">
+<title>MIC CLUB · Las Alas de Mi Voz</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script>
+// Limpia Service Workers de proyectos anteriores (ej: Construct 3)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  caches.keys().then(keys => {
+    keys.forEach(k => caches.delete(k));
+  });
+}
+</script>
+<script type="module" src="js/firebase.js"></script>
+</head>
+<body>
+
+<!-- ── BACK BAR (fixed bottom, shows when navigating from home) ── -->
+<div id="back-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px 18px;background:linear-gradient(0deg,var(--bg) 70%,transparent);z-index:200">
+  <button onclick="navBack()" style="width:100%;max-width:680px;margin:0 auto;display:block;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px;padding:11px;border-radius:8px;cursor:pointer;min-height:44px">← VOLVER</button>
+</div>
+
+<!-- ── CUSTOM MODAL (replaces confirm/alert/prompt) ── -->
+<div id="custom-modal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div id="cm-title" style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);margin-bottom:10px"></div>
+    <div id="cm-msg" style="font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.6"></div>
+    <div id="cm-input-wrap" style="display:none;margin-bottom:14px">
+      <input id="cm-input" type="password" placeholder="" style="width:100%">
+    </div>
+    <div id="cm-btns" style="display:grid;gap:8px"></div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ─────────── HOME · DASHBOARD ─────────── -->
+  <div id="page-home" class="page active">
+
+    <!-- Gate de login -->
+    <div id="home-login-gate" style="text-align:center;padding:32px 0">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:4px;color:var(--text2);margin-bottom:36px">LAS ALAS DE MI VOZ</div>
+      <div class="form-group">
+        <input type="password" id="home-pass" placeholder="Contraseña de acceso"
+          onkeyup="if(event.key==='Enter')homeLogin()" style="text-align:center">
+      </div>
+      <button class="btn-dash" onclick="homeLogin()" style="width:100%;font-size:16px;min-height:52px;border-color:var(--gold);color:var(--gold)">INGRESAR</button>
+      <div id="home-login-err" class="alert alert-error mt-12" style="display:none">Contraseña incorrecta</div>
+    </div>
+
+    <!-- Dashboard (visible tras login) -->
+    <div id="home-dashboard" style="display:none">
+
+      <!-- Título / Evento activo -->
+      <div style="text-align:center;padding:10px 0 14px">
+        <!-- Sin evento activo -->
+        <div id="dash-no-event">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
+          <div style="font-size:10px;letter-spacing:4px;color:var(--text2);text-transform:uppercase;margin-top:4px">LAS ALAS DE MI VOZ</div>
+        </div>
+        <!-- Con evento activo -->
+        <div id="dash-has-event" style="display:none">
+          <div id="dash-event-name" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,64px);letter-spacing:3px;color:var(--gold);line-height:1.05"></div>
+          <div id="dash-event-details" style="font-size:13px;color:var(--text2);margin-top:8px;letter-spacing:0.5px"></div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:var(--text);opacity:.9;margin-top:10px;text-transform:uppercase;letter-spacing:3px">MIC CLUB · LAS ALAS DE MI VOZ</div>
+        </div>
+      </div>
+
+      <!-- Iniciar / Terminar Evento + Votación -->
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button id="dash-vote-toggle-btn" onclick="toggleVoting()"
+          style="flex:1;background:linear-gradient(135deg,#1a3324,#101e16);color:#3a6648;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;padding:12px 8px;cursor:pointer;min-height:52px;opacity:.55;pointer-events:none">ABRIR VOTACIÓN</button>
+        <button id="dash-show-btn" class="btn-dash btn-show-action" onclick="dashToggleShow()"
+          style="flex:1">INICIAR EVENTO</button>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+          <div id="dash-parts" style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text1);line-height:1">0</div>
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text2);font-family:'Oswald',sans-serif">PARTICIPANTES</div>
+          <div style="font-size:9px;color:var(--text2)">con canción</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+          <div id="dash-reservas" style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text1);line-height:1">0</div>
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text2);font-family:'Oswald',sans-serif">RESERVAS</div>
+          <div style="font-size:9px;color:var(--text2)">lugares</div>
+        </div>
+      </div>
+
+      <!-- Votación (aparece cuando inicia el show) -->
+      <div id="dash-vote-section" style="display:grid;gap:6px;margin-bottom:6px">
+        <div style="display:flex;gap:6px">
+          <button id="dash-btn-vote-pub" class="btn-dash" onclick="navPush('vote-public')" style="flex:1;text-align:left;padding-left:10px">🗳️ Votación Pública</button>
+          <button class="btn-dash btn-copy" onclick="dashCopyLink('vote')">Copiar</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button id="dash-btn-vote-jury" class="btn-dash" onclick="navPush('jury')" style="flex:1;text-align:left;padding-left:10px">⭐ Votación Jurado</button>
+          <button class="btn-dash btn-copy" onclick="dashCopyLink('jury')">Copiar</button>
+        </div>
+      </div>
+
+      <!-- Navegación -->
+      <div style="display:grid;gap:6px;margin-bottom:8px">
+        <div style="display:flex;gap:6px">
+          <button id="dash-ranking-btn" class="btn-dash" onclick="navPush('ranking')" style="flex:1;text-align:left;padding-left:10px">🏆 <span id="dash-ranking-label">Resultados</span></button>
+          <button class="btn-dash btn-copy" onclick="dashCopyLink('ranking')">Copiar</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-dash" onclick="navPush('show')" style="flex:1;text-align:left;padding-left:10px">🎤 MicClub</button>
+          <button class="btn-dash btn-copy" onclick="dashCopyLink('micclub')">Copiar</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-dash" onclick="navPush('register')" style="flex:1;text-align:left;padding-left:10px">🎤 Reserva</button>
+          <button class="btn-dash btn-copy" onclick="dashCopyLink('register')">Copiar</button>
+        </div>
+        <button class="btn-dash" onclick="navToConfig()" style="width:100%;text-align:left;padding-left:10px">⚙️ Config participantes</button>
+        <button class="btn-dash" onclick="downloadSongLinks()" style="width:100%;text-align:left;padding-left:10px">⬇️ Descargar lista de canciones</button>
+        <button class="btn-dash" onclick="navPush('history')" style="width:100%;text-align:left;padding-left:10px">📚 Historial</button>
+      </div>
+
+      <!-- Borrar Todo -->
+      <button onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px">🗑️ BORRAR TODO</button>
+
+    </div>
+  </div>
+
+  <!-- ─────────── RESERVA ─────────── -->
+  <div id="page-register" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title" id="register-page-title">RESERVA</div>
+      <div class="hero-sub" id="register-page-sub">Tu perfil · Canción · Puntos</div>
+    </div>
+    <div id="event-banner-register" class="event-banner" style="display:none"></div>
+
+    <!-- A · Puerta de email (siempre visible primero) -->
+    <div id="reg-email-gate" class="card">
+      <div class="card-title">📧 Ingresá tu email MicClub</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">Tu email es tu identificador. Si ya participaste antes cargamos tu perfil automáticamente.</p>
+      <div id="reg-err" class="alert alert-error" style="display:none"></div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" id="r-email" placeholder="tu@email.com"
+          onkeyup="if(event.key==='Enter')checkEmail()">
+      </div>
+      <!-- Confirmación nuevo usuario (aparece si el email no existe) -->
+      <div id="reg-email-confirm" style="display:none;background:rgba(212,168,67,.12);border:1px solid var(--gold);border-radius:10px;padding:16px;margin-bottom:14px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:6px">📧 Email no registrado</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5" id="reg-email-confirm-msg">¿Querés crear un nuevo usuario con este email?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-outline btn-sm" onclick="cancelEmailConfirm()">✕ No, editar</button>
+          <button class="btn btn-gold btn-sm"    onclick="showRegistrationForm()">✅ Sí, continuar</button>
+        </div>
+      </div>
+      <button class="btn btn-gold" id="reg-email-btn" onclick="checkEmail()">🔍 BUSCAR / CONTINUAR</button>
+    </div>
+
+    <!-- B · Formulario completo (solo para usuarios nuevos) -->
+    <div id="reg-main-form" style="display:none">
+      <div class="card" style="padding:14px">
+        <div class="modal-field-group">
+          <div class="modal-row"><label>Nombre *</label><input type="text" id="r-name" placeholder="Tu nombre" maxlength="50"></div>
+          <div class="modal-row"><label>WhatsApp *</label><input type="tel" id="r-wa" placeholder="+54 11 1234-5678"></div>
+          <div class="modal-row"><label>Referido (opcional)</label><input type="text" id="r-ref" placeholder="Quién te invitó" maxlength="50"></div>
+          <div class="modal-row" id="r-people-row"><label>Personas en reserva *</label><input type="number" id="r-people" min="1" max="20" placeholder="Ej: 2" oninput="updateRegPreview()"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--text2)">Asistencia +5 · Canción +3 · <span id="prev-ppl">Convocatoria +1</span></span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)">BASE <span id="prev-total">9</span> pts</span>
+        </div>
+        <span id="prev-duo" style="display:none"></span>
+        <span id="prev-pts" style="display:none"></span>
+        <div id="reg-form-err" class="alert alert-error mt-12" style="display:none"></div>
+        <button class="btn btn-gold mt-12" id="reg-btn" onclick="createNewUser()">CONFIRMAR</button>
+      </div>
+    </div>
+
+    <!-- C · Vista de perfil -->
+    <div id="reg-profile" style="display:none">
+
+      <!-- MI PERFIL -->
+      <div class="card" style="padding:14px">
+        <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px">Mi Perfil</div>
+        <div class="modal-field-group">
+          <div class="modal-row"><label>Email</label><span id="prof-email" style="flex:1;font-size:14px;color:var(--text2);padding:4px 0"></span></div>
+          <div class="modal-row"><label>Nombre</label><input type="text" id="prof-name-input" class="inline-edit" maxlength="50" placeholder="Tu nombre"></div>
+          <div class="modal-row"><label>WhatsApp</label><input type="tel" id="prof-phone-input" class="inline-edit" placeholder="+54 11 1234-5678"></div>
+        </div>
+      </div>
+
+      <!-- EVENTO: personas + canción (solo cuando hay show activo) -->
+      <div id="prof-event-section" style="display:none">
+
+        <!-- Personas con tilde -->
+        <div class="card" style="padding:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase">Cantidad de Invitados</div>
+            <span id="people-check" style="display:none;background:var(--teal);color:#0a0a0f;border-radius:50%;width:20px;height:20px;font-size:12px;display:none;align-items:center;justify-content:center;font-weight:700">✓</span>
+          </div>
+          <div class="modal-row">
+            <label>Personas</label>
+            <input type="number" id="prof-people-input" class="inline-edit" min="1" max="20" placeholder="Ej: 2" oninput="updatePeopleCheck()">
+          </div>
+        </div>
+
+        <!-- Canción con tilde -->
+        <div class="card" style="padding:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase">Mi Canción</div>
+            <span id="song-saved-check" style="display:none;background:var(--teal);color:#0a0a0f;border-radius:50%;width:20px;height:20px;font-size:12px;align-items:center;justify-content:center;font-weight:700">✓</span>
+          </div>
+          <div class="modal-field-group">
+            <div class="modal-row"><label>Canción</label><input type="text" id="s-title" class="inline-edit" placeholder="Ej: Bohemian Rhapsody" maxlength="80" oninput="updateSongCheck()"></div>
+            <div class="modal-row"><label>Artista</label><input type="text" id="s-artist" class="inline-edit" placeholder="Ej: Queen" maxlength="80" oninput="updateSongCheck()"></div>
+            <div class="modal-row"><label>Link Karaoke</label><input type="url" id="s-link" class="inline-edit" placeholder="https://youtube.com/watch?v=..." oninput="updateSongCheck()"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Botón guardar y salir -->
+      <div id="confirm-all-err" class="alert alert-error" style="display:none"></div>
+      <button class="btn btn-gold" id="confirm-all-btn" onclick="saveAndExit()" style="width:100%;min-height:52px;font-size:16px;margin-top:4px">💾 GUARDAR Y SALIR</button>
+
+    </div>
+      </div>
+
+  </div>
+
+  <!-- ─────────── VOTACIÓN PÚBLICA ─────────── -->
+  <div id="page-vote-public" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title">¡VOTÁ A TU FAVORITO!</div>
+    </div>
+    <div id="event-banner-vote" class="event-banner" style="display:none"></div>
+
+    <div id="vote-closed-banner" style="display:none;background:linear-gradient(135deg,rgba(170,61,80,.18),rgba(122,37,53,.18));border:1px solid #aa3d50;color:#e8a0ac;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.5px;text-align:center">
+      🔒 <strong>LA VOTACIÓN ESTÁ CERRADA</strong> · ¡Gracias por participar!
+    </div>
+    <div id="vote-done" class="alert alert-success" style="display:none"></div>
+
+    <div style="text-align:center;margin-bottom:10px">
+      <button class="btn btn-outline btn-sm" onclick="resetVoteForTesting()" style="font-size:11px;opacity:.6">🧪 Votar de nuevo (modo prueba)</button>
+    </div>
+
+    <div id="vote-area">
+      <div id="vote-cards-container" style="margin-bottom:10px"></div>
+      <button class="btn btn-gold" id="vote-btn" onclick="submitPublicVote()">ENVIAR VOTOS</button>
+    </div>
+  </div>
+
+  <!-- ─────────── RANKING ─────────── -->
+  <div id="page-ranking" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title" style="font-size:clamp(20px,5.5vw,36px);letter-spacing:2px">RESULTADOS DE VOTACIÓN</div>
+    </div>
+    <div id="event-banner-ranking" class="event-banner" style="display:none"></div>
+    <div id="bonus-banner-rank" style="display:none" class="bonus-active">⚡ <strong>BONUS ACTIVO</strong> — Doble puntaje</div>
+
+    <!-- QR con marco dorado — solo visible cuando la votación está abierta -->
+    <div id="rank-qr-section" style="display:none;text-align:center;margin-bottom:18px">
+      <div style="display:inline-block;border:1px solid rgba(212,168,67,.45);border-radius:12px;padding:10px;background:rgba(212,168,67,.04);box-shadow:0 0 12px rgba(212,168,67,.08)">
+        <div id="rank-vote-qr" style="display:block;line-height:0"></div>
+      </div>
+    </div>
+
+    <!-- Votación del Público -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">🗳️ Votación del Público</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <div class="card-sub" style="margin-bottom:8px">🎵 Mejor Canción</div>
+          <div id="rank-pub-song"></div>
+        </div>
+        <div>
+          <div class="card-sub" style="margin-bottom:8px">🎭 Mejor Performance</div>
+          <div id="rank-pub-perf"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Votación del Jurado -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">⭐ Votación del Jurado</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <div class="card-sub" style="margin-bottom:8px">🎵 Canción</div>
+          <div id="rank-jury-song"></div>
+        </div>
+        <div>
+          <div class="card-sub" style="margin-bottom:8px">🎭 Performance</div>
+          <div id="rank-jury-perf"></div>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="card-sub" style="margin-bottom:8px">📣 Hinchada</div>
+          <div id="rank-jury-hinchada" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── MICCLUB (ex-SHOW) ─────────── -->
+  <div id="page-show" class="page">
+    <div class="hero" style="padding-bottom:4px">
+      <div class="hero-title">MIC CLUB</div>
+      <div class="hero-sub">Puntos Acumulados</div>
+    </div>
+    <div id="event-banner-show" class="event-banner" style="display:none"></div>
+    <div id="show-rows"></div>
+  </div>
+
+  <!-- ─────────── JURADO ─────────── -->
+  <div id="page-jury" class="page">
+    <div id="jury-page-header" style="text-align:center;padding:8px 0 14px"></div>
+    <div id="jury-select-grid" class="jury-grid"></div>
+  </div>
+
+  <!-- ─────────── ADMIN ─────────── -->
+  <div id="page-admin" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title">ADMIN</div>
+      <div class="hero-sub">Panel de control del evento</div>
+    </div>
+
+    <!-- Login -->
+    <div id="admin-login" class="card">
+      <div class="card-title">🔒 Acceso Administrador</div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="admin-pass" placeholder="Contraseña del evento"
+          onkeyup="if(event.key==='Enter')doAdminLogin()">
+      </div>
+      <button class="btn btn-gold" onclick="doAdminLogin()">ENTRAR</button>
+      <div id="admin-err" class="alert alert-error mt-12" style="display:none">Contraseña incorrecta</div>
+    </div>
+
+    <!-- Panel -->
+    <div id="admin-panel" style="display:none">
+      <div class="toggle-wrap" style="margin-bottom:16px">
+        <button class="toggle-btn active" id="atab-ctrl-btn"  onclick="setAdminTab('ctrl')">⚙️ Control</button>
+        <button class="toggle-btn"        id="atab-parts-btn" onclick="setAdminTab('parts')">👥 Partic.</button>
+        <button class="toggle-btn"        id="atab-jury-btn"  onclick="setAdminTab('jury')">⭐ Jurado</button>
+        <button class="toggle-btn"        id="atab-links-btn" onclick="setAdminTab('links')">🔗 Links</button>
+      </div>
+
+      <!-- Control -->
+      <div id="atab-ctrl">
+        <div class="card">
+          <div class="card-title">⚙️ Control del Evento</div>
+          <div style="display:grid;gap:10px">
+
+            <!-- Bonus -->
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:8px;padding:13px;border:1px solid var(--border)">
+              <div>
+                <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px">⚡ Bonus Temática</div>
+                <div style="font-size:11px;color:var(--text2)">Doble puntaje en premios</div>
+              </div>
+              <label style="position:relative;display:inline-block;width:50px;height:26px;margin:0">
+                <input type="checkbox" id="bonus-chk" onchange="toggleBonus(this.checked)" style="width:auto;opacity:0;position:absolute">
+                <span id="bonus-slider" style="position:absolute;inset:0;background:var(--bg4);border-radius:26px;cursor:pointer;transition:.2s"></span>
+              </label>
+            </div>
+
+            <!-- Toggle votación: se maneja desde la pantalla Ranking -->
+
+            <!-- Terminar Evento -->
+            <div style="background:rgba(212,168,67,.06);border:2px solid var(--gold);border-radius:8px;padding:13px">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🎬 Terminar Evento</div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Borra canciones, puntajes del jurado y votos del público. <strong style="color:var(--gold)">Los participantes y sus puntos MicClub se conservan</strong> para el próximo evento.</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-gold btn-sm" onclick="endShow()" style="flex:1">🎬 TERMINAR EVENTO</button>
+                <button class="btn btn-teal btn-sm" id="config-vote-toggle-btn" onclick="toggleVoting()" style="flex:1">🔓 ABRIR VOTACIÓN</button>
+              </div>
+            </div>
+
+
+<button class="btn btn-outline btn-sm" onclick="exportCSV()" style="width:100%">📤 Exportar CSV</button>
+            <hr class="divider">
+            <div style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px">
+              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">🗑️ Vaciar Base de Datos</div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Elimina TODOS los participantes y deja el sistema vacío. No se puede deshacer.</div>
+              <button class="btn btn-danger btn-sm" onclick="clearAllParticipants()" style="width:100%">🗑️ BORRAR TODO Y EMPEZAR DE CERO</button>
+            </div>
+            <div style="background:rgba(139,47,201,.08);border:1px solid var(--purple-light);border-radius:8px;padding:12px">
+              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--purple-light);margin-bottom:4px">🧪 Datos de Prueba</div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Borra todos los participantes actuales y carga 16 nuevos con canciones ya confirmadas, listos para votar.</div>
+              <button id="seed-btn" class="btn btn-sm" onclick="seedTestData()" style="width:100%;background:linear-gradient(135deg,var(--purple-light),var(--purple));color:#fff">🧪 CARGAR 16 PARTICIPANTES DE PRUEBA</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Participantes -->
+      <div id="atab-parts" style="display:none">
+        <div id="admin-parts-list"><div style="text-align:center;color:var(--text2);padding:20px">Cargando...</div></div>
+      </div>
+
+      <!-- Jurado -->
+      <div id="atab-jury" style="display:none">
+        <div class="card">
+          <div class="card-title">🎵 Puntajes Canción</div>
+          <div id="admin-jury-song-table"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎭 Puntajes Performance</div>
+          <div id="admin-jury-perf-table"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📣 Puntajes Hinchada</div>
+          <div id="admin-jury-hinchada-table"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏅 Asignación de Premios</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Al asignar un premio de jurado se suman automáticamente +5 pts MicClub al ganador.</p>
+          <div id="admin-prizes-list"></div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div id="atab-links" style="display:none">
+        <div class="card">
+          <div class="card-title">🔗 Links del Evento</div>
+          <div id="links-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── CONFIG PARTICIPANTES ─────────── -->
+  <div id="page-config" class="page">
+    <div style="text-align:center;padding:6px 0 8px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gold)">PARTICIPANTES</div>
+    </div>
+    <div id="event-banner-config" class="event-banner" style="display:none"></div>
+    <div id="config-parts-list"><div style="text-align:center;color:var(--text2);padding:20px">Cargando...</div></div>
+  </div>
+
+  <!-- ─────────── HISTORIAL ─────────── -->
+  <div id="page-history" class="page">
+    <div style="text-align:center;padding:6px 0 8px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gold)">HISTORIAL</div>
+    </div>
+    <div id="event-banner-history" class="event-banner" style="display:none"></div>
+    <div id="history-list"><div style="text-align:center;color:var(--text2);padding:20px">Sin eventos anteriores</div></div>
+  </div>
+
+  <!-- ─────────── HISTORIAL · DETALLE ─────────── -->
+  <div id="page-history-detail" class="page">
+    <div id="history-detail-content"></div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Modal de edición -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">EDITAR PARTICIPANTE</div>
+    <input type="hidden" id="edit-id">
+
+    <!-- Siempre editable -->
+    <div class="modal-field-group">
+      <div class="modal-row"><label>Nombre</label><input type="text" id="edit-name" maxlength="50"></div>
+      <div class="modal-row"><label>WhatsApp</label><input type="tel" id="edit-wa"></div>
+      <div class="modal-row"><label>Email</label><input type="email" id="edit-email"></div>
+      <div class="modal-row"><label>Puntos Extra</label><input type="number" id="edit-extra" value="0" min="0"></div>
+    </div>
+
+    <!-- Solo cuando hay evento activo -->
+    <div id="edit-event-section">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin:12px 0 8px">Evento actual</div>
+      <div class="modal-field-group">
+        <div class="modal-row"><label>Personas</label><input type="number" id="edit-ppl" min="0" max="20" placeholder="Ej: 2"></div>
+        <div class="modal-row"><label>Canción</label><input type="text" id="edit-song" maxlength="80"></div>
+        <div class="modal-row"><label>Artista</label><input type="text" id="edit-artist" maxlength="80"></div>
+        <div class="modal-row"><label>Link Karaoke</label><input type="url" id="edit-karlink"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-gold"    onclick="saveParticipant()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de puntuación del jurado (4 categorías) -->
+<div class="modal-overlay" id="jury-score-modal">
+  <div class="modal">
+    <div style="font-weight:700;font-size:15px;margin-bottom:12px" id="jury-modal-participant-name"></div>
+
+    <!-- Canción -->
+    <div class="jury-section-label jury-sl-purple">Canción <span id="jury-modal-song-total" class="jury-section-total jury-st-purple">0</span></div>
+    <div class="jury-criteria" id="jury-modal-song-criteria"></div>
+
+    <!-- Performance -->
+    <div class="jury-section-label jury-sl-gold">Performance <span id="jury-modal-perf-total" class="jury-section-total jury-st-gold">0</span></div>
+    <div class="jury-criteria" id="jury-modal-perf-criteria"></div>
+
+    <!-- Hinchada -->
+    <div class="jury-section-label jury-sl-teal">Hinchada <span id="jury-modal-hinchada-total" class="jury-section-total jury-st-teal">0</span></div>
+    <div class="jury-criteria" id="jury-modal-hinchada-criteria"></div>
+
+    <div id="jury-modal-ok" class="alert alert-success" style="display:none;margin:10px 0 4px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <button class="btn btn-outline" onclick="closeJuryModal()">Cancelar</button>
+      <button class="btn btn-gold" id="jury-modal-confirm-btn" onclick="confirmJuryModal()" disabled style="opacity:.4">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Librerías externas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- App -->
+<script src="js/app.js" defer></script>
+</body>
+</html>

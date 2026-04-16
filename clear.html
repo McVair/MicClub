@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Limpiando caché...</title>
+<style>
+  body { background: #0a0a0f; color: #d4a843; font-family: sans-serif;
+         display: flex; flex-direction: column; align-items: center;
+         justify-content: center; height: 100vh; margin: 0; text-align: center; }
+  h2 { font-size: 1.4rem; margin-bottom: 12px; }
+  p  { color: #aaa; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+<h2>🎤 MIC CLUB</h2>
+<p>Limpiando Service Workers anteriores...</p>
+<script>
+(async () => {
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+  // Redirige a MIC CLUB con recarga forzada para evitar caché
+  location.replace('index.html');
+})();
+</script>
+</body>
+</html>

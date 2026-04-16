@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -NoProfile -Command \"Test-Path 'C:\\\\Users\\\\lucia\\\\AppData\\\\Local\\\\Temp\\\\firebase.exe'; \\(Get-Item 'C:\\\\Users\\\\lucia\\\\AppData\\\\Local\\\\Temp\\\\firebase.exe' -ErrorAction SilentlyContinue\\).Length\")",
+      "Bash(cmd.exe /c \"gcloud --version 2>&1 | head -1\")",
+      "Bash(powershell.exe -NoProfile -Command \"& 'C:\\\\Users\\\\lucia\\\\AppData\\\\Local\\\\Temp\\\\firebase.exe' --version\")",
+      "Bash(powershell.exe -NoProfile -Command ':*)"
+    ]
+  }
+}
