@@ -76,6 +76,7 @@ function nav(page) {
   if (page === 'history')        renderHistoryPage();
   if (page === 'jury')           renderJurySelectors();
   if (page === 'register')       resetRegisterPage();
+  if (page === 'vote-public')    loadPublicVoteOpts();
   if (page === 'admin' && adminLoggedIn) {
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
