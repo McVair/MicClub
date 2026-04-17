@@ -1049,6 +1049,7 @@ function handleVotingState() {
   renderRankVoteLink();
   if (voteClosed) voteClosed.style.display = 'none';
   if (qrSection)  qrSection.style.display  = 'block';
+  if (MODE === 'vote' || currentPage === 'vote-public') loadPublicVoteOpts();
 }
 
 // ── REGISTRO ──────────────────────────────────────────────────────────────────
