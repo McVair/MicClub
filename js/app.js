@@ -443,7 +443,11 @@ function updateProgramPage() {
     detailsEl.style.display = 'none';
   }
   
-  // 2. Green Floating Button styles (Match dashboard Abrir Votación style)
+  // 2. Circular Floating Button styles (WhatsApp style in bottom-right)
+  const hasVoted = !!localStorage.getItem('voted_public');
+  voteBtn.innerText = hasVoted ? "Modificar\nvoto" : "VOTAR!";
+  voteBtn.style.fontSize = hasVoted ? '11px' : '13px';
+  
   if (votingOpen) {
     voteBtn.disabled = false;
     voteBtn.style.opacity = '1';
@@ -453,10 +457,10 @@ function updateProgramPage() {
     voteBtn.style.cursor = 'pointer';
   } else {
     voteBtn.disabled = true;
-    voteBtn.style.opacity = '0.55';
+    voteBtn.style.opacity = '0.75';
     voteBtn.style.pointerEvents = 'none';
-    voteBtn.style.background = 'linear-gradient(135deg,#1a3324,#101e16)';
-    voteBtn.style.color = '#3a6648';
+    voteBtn.style.background = 'linear-gradient(135deg,#d32f2f,#8b0000)';
+    voteBtn.style.color = '#ffffff';
     voteBtn.style.cursor = 'default';
   }
 
@@ -1773,6 +1777,10 @@ async function submitPublicVote() {
     const voteBtn2 = document.getElementById('vote-btn');
     if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Voto registrado! Podés modificarlo mientras la votación esté abierta.'; }
     if (voteBtn2) { voteBtn2.innerHTML = 'ACTUALIZAR VOTO'; voteBtn2.disabled = false; }
+    
+    mcAlert('¡Voto enviado con éxito!', () => {
+      nav('program');
+    });
   } catch(e) {
     console.error(e);
     mcAlert('Error al enviar el voto. Intentá de nuevo.');
