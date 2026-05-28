@@ -446,14 +446,14 @@ function updateProgramPage() {
   // 2. Circular Floating Button styles (WhatsApp style in bottom-right)
   const hasVoted = !!localStorage.getItem('voted_public');
   voteBtn.innerText = hasVoted ? "Modificar\nvoto" : "VOTAR!";
-  voteBtn.style.fontSize = hasVoted ? '11px' : '13px';
+  voteBtn.style.fontSize = hasVoted ? '14px' : '16px';
   
   if (votingOpen) {
     voteBtn.disabled = false;
     voteBtn.style.opacity = '1';
     voteBtn.style.pointerEvents = 'auto';
     voteBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-    voteBtn.style.color = '#0a0a0f';
+    voteBtn.style.color = '#ffffff';
     voteBtn.style.cursor = 'pointer';
   } else {
     voteBtn.disabled = true;
