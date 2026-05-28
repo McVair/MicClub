@@ -2875,6 +2875,29 @@ async function simularEvento() {
       startedAt: Date.now()
     };
 
+    // Respaldar datos activos existentes si son reales (IDs que no empiezan con demo_)
+    const currentParts = allParticipants || {};
+    const currentEvent = localState.settings?.currentEvent || null;
+    const currentShowRunning = localState.settings?.showRunning || false;
+    const currentVotingOpen = localState.settings?.votingOpen || false;
+
+    const hasRealData = Object.keys(currentParts).length > 0 &&
+                        !Object.keys(currentParts).every(id => id.startsWith('demo_'));
+
+    if (hasRealData) {
+      const backupData = {
+        participants: currentParts,
+        currentEvent: currentEvent,
+        showRunning: currentShowRunning,
+        votingOpen: currentVotingOpen
+      };
+      if (firebaseOk) {
+        await dbSet(dbRef(db, 'settings/backup_before_demo'), backupData);
+      } else {
+        localState.backup_before_demo = backupData;
+      }
+    }
+
     if (firebaseOk) {
       await dbSet(dbRef(db, 'participants'), newParticipants);
       await dbUpdate(dbRef(db, 'settings'), {
@@ -2988,29 +3011,67 @@ async function simularVotacion() {
 async function limpiarSimulacion() {
   mcConfirm('¿Querés limpiar todos los datos de prueba y resetear el sistema (sin guardar en el historial)?', async () => {
     try {
+      let backup = null;
       if (firebaseOk) {
-        await dbSet(dbRef(db, 'participants'), null);
-        await dbUpdate(dbRef(db, 'settings'), {
-          votingOpen: false,
-          votingCloseAt: null,
-          showRunning: false,
-          currentEvent: null
-        });
+        const snap = await dbGet(dbRef(db, 'settings/backup_before_demo'));
+        backup = snap.val();
       } else {
-        localState.participants = {};
-        localState.settings.showRunning = false;
-        localState.settings.votingOpen = false;
-        localState.settings.votingCloseAt = null;
-        localState.settings.currentEvent = null;
-        saveLocal();
+        backup = localState.backup_before_demo;
       }
-      allParticipants = {};
-      showRunning = false;
-      votingOpen = false;
-      localStorage.removeItem('voted_public');
-      updateUI();
-      nav('home');
-      mcAlert('✅ Datos de simulación limpiados. El sistema volvió a estar vacío y en espera.');
+
+      if (backup) {
+        // Restaurar datos reales respaldados
+        if (firebaseOk) {
+          await dbSet(dbRef(db, 'participants'), backup.participants);
+          await dbUpdate(dbRef(db, 'settings'), {
+            votingOpen: backup.votingOpen || false,
+            votingCloseAt: null,
+            showRunning: backup.showRunning || false,
+            currentEvent: backup.currentEvent || null
+          });
+          await dbSet(dbRef(db, 'settings/backup_before_demo'), null);
+        } else {
+          localState.participants = backup.participants;
+          localState.settings.showRunning = backup.showRunning || false;
+          localState.settings.votingOpen = backup.votingOpen || false;
+          localState.settings.votingCloseAt = null;
+          localState.settings.currentEvent = backup.currentEvent || null;
+          delete localState.backup_before_demo;
+          saveLocal();
+        }
+        allParticipants = backup.participants || {};
+        showRunning = backup.showRunning || false;
+        votingOpen = backup.votingOpen || false;
+        localStorage.removeItem('voted_public');
+        updateUI();
+        nav('home');
+        mcAlert('✅ Datos de simulación limpiados. Tu evento activo original y los participantes registrados han sido restaurados exitosamente.');
+      } else {
+        // Limpieza normal sin respaldo
+        if (firebaseOk) {
+          await dbSet(dbRef(db, 'participants'), null);
+          await dbUpdate(dbRef(db, 'settings'), {
+            votingOpen: false,
+            votingCloseAt: null,
+            showRunning: false,
+            currentEvent: null
+          });
+        } else {
+          localState.participants = {};
+          localState.settings.showRunning = false;
+          localState.settings.votingOpen = false;
+          localState.settings.votingCloseAt = null;
+          localState.settings.currentEvent = null;
+          saveLocal();
+        }
+        allParticipants = {};
+        showRunning = false;
+        votingOpen = false;
+        localStorage.removeItem('voted_public');
+        updateUI();
+        nav('home');
+        mcAlert('✅ Datos de simulación limpiados. El sistema volvió a estar vacío y en espera.');
+      }
     } catch(e) {
       console.error(e);
       mcAlert('Error al limpiar los datos demo.');
