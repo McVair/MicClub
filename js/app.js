@@ -729,6 +729,9 @@ function updateDashboard() {
     rankBtn.classList.toggle('lit', showRunning);
   }
 
+  const btnSim = document.getElementById('btn-sim-votos');
+  if (btnSim) btnSim.disabled = !showRunning;
+
   updateEventInfoBanners();
 }
 
@@ -2814,6 +2817,176 @@ function showErr(id, msg) {
   e.style.display = 'block';
   setTimeout(() => e.style.display = 'none', 5000);
 }
+
+// ── PRUEBAS Y SIMULACIÓN ──────────────────────────────────────────────────────
+async function simularEvento() {
+  const names = ['Ana', 'Carlos', 'Diego', 'Elena', 'Fernando', 'Gabriela', 'Hugo', 'Isabel', 'Juan', 'Laura', 'Martín', 'Natalia', 'Óscar', 'Patricia', 'Ramiro', 'Sofía'];
+  
+  const demoSongs = [
+    { title: "De Música Ligera", artist: "Soda Stereo" },
+    { title: "Como Alí", artist: "Los Piojos" },
+    { title: "Persiana Americana", artist: "Soda Stereo" },
+    { title: "La Bifurcada", artist: "Memphis La Blusera" },
+    { title: "Ji Ji Ji", artist: "Patricio Rey" },
+    { title: "Mil Horas", artist: "Los Abuelos de la Nada" },
+    { title: "Seguir Viviendo Sin Tu Amor", artist: "Luis Alberto Spinetta" },
+    { title: "Flaca", artist: "Andrés Calamaro" },
+    { title: "Tratame Suavemente", artist: "Soda Stereo" },
+    { title: "Un Vestido y un Amor", artist: "Fito Páez" },
+    { title: "Mariposa Tecknicolor", artist: "Fito Páez" },
+    { title: "11 y 6", artist: "Fito Páez" },
+    { title: "Crimen", artist: "Gustavo Cerati" },
+    { title: "Seminare", artist: "Charly García" },
+    { title: "Rezo por Vos", artist: "Charly García" },
+    { title: "Costumbres Argentinas", artist: "Los Abuelos de la Nada" }
+  ];
+
+  const newParticipants = {};
+  
+  names.forEach((name, i) => {
+    const id = `demo_p${String(i+1).padStart(2, '0')}`;
+    const song = demoSongs[i];
+    newParticipants[id] = {
+      id: id,
+      name: name,
+      people: Math.floor(Math.random() * 8) + 1,
+      whatsapp: `11${Math.floor(10000000 + Math.random() * 90000000)}`,
+      email: `${name.toLowerCase()}@micclub.com`,
+      referrer: '',
+      reservationCode: `DEMO${Math.floor(1000 + Math.random() * 9000)}`,
+      song: `${song.title} — ${song.artist}`,
+      songTitle: song.title,
+      songArtist: song.artist,
+      karaokeLink: 'https://youtube.com/watch?v=demo',
+      songConfirmed: true,
+      timestamp: Date.now(),
+      updatedAt: Date.now(),
+      prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
+      juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
+      extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
+    };
+  });
+
+  try {
+    const evData = {
+      name: 'Edición Demo Especial',
+      date: new Date().toLocaleDateString('es-AR'),
+      venue: 'Mic Club Stage',
+      startedAt: Date.now()
+    };
+
+    if (firebaseOk) {
+      await dbSet(dbRef(db, 'participants'), newParticipants);
+      await dbUpdate(dbRef(db, 'settings'), {
+        votingOpen: false,
+        votingCloseAt: null,
+        showRunning: true,
+        currentEvent: evData
+      });
+    } else {
+      localState.participants = newParticipants;
+      localState.settings.showRunning = true;
+      localState.settings.votingOpen = false;
+      localState.settings.votingCloseAt = null;
+      localState.settings.currentEvent = evData;
+      allParticipants = newParticipants;
+      showRunning = true;
+      votingOpen = false;
+      saveLocal();
+    }
+    
+    allParticipants = newParticipants;
+    showRunning = true;
+    votingOpen = false;
+    
+    updateUI();
+    mcAlert('✅ Evento Demo creado con 16 participantes y canciones.');
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al iniciar el evento demo.');
+  }
+}
+
+async function simularVotacion() {
+  const pIds = Object.keys(allParticipants);
+  if (!pIds.length) {
+    mcAlert('No hay participantes para simular la votación. Iniciá el Evento Demo primero.');
+    return;
+  }
+
+  pIds.forEach(id => {
+    allParticipants[id].voteSong = 0;
+    allParticipants[id].votePerf = 0;
+    allParticipants[id].juryScoresSong = {};
+    allParticipants[id].juryScoresPerf = {};
+    allParticipants[id].juryScoresHinchada = {};
+  });
+
+  for (let i = 0; i < 50; i++) {
+    const rIdSong = pIds[Math.floor(Math.random() * pIds.length)];
+    const rIdPerf = pIds[Math.floor(Math.random() * pIds.length)];
+    allParticipants[rIdSong].voteSong++;
+    allParticipants[rIdPerf].votePerf++;
+  }
+
+  const jurors = ['jurado_1', 'jurado_2', 'jurado_3', 'jurado_4', 'jurado_5'];
+  
+  pIds.forEach(id => {
+    const p = allParticipants[id];
+    jurors.forEach(jId => {
+      p.juryScoresSong[jId] = {
+        afinacion: Math.floor(Math.random() * 5) + 6,
+        emocional: Math.floor(Math.random() * 5) + 6,
+        conexion: Math.floor(Math.random() * 5) + 6,
+        tematica: Math.floor(Math.random() * 5) + 6
+      };
+      
+      p.juryScoresPerf[jId] = {
+        vestuario: Math.floor(Math.random() * 5) + 6,
+        actitud: Math.floor(Math.random() * 5) + 6
+      };
+      
+      p.juryScoresHinchada[jId] = {
+        pancartas: Math.floor(Math.random() * 5) + 6,
+        energia: Math.floor(Math.random() * 5) + 6
+      };
+    });
+  });
+
+  try {
+    const updates = {};
+    if (firebaseOk) {
+      pIds.forEach(id => {
+        const p = allParticipants[id];
+        updates[`participants/${id}/voteSong`] = p.voteSong;
+        updates[`participants/${id}/votePerf`] = p.votePerf;
+        updates[`participants/${id}/juryScoresSong`] = p.juryScoresSong;
+        updates[`participants/${id}/juryScoresPerf`] = p.juryScoresPerf;
+        updates[`participants/${id}/juryScoresHinchada`] = p.juryScoresHinchada;
+      });
+      updates['settings/votingOpen'] = false;
+      updates['settings/votingCloseAt'] = null;
+      
+      await dbUpdate(dbRef(db), updates);
+    } else {
+      localState.settings.votingOpen = false;
+      localState.settings.votingCloseAt = null;
+      votingOpen = false;
+      saveLocal();
+    }
+    
+    votingOpen = false;
+    updateUI();
+    navPush('ranking');
+    mcAlert('✅ Simulación de 100 votos de público y calificaciones de 5 jurados completada. Mostrando resultados...');
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al guardar la simulación.');
+  }
+}
+
+window.simularEvento = simularEvento;
+window.simularVotacion = simularVotacion;
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 

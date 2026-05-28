@@ -137,6 +137,15 @@ if ('serviceWorker' in navigator) {
         <button class="btn-dash" onclick="navPush('history')" style="width:100%;text-align:left;padding-left:10px">📚 Historial</button>
       </div>
 
+      <!-- Pruebas / Simulación -->
+      <div class="card" style="margin-top:10px;margin-bottom:10px;border:1px dashed var(--purple-light);background:rgba(123, 97, 255, 0.03);padding:10px">
+        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;margin-bottom:8px;font-weight:700">🧪 Simulación y Pruebas</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button onclick="simularEvento()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px">1. Crear Evento Demo</button>
+          <button id="btn-sim-votos" onclick="simularVotacion()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px" disabled>2. Simular Votos</button>
+        </div>
+      </div>
+
       <!-- Borrar Todo -->
       <button onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px">🗑️ BORRAR TODO</button>
 
