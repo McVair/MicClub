@@ -2985,8 +2985,42 @@ async function simularVotacion() {
   }
 }
 
+async function limpiarSimulacion() {
+  mcConfirm('¿Querés limpiar todos los datos de prueba y resetear el sistema (sin guardar en el historial)?', async () => {
+    try {
+      if (firebaseOk) {
+        await dbSet(dbRef(db, 'participants'), null);
+        await dbUpdate(dbRef(db, 'settings'), {
+          votingOpen: false,
+          votingCloseAt: null,
+          showRunning: false,
+          currentEvent: null
+        });
+      } else {
+        localState.participants = {};
+        localState.settings.showRunning = false;
+        localState.settings.votingOpen = false;
+        localState.settings.votingCloseAt = null;
+        localState.settings.currentEvent = null;
+        saveLocal();
+      }
+      allParticipants = {};
+      showRunning = false;
+      votingOpen = false;
+      localStorage.removeItem('voted_public');
+      updateUI();
+      nav('home');
+      mcAlert('✅ Datos de simulación limpiados. El sistema volvió a estar vacío y en espera.');
+    } catch(e) {
+      console.error(e);
+      mcAlert('Error al limpiar los datos demo.');
+    }
+  });
+}
+
 window.simularEvento = simularEvento;
 window.simularVotacion = simularVotacion;
+window.limpiarSimulacion = limpiarSimulacion;
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 
