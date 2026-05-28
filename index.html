@@ -129,6 +129,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <button class="btn-dash" onclick="navToConfig()" style="width:100%;text-align:left;padding-left:10px">⚙️ Config participantes</button>
         <button class="btn-dash" onclick="downloadSongLinks()" style="width:100%;text-align:left;padding-left:10px">⬇️ Descargar lista de canciones</button>
+        <button class="btn-dash" onclick="downloadReservations()" style="width:100%;text-align:left;padding-left:10px">📥 Descargar reservas</button>
         <button class="btn-dash" onclick="navPush('history')" style="width:100%;text-align:left;padding-left:10px">📚 Historial</button>
       </div>
 
@@ -240,6 +241,137 @@ if ('serviceWorker' in navigator) {
 
   </div>
 
+  <!-- ─────────── PROGRAMA (PORTAL PÚBLICO) ─────────── -->
+  <div id="page-program" class="page" style="padding-bottom:100px">
+    <div class="hero" style="padding-bottom:12px;text-align:center">
+      <div id="program-event-name" class="hero-title" style="font-size:clamp(30px,7vw,46px);line-height:1.1;margin-bottom:4px">MicClub</div>
+      <div id="program-event-details" style="font-size:13px;color:var(--text2);margin-top:6px;letter-spacing:0.5px;display:none"></div>
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-top:14px;opacity:0.85">Las Alas de Mi Voz</div>
+    </div>
+
+    <!-- Auspiciantes (Grilla Superior) -->
+    <div style="margin-top:8px;margin-bottom:16px">
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
+      <div class="sponsors-grid" id="program-sponsors-top" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+    </div>
+
+    <!-- Descripción del Programa -->
+    <div class="card" style="margin-bottom:16px;background:var(--bg2);border:1px solid var(--border)">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);margin-bottom:4px;letter-spacing:1px">PROGRAMA OFICIAL</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;font-style:italic">Una experiencia donde cada voz tiene un lugar.</div>
+      <p style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:12px">
+        MIC CLUB nace como un espacio de encuentro, expresión y celebración colectiva a través de la música. Cada edición reúne artistas invitados, participantes de la comunidad y público dispuesto a compartir una noche única, donde cantar también significa conectar, jugar, emocionarse y crear recuerdos.
+      </p>
+      <p style="font-size:13px;line-height:1.6;color:var(--gold);font-weight:600">Gracias por ser parte de esta experiencia.</p>
+    </div>
+
+    <!-- Cronograma -->
+    <div class="card" style="margin-bottom:16px;background:var(--bg2);border:1px solid var(--border)">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);margin-bottom:16px;letter-spacing:1px">CRONOGRAMA</div>
+      
+      <!-- 1. Apertura -->
+      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">1. APERTURA</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Bienvenida oficial + presentación de la temática.</div>
+      </div>
+
+      <!-- 2. Show de Artistas Invitados -->
+      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">2. SHOW DE ARTISTAS INVITADOS</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:6px">Artistas que llegan para encender la noche y compartir su universo con la comunidad MIC CLUB.</div>
+        <div id="program-guest-artists" style="margin-top:8px"></div>
+      </div>
+
+      <!-- 3. Participantes Mic Club -->
+      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">3. PARTICIPANTES MIC CLUB</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:8px">Llegó el momento más importante: la comunidad toma el escenario. Cada participante viene a dejar su huella, compartir su voz y vivir su momento. Porque en MIC CLUB no hay espectadores. Todos pueden convertirse en protagonistas.</div>
+        <div id="program-participants-list" style="margin-top:10px;background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
+      </div>
+
+      <!-- 4. Votación -->
+      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">4. VOTACIÓN DEL PÚBLICO + DELIBERACIÓN</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">10 minutos donde cada voto puede cambiar la historia de la noche.</div>
+      </div>
+
+      <!-- 5. Premiación -->
+      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">5. PREMIACIÓN OFICIAL</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">Puntajes en pantalla, ganadores, actualización de Puntos MIC acumulados. Revelación de la próxima temática. Un cierre para celebrar a quienes se animaron a subir al escenario.</div>
+      </div>
+
+      <!-- 6. Karaoke Abierto -->
+      <div style="padding-bottom:4px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">6. KARAOKE ABIERTO</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">El escenario se libera. Cantá, celebrá, improvisá y seguí compartiendo la música con esta comunidad que no para de crecer. Porque a veces las mejores canciones suceden después del final.</div>
+      </div>
+    </div>
+
+    <!-- Auspiciantes (Grilla Inferior) -->
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
+      <div class="sponsors-grid" id="program-sponsors-bottom" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+    </div>
+
+    <!-- ¿Querés ser parte? -->
+    <div class="card" style="margin-bottom:16px;background:var(--bg2);border:1px solid var(--border)">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);margin-bottom:10px;letter-spacing:1px">¿QUERÉS SER PARTE DE LAS PRÓXIMAS EDICIONES?</div>
+      <ul style="font-size:13px;color:var(--text);margin-left:18px;line-height:1.8;margin-bottom:14px;padding-left:0">
+        <li>Sumate como participante</li>
+        <li>Formá parte de los talleres de Las Alas de Mi Voz</li>
+        <li>Auspiciá futuras experiencias MIC CLUB</li>
+        <li>Invitá artistas y cantantes a esta comunidad</li>
+      </ul>
+      <div style="text-align:center;margin-top:16px">
+        <a href="https://www.instagram.com/lasalasdemivoz/" target="_blank" class="btn btn-outline" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;text-decoration:none;font-size:13px;width:100%;border-color:var(--gold);color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:0.5px">
+          📸 @lasalasdemivoz
+        </a>
+        <div style="font-size:11px;color:var(--text2);margin-top:8px">Escribinos en redes y animate a vivir tu momento.</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;padding:12px 0 20px;opacity:0.8">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)">MIC CLUB</div>
+      <div style="font-size:10px;color:var(--text2);margin-top:4px;letter-spacing:1px;text-transform:uppercase">Tu voz puede ser la próxima en hacer historia.</div>
+    </div>
+
+    <!-- Panel de Administración del Programa (solo visible si adminLoggedIn === true) -->
+    <div id="program-admin-panel" class="card" style="display:none;margin-top:20px;background:var(--bg2);border:1px solid var(--border);padding:14px">
+      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px">⚙️ CONFIGURACIÓN DE PROGRAMA</div>
+      
+      <!-- Cargar Auspiciante -->
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Cargar Imagen Auspiciante (Cuadrada)</label>
+        <input type="file" id="sponsor-file" accept="image/*" style="width:100%;font-size:12px;margin-bottom:8px">
+        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Enlace Auspiciante (Instagram/Web)</label>
+        <input type="url" id="sponsor-link" placeholder="Ej: https://instagram.com/marca" style="width:100%;margin-bottom:8px;box-sizing:border-box">
+        <button class="btn btn-gold btn-sm" onclick="addSponsorAdmin()">Agregar Auspiciante</button>
+      </div>
+
+      <!-- Auspiciantes actuales -->
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;font-weight:700">Auspiciantes actuales</div>
+      <div id="admin-sponsors-list" style="margin-bottom:16px;max-height:160px;overflow-y:auto;border:1px solid rgba(255,255,255,0.05);padding:6px;border-radius:6px"></div>
+
+      <!-- Cargar Artista Invitado -->
+      <div class="form-group" style="margin-bottom:16px;border-top:1px solid rgba(255,255,255,0.04);padding-top:12px">
+        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nombre Artista Invitado</label>
+        <input type="text" id="artist-name-input" placeholder="Nombre del artista" style="width:100%;margin-bottom:8px;box-sizing:border-box">
+        <button class="btn btn-gold btn-sm" onclick="addGuestArtistAdmin()">Agregar Artista</button>
+      </div>
+
+      <!-- Artistas invitados actuales -->
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;font-weight:700">Artistas invitados actuales</div>
+      <div id="admin-artists-list" style="max-height:160px;overflow-y:auto;border:1px solid rgba(255,255,255,0.05);padding:6px;border-radius:6px"></div>
+    </div>
+
+    <!-- Botón flotante para votar -->
+    <div style="position:fixed;bottom:24px;left:0;right:0;padding:0 20px;text-align:center;z-index:90;pointer-events:none">
+      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="width:100%;max-width:400px;margin:0 auto;pointer-events:auto;box-shadow:0 8px 32px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px;min-height:50px;border-radius:12px;border:none;transition:all 0.2s ease">¡VOTÁ A TU FAVORITO!</button>
+    </div>
+  </div>
+
   <!-- ─────────── VOTACIÓN PÚBLICA ─────────── -->
   <div id="page-vote-public" class="page">
     <div class="hero" style="padding-bottom:6px">
@@ -307,7 +439,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <div style="grid-column:1/-1">
           <div class="card-sub" style="margin-bottom:8px">📣 Hinchada</div>
-          <div id="rank-jury-hinchada" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+          <div id="rank-jury-hinchada"></div>
         </div>
       </div>
     </div>
@@ -423,11 +555,7 @@ if ('serviceWorker' in navigator) {
           <div class="card-title">📣 Puntajes Hinchada</div>
           <div id="admin-jury-hinchada-table"></div>
         </div>
-        <div class="card">
-          <div class="card-title">🏅 Asignación de Premios</div>
-          <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Al asignar un premio de jurado se suman automáticamente +5 pts MicClub al ganador.</p>
-          <div id="admin-prizes-list"></div>
-        </div>
+
       </div>
 
       <!-- Links -->

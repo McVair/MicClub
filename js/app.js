@@ -77,6 +77,7 @@ function nav(page) {
   if (page === 'jury')           renderJurySelectors();
   if (page === 'register')       resetRegisterPage();
   if (page === 'vote-public')    loadPublicVoteOpts();
+  if (page === 'program')        updateProgramPage();
   if (page === 'admin' && adminLoggedIn) {
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
@@ -108,7 +109,7 @@ async function autoSaveSong() {
   const link   = document.getElementById('s-link')?.value.trim();
   if (!title || !artist || !link) return;
   if (!link.startsWith('http')) return;
-  const updates = { songTitle: title, songArtist: artist, song: `${title} — ${artist}`, karaokeLink: link, songConfirmed: true };
+  const updates = { songTitle: title, songArtist: artist, song: `${title} — ${artist}`, karaokeLink: link, songConfirmed: true, updatedAt: Date.now() };
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, `participants/${currentPId}`), updates);
@@ -147,7 +148,7 @@ async function saveAndExit() {
   if (!name)  { if (errEl) { errEl.textContent = 'Escribí tu nombre'; errEl.style.display = 'block'; } return; }
   if (!phone) { if (errEl) { errEl.textContent = 'El WhatsApp es obligatorio'; errEl.style.display = 'block'; } return; }
 
-  const updates = { name, whatsapp: phone };
+  const updates = { name, whatsapp: phone, updatedAt: Date.now() };
 
   if (showRunning) {
     const ppl    = parseInt(document.getElementById('prof-people-input')?.value) || 0;
@@ -221,6 +222,7 @@ function initFirebase() {
       updateBonusBanners();
       handleVotingState();
       updateDashboard();
+      updateUI();
     });
   } else {
     setupLocal();
@@ -269,18 +271,114 @@ function findReferrer(referrerText) {
   ) || null;
 }
 
+function getJuryTotalForPart(p, cat) {
+  if (!p) return 0;
+  let scores;
+  if      (cat === 'song')     scores = p.juryScoresSong     || {};
+  else if (cat === 'perf')     scores = p.juryScoresPerf     || {};
+  else if (cat === 'hinchada') scores = p.juryScoresHinchada || {};
+  else return 0;
+
+  const vals = Object.values(scores);
+  if (!vals.length) return 0;
+  if (typeof vals[0] === 'object' && vals[0] !== null) {
+    return vals.reduce((total, js) =>
+      total + Object.values(js).reduce((s, v) => s + (parseInt(v) || 0), 0), 0);
+  }
+  return vals.reduce((s, v) => s + (parseInt(v) || 0), 0);
+}
+
+function getJuryTotal(pid, cat) {
+  return getJuryTotalForPart(allParticipants[pid], cat);
+}
+
+function getPodiumRanksAndPoints(parts, scoreGetter) {
+  const items = parts
+    .map(p => ({ id: p.id, name: p.name, score: scoreGetter(p), song: p.songTitle || p.song || '' }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const results = [];
+  let currentRank = 0;
+  let currentScore = -1;
+  
+  items.forEach((item, index) => {
+    if (item.score !== currentScore) {
+      currentRank = index + 1;
+      currentScore = item.score;
+    }
+    
+    let pts = 0;
+    if (currentRank === 1) pts = 5;
+    else if (currentRank === 2) pts = 3;
+    else if (currentRank === 3) pts = 2;
+    
+    results.push({ ...item, rank: currentRank, podiumPts: pts });
+  });
+  
+  return results;
+}
+
+function getEventScores(partsObjOrArr) {
+  const parts = Array.isArray(partsObjOrArr)
+    ? partsObjOrArr
+    : Object.entries(partsObjOrArr).map(([id, p]) => ({ ...p, id }));
+  
+  // Calculate podiums
+  const pubSongPodium = getPodiumRanksAndPoints(parts, p => parseInt(p.voteSong) || 0);
+  const pubPerfPodium = getPodiumRanksAndPoints(parts, p => parseInt(p.votePerf) || 0);
+  const jurySongPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'song'));
+  const juryPerfPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'perf'));
+  const juryHinchadaPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'hinchada'));
+  
+  const scores = {};
+  
+  parts.forEach(p => {
+    scores[p.id] = {
+      base: calcBaseScore(p),
+      votes: (parseInt(p.voteSong) || 0) + (parseInt(p.votePerf) || 0),
+      pubSongPts: 0,
+      pubPerfPts: 0,
+      jurySongPts: 0,
+      juryPerfPts: 0,
+      juryHinchadaPts: 0,
+      total: 0
+    };
+  });
+  
+  pubSongPodium.forEach(x => { scores[x.id].pubSongPts = x.podiumPts; });
+  pubPerfPodium.forEach(x => { scores[x.id].pubPerfPts = x.podiumPts; });
+  jurySongPodium.forEach(x => { scores[x.id].jurySongPts = x.podiumPts; });
+  juryPerfPodium.forEach(x => { scores[x.id].juryPerfPts = x.podiumPts; });
+  juryHinchadaPodium.forEach(x => { scores[x.id].juryHinchadaPts = x.podiumPts; });
+  
+  parts.forEach(p => {
+    const s = scores[p.id];
+    s.total = s.base + s.votes + s.pubSongPts + s.pubPerfPts + s.jurySongPts + s.juryPerfPts + s.juryHinchadaPts;
+  });
+  
+  return scores;
+}
+
+function enrichHistorySnapshot(snap) {
+  const eventScores = getEventScores(snap);
+  Object.keys(snap).forEach(id => {
+    const p = snap[id];
+    const s = eventScores[id] || {};
+    p.eventVotesPublico = (parseInt(p.voteSong) || 0) + (parseInt(p.votePerf) || 0);
+    p.eventJuryTotal = getJuryTotalForPart(p, 'song') + getJuryTotalForPart(p, 'perf') + getJuryTotalForPart(p, 'hinchada');
+    p.eventMicclubPts = s.total || calcBaseScore(p);
+  });
+  return snap;
+}
+
 function calcScore(p) {
-  let pts = calcBaseScore(p);
-  if (p.prizeSong)     pts += 5;
-  if (p.prizePerf)     pts += 5;
-  if (p.prizeHinchada) pts += 8;
-  if (p.prizePublicoSong) pts += 5;  // ganador votación pública canción
-  if (p.prizePublicoPerf) pts += 5;  // ganador votación pública performance
-  return pts;
+  const scores = getEventScores(allParticipants);
+  return scores[p.id]?.total ?? calcBaseScore(p);
 }
 
 function calcMicclubScore(p) {
-  return calcBaseScore(p) + (parseInt(p.micclubPts) || 0);
+  return calcScore(p) + (parseInt(p.micclubPts) || 0);
 }
 
 function sorted() {
@@ -295,25 +393,6 @@ function sortedMicclub() {
     .sort((a, b) => b.score - a.score);
 }
 
-// ── TOTALES DE JURADO (multi-jurado) ─────────────────────────────────────────
-function getJuryTotal(pid, cat) {
-  const p = allParticipants[pid];
-  if (!p) return 0;
-  let scores;
-  if      (cat === 'song')     scores = p.juryScoresSong     || {};
-  else if (cat === 'perf')     scores = p.juryScoresPerf     || {};
-  else if (cat === 'hinchada') scores = p.juryScoresHinchada || {};
-  else return 0;
-
-  // All cats: { jurorId: { criteriaKey: val } } or legacy { criteriaKey: val }
-  const vals = Object.values(scores);
-  if (!vals.length) return 0;
-  if (typeof vals[0] === 'object' && vals[0] !== null) {
-    return vals.reduce((total, js) =>
-      total + Object.values(js).reduce((s, v) => s + (parseInt(v) || 0), 0), 0);
-  }
-  return vals.reduce((s, v) => s + (parseInt(v) || 0), 0);
-}
 
 function getJuryLeader(cat) {
   const parts = Object.entries(allParticipants);
@@ -326,6 +405,7 @@ function getJuryLeader(cat) {
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
 function updateUI() {
   updateDashboard();
+  updateProgramPage();
   updateStats();
   updateLeader();
   updateRanking();
@@ -339,6 +419,232 @@ function updateUI() {
   if (currentPage === 'config') renderConfigParticipants();
   renderLinks();
 }
+
+function updateProgramPage() {
+  const nameEl = document.getElementById('program-event-name');
+  const detailsEl = document.getElementById('program-event-details');
+  const voteBtn = document.getElementById('program-vote-btn');
+  
+  if (!nameEl || !voteBtn) return;
+  
+  // 1. Event title & details
+  const currentEvent = localState.settings?.currentEvent;
+  if (showRunning && currentEvent && currentEvent.name) {
+    nameEl.textContent = currentEvent.name;
+    const det = [currentEvent.date, currentEvent.venue].filter(Boolean).join(' · ');
+    if (det) {
+      detailsEl.textContent = det;
+      detailsEl.style.display = 'block';
+    } else {
+      detailsEl.style.display = 'none';
+    }
+  } else {
+    nameEl.textContent = "MicClub";
+    detailsEl.style.display = 'none';
+  }
+  
+  // 2. Green Floating Button styles (Match dashboard Abrir Votación style)
+  if (votingOpen) {
+    voteBtn.disabled = false;
+    voteBtn.style.opacity = '1';
+    voteBtn.style.pointerEvents = 'auto';
+    voteBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+    voteBtn.style.color = '#0a0a0f';
+    voteBtn.style.cursor = 'pointer';
+  } else {
+    voteBtn.disabled = true;
+    voteBtn.style.opacity = '0.55';
+    voteBtn.style.pointerEvents = 'none';
+    voteBtn.style.background = 'linear-gradient(135deg,#1a3324,#101e16)';
+    voteBtn.style.color = '#3a6648';
+    voteBtn.style.cursor = 'default';
+  }
+
+  // 3. Render Sponsors grids (Top & Bottom)
+  const sponsors = localState.settings?.sponsors || [];
+  const sponsorsGridHtml = sponsors.map(sp => {
+    const content = `<img src="${sp.img}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">`;
+    if (sp.link) {
+      return `<a href="${esc(sp.link)}" target="_blank" style="display:block">${content}</a>`;
+    }
+    return `<div style="display:block">${content}</div>`;
+  }).join('');
+  
+  const elTop = document.getElementById('program-sponsors-top');
+  const elBot = document.getElementById('program-sponsors-bottom');
+  if (elTop) elTop.innerHTML = sponsorsGridHtml || '<div style="grid-column:1/-1;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
+  if (elBot) elBot.innerHTML = sponsorsGridHtml || '<div style="grid-column:1/-1;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
+
+  // 4. Render Guest Artists
+  const artists = localState.settings?.guestArtists || [];
+  const artistsHtml = artists.map(art => `
+    <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);padding:6px 12px;background:var(--bg3);border-radius:6px;margin-bottom:6px;display:inline-block;margin-right:6px;border:1px solid var(--border)">
+      🎙️ ${esc(art)}
+    </div>
+  `).join('');
+  const elArtists = document.getElementById('program-guest-artists');
+  if (elArtists) elArtists.innerHTML = artistsHtml || '<div style="font-size:12px;color:var(--text2);font-style:italic">Próximamente se anunciarán los artistas invitados de la fecha.</div>';
+
+  // 5. Render Active Participants
+  const parts = Object.values(allParticipants)
+    .filter(p => p.songConfirmed)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const partsHtml = parts.map(p => {
+    const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
+    return `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-weight:600;color:var(--text)">🎤 ${esc(p.name)}</span>
+      <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${songLabel}</span>
+    </div>`;
+  }).join('');
+  const elParts = document.getElementById('program-participants-list');
+  if (elParts) elParts.innerHTML = partsHtml || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px">Esperando confirmación de participantes...</div>';
+
+  // 6. Admin Panel
+  renderProgramAdminPanel();
+}
+
+function renderProgramAdminPanel() {
+  const panel = document.getElementById('program-admin-panel');
+  if (!panel) return;
+  if (!adminLoggedIn) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  
+  const sponsors = localState.settings?.sponsors || [];
+  const artists = localState.settings?.guestArtists || [];
+  
+  const sponsorsHtml = sponsors.map((sp, idx) => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;background:var(--bg3);padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02)">
+      <img src="${sp.img}" style="width:40px;height:40px;object-fit:cover;border-radius:4px">
+      <span style="flex:1;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(sp.link || 'Sin link')}</span>
+      <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:4px 8px;min-height:auto;font-size:11px;margin-left:auto" onclick="deleteSponsorAdmin(${idx})">Eliminar</button>
+    </div>
+  `).join('');
+  
+  const artistsHtml = artists.map((art, idx) => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;background:var(--bg3);padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02)">
+      <span style="flex:1;font-size:12px;color:var(--text)">${esc(art)}</span>
+      <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:4px 8px;min-height:auto;font-size:11px;margin-left:auto" onclick="deleteGuestArtistAdmin(${idx})">Eliminar</button>
+    </div>
+  `).join('');
+  
+  document.getElementById('admin-sponsors-list').innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin auspiciantes</div>';
+  document.getElementById('admin-artists-list').innerHTML = artistsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin artistas invitados</div>';
+}
+
+function addSponsorAdmin() {
+  const fileIn = document.getElementById('sponsor-file');
+  const linkIn = document.getElementById('sponsor-link');
+  const link = (linkIn?.value || '').trim();
+  
+  if (!fileIn || !fileIn.files || !fileIn.files[0]) {
+    mcAlert('Por favor selecciona una imagen.');
+    return;
+  }
+  
+  const file = fileIn.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = async function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 256;
+      let w = img.width;
+      let h = img.height;
+      if (w > h) {
+        if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+      } else {
+        if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+      
+      const sponsors = localState.settings?.sponsors || [];
+      sponsors.push({ img: compressedBase64, link });
+      
+      try {
+        if (firebaseOk) {
+          await dbUpdate(dbRef(db, 'settings'), { sponsors });
+        } else {
+          localState.settings.sponsors = sponsors;
+          saveLocal();
+        }
+        fileIn.value = '';
+        if (linkIn) linkIn.value = '';
+        updateProgramPage();
+        mcAlert('Auspiciante agregado con éxito.');
+      } catch(err) {
+        console.error(err);
+        mcAlert('Error al guardar.');
+      }
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deleteSponsorAdmin(idx) {
+  const sponsors = localState.settings?.sponsors || [];
+  sponsors.splice(idx, 1);
+  try {
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db, 'settings'), { sponsors });
+    } else {
+      localState.settings.sponsors = sponsors;
+      saveLocal();
+    }
+    updateProgramPage();
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+async function addGuestArtistAdmin() {
+  const inp = document.getElementById('artist-name-input');
+  const name = (inp?.value || '').trim();
+  if (!name) return;
+  const artists = localState.settings?.guestArtists || [];
+  artists.push(name);
+  try {
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db, 'settings'), { guestArtists: artists });
+    } else {
+      localState.settings.guestArtists = artists;
+      saveLocal();
+    }
+    inp.value = '';
+    updateProgramPage();
+    mcAlert('Artista agregado.');
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+async function deleteGuestArtistAdmin(idx) {
+  const artists = localState.settings?.guestArtists || [];
+  artists.splice(idx, 1);
+  try {
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db, 'settings'), { guestArtists: artists });
+    } else {
+      localState.settings.guestArtists = artists;
+      saveLocal();
+    }
+    updateProgramPage();
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+window.addSponsorAdmin = addSponsorAdmin;
+window.deleteSponsorAdmin = deleteSponsorAdmin;
+window.addGuestArtistAdmin = addGuestArtistAdmin;
+window.deleteGuestArtistAdmin = deleteGuestArtistAdmin;
 
 // ── DASHBOARD HOME ────────────────────────────────────────────────────────────
 function updateDashboard() {
@@ -525,6 +831,26 @@ function downloadSongLinks() {
   URL.revokeObjectURL(a.href);
 }
 
+function downloadReservations() {
+  const parts = Object.values(allParticipants)
+    .filter(p => (parseInt(p.people) || 0) > 0)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  if (!parts.length) { mcAlert('No hay reservas activas en este momento.'); return; }
+  
+  const lines = ['RESERVAS MIC CLUB\n' + new Date().toLocaleDateString('es-AR'), ''];
+  parts.forEach(p => {
+    const reservations = parseInt(p.people) || 0;
+    lines.push(`${p.name || '(sin nombre)'}: ${reservations}`);
+  });
+  
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `reservas-micclub-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 function homeLogin() {
   const input    = document.getElementById('home-pass');
   const pass     = (input?.value || '').trim();
@@ -568,6 +894,11 @@ function renderConfigParticipants() {
            🔗 ${karLink}
          </div>`
       : '';
+    const formatTime = (ts) => {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      return d.toLocaleDateString('es-AR') + ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    };
     return `<div style="display:flex;align-items:stretch;gap:6px;margin-bottom:5px">
       <div style="flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 11px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;gap:8px">
@@ -578,6 +909,9 @@ function renderConfigParticipants() {
           ${esc(p.whatsapp || '—')} · ${esc(p.email || '—')}
         </div>
         ${eventLine}
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;opacity:0.8">
+          📅 Alta: ${formatTime(p.timestamp)} · 📝 Modif: ${formatTime(p.updatedAt || p.timestamp)}
+        </div>
       </div>
       <div style="display:flex;flex-direction:row;gap:4px;flex-shrink:0;align-items:stretch">
         <button class="btn-dash btn-copy" onclick="openModal('${p.id}')">Editar</button>
@@ -669,13 +1003,10 @@ function showHistoryDetail(key) {
   const date  = h.closedDate || new Date(parseInt(key)).toLocaleDateString('es-AR');
   const det   = [date, ev.time, ev.venue].filter(Boolean).join(' · ');
 
-  // Ranking por puntos base del evento
+  // Ranking por puntos del evento calculando los podios históricos
+  const scores = getEventScores(parts);
   const ranked = parts
-    .map(p => {
-      const base  = 5 + (parseInt(p.people) || 0) + (p.songConfirmed ? 3 : 0);
-      const votes = (parseInt(p.voteSong) || 0) + (parseInt(p.votePerf) || 0);
-      return { ...p, eventPts: base + votes };
-    })
+    .map(p => ({ ...p, eventPts: scores[p.id]?.total || 0 }))
     .sort((a, b) => b.eventPts - a.eventPts);
 
   // Mejor Canción público
@@ -685,16 +1016,24 @@ function showHistoryDetail(key) {
 
   const medals = ['🥇', '🥈', '🥉'];
 
-  const rankRows = ranked.slice(0, 10).map((p, i) =>
-    `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+  const rankRows = ranked.map((p, i) => {
+    const votes = p.eventVotesPublico !== undefined ? p.eventVotesPublico : ((parseInt(p.voteSong) || 0) + (parseInt(p.votePerf) || 0));
+    const jury = p.eventJuryTotal !== undefined ? p.eventJuryTotal : (getJuryTotalForPart(p, 'song') + getJuryTotalForPart(p, 'perf') + getJuryTotalForPart(p, 'hinchada'));
+    const micclub = p.eventMicclubPts !== undefined ? p.eventMicclubPts : (scores[p.id]?.total || calcBaseScore(p));
+    const songLine = p.songTitle ? `<div style="font-size:11px;color:var(--text2);margin-bottom:2px">${esc(p.songTitle)}${p.songArtist ? ' · ' + esc(p.songArtist) : ''}</div>` : '';
+    
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
       <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text2);min-width:28px">${medals[i] || (i+1)}</span>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
-        ${p.songTitle ? `<div style="font-size:11px;color:var(--text2)">${esc(p.songTitle)}${p.songArtist ? ' · ' + esc(p.songArtist) : ''}</div>` : ''}
+        ${songLine}
+        <div style="font-size:11px;color:var(--text2);opacity:0.85">
+          🗳️ Votos: <strong>${votes}</strong> · ⭐ Jurado: <strong>${jury} pts</strong> · 🎤 MicClub: <strong>+${micclub} pts</strong>
+        </div>
       </div>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold)">${p.eventPts} pts</span>
-    </div>`
-  ).join('');
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold)">${micclub} pts</span>
+    </div>`;
+  }).join('');
 
   const voteRow = (p, val, label) =>
     `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px">
@@ -905,87 +1244,57 @@ function copyRankVoteLink() {
     .catch(() => mcAlert('Copiá este link:\n' + url));
 }
 
+function renderPodiumList(podiumData, elId, scoreSuffix) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  
+  if (!podiumData.length) {
+    el.innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:10px 0">Sin votos aún</div>';
+    return;
+  }
+  
+  const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  
+  el.innerHTML = podiumData.map(item => {
+    const isTop = item.rank <= 3;
+    const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
+    const ptsColor = isTop ? 'var(--gold)' : 'var(--text2)';
+    const medal = medals[item.rank] || `<span style="font-size:12px;color:var(--text2)">${item.rank}</span>`;
+    const fontSz = item.rank === 1 ? '18' : '13';
+    const mcPtsLabel = item.podiumPts > 0 ? `<span style="font-size:10px;font-weight:400;color:var(--text2);margin-left:5px;opacity:0.75"> (+${item.podiumPts} MC)</span>` : '';
+    const songLabel = item.song ? `<div style="font-size:10px;color:var(--text2);padding-left:29px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.song)}</div>` : '';
+    
+    return `<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <div style="font-size:${fontSz}px;min-width:22px;text-align:center;line-height:1">${medal}</div>
+        <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:13px;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
+        <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:${ptsColor};white-space:nowrap">${item.score}<span style="font-size:9px;font-weight:400;color:var(--text2)"> ${scoreSuffix}</span>${mcPtsLabel}</div>
+      </div>
+      ${songLabel}
+    </div>`;
+  }).join('');
+}
+
 function renderPublicVoteRanking() {
-  const allParts = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id })).filter(p => p.karaokeLink || p.songConfirmed);
-  const medals   = ['🥇', '🥈', '🥉'];
-
-  const renderList = (field, elId) => {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    const list = [...allParts]
-      .sort((a, b) => (parseInt(b[field]) || 0) - (parseInt(a[field]) || 0))
-      .filter(p => (parseInt(p[field]) || 0) > 0)
-      .slice(0, 3);
-    if (!list.length) {
-      el.innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:10px 0">Sin votos aún</div>';
-      return;
-    }
-    el.innerHTML = list.map((p, i) => {
-      const isTop     = i < 3;
-      const nameColor = isTop ? 'var(--text)'  : 'var(--text2)';
-      const ptsColor  = isTop ? 'var(--gold)'  : 'var(--text2)';
-      const pts       = parseInt(p[field]) || 0;
-      const song      = esc(p.songTitle || p.song || '');
-      return `<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-        <div style="display:flex;align-items:center;gap:7px">
-          <div style="font-size:${isTop ? '18' : '13'}px;min-width:22px;text-align:center;line-height:1">${medals[i]}</div>
-          <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:13px;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
-          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:${ptsColor};white-space:nowrap">${pts}<span style="font-size:9px;font-weight:400;color:var(--text2)"> v</span></div>
-        </div>
-        ${song ? `<div style="font-size:10px;color:var(--text2);padding-left:29px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${song}</div>` : ''}
-      </div>`;
-    }).join('');
-  };
-
-  renderList('voteSong', 'rank-pub-song');
-  renderList('votePerf', 'rank-pub-perf');
+  const parts = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id })).filter(p => p.songConfirmed);
+  
+  const pubSongPodium = getPodiumRanksAndPoints(parts, p => parseInt(p.voteSong) || 0).filter(x => x.rank <= 3);
+  const pubPerfPodium = getPodiumRanksAndPoints(parts, p => parseInt(p.votePerf) || 0).filter(x => x.rank <= 3);
+  
+  renderPodiumList(pubSongPodium, 'rank-pub-song', 'votos');
+  renderPodiumList(pubPerfPodium, 'rank-pub-perf', 'votos');
 }
 
 function renderJuryRankingInRanking() {
-  const allParts = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id }));
-  const medals   = ['🥇', '🥈', '🥉'];
-  [
-    { cat: 'song',     elId: 'rank-jury-song',     layout: 'list' },
-    { cat: 'perf',     elId: 'rank-jury-perf',     layout: 'list' },
-    { cat: 'hinchada', elId: 'rank-jury-hinchada', layout: 'grid' },
-  ].forEach(({ cat, elId, layout }) => {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    const list = [...allParts]
-      .map(p => ({ ...p, total: getJuryTotal(p.id, cat) }))
-      .sort((a, b) => b.total - a.total)
-      .filter(p => p.total > 0)
-      .slice(0, 3);
-    if (!list.length) {
-      el.innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:10px 0">Sin votos aún</div>';
-      return;
-    }
-    if (layout === 'grid') {
-      el.innerHTML = list.map((p, i) => {
-        const isTop     = i < 3;
-        const nameColor = isTop ? 'var(--text)'  : 'var(--text2)';
-        const ptsColor  = isTop ? 'var(--gold)'  : 'var(--text2)';
-        return `<div style="background:var(--bg3);border:1px solid ${isTop ? 'rgba(212,168,67,.25)' : 'var(--border)'};border-radius:8px;padding:8px 6px;text-align:center">
-          <div style="font-size:${i === 0 ? '20' : '15'}px;line-height:1;margin-bottom:4px">${medals[i]}</div>
-          <div style="font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:11px;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
-          <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:${ptsColor};margin-top:3px">${p.total}<span style="font-size:9px;font-weight:400;color:var(--text2)"> pts</span></div>
-        </div>`;
-      }).join('');
-    } else {
-      el.innerHTML = list.map((p, i) => {
-        const isTop     = i < 3;
-        const nameColor = isTop ? 'var(--text)'  : 'var(--text2)';
-        const ptsColor  = isTop ? 'var(--gold)'  : 'var(--text2)';
-        return `<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-          <div style="display:flex;align-items:center;gap:7px">
-            <div style="font-size:${i === 0 ? '18' : '14'}px;min-width:22px;text-align:center;line-height:1">${medals[i]}</div>
-            <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:13px;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
-            <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:${ptsColor};white-space:nowrap">${p.total}<span style="font-size:9px;font-weight:400;color:var(--text2)"> pts</span></div>
-          </div>
-        </div>`;
-      }).join('');
-    }
-  });
+  const parts = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id })).filter(p => p.songConfirmed);
+  
+  const jurySongPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'song')).filter(x => x.rank <= 3);
+  const juryPerfPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'perf')).filter(x => x.rank <= 3);
+  const juryHinchadaPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'hinchada')).filter(x => x.rank <= 3);
+  
+  renderPodiumList(jurySongPodium, 'rank-jury-song', 'pts');
+  renderPodiumList(juryPerfPodium, 'rank-jury-perf', 'pts');
+  renderPodiumList(juryHinchadaPodium, 'rank-jury-hinchada', 'pts');
 }
 
 function updateShowMode() {
@@ -1155,6 +1464,7 @@ async function createNewUser() {
     name, people: ppl, whatsapp: wa, email, referrer: ref,
     song: '', songTitle: '', songArtist: '', karaokeLink: '', songConfirmed: false,
     timestamp: Date.now(),
+    updatedAt: Date.now(),
     prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
     juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
     extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
@@ -1175,7 +1485,7 @@ async function createNewUser() {
     const referrerEntry = findReferrer(ref);
     if (referrerEntry) {
       const [rId, rp] = referrerEntry;
-      const newMicPts = (parseInt(rp.micclubPts) || 0) + 5;
+      const newMicPts = (parseInt(rp.micclubPts) || 0) + 10;
       if (firebaseOk) {
         dbUpdate(dbRef(db, `participants/${rId}`), { micclubPts: newMicPts });
       } else {
@@ -1298,7 +1608,7 @@ async function saveProfileField() {
   const name  = document.getElementById('prof-name-input')?.value.trim() || '';
   const phone = document.getElementById('prof-phone-input')?.value.trim() || '';
   if (!name) return;
-  const updates = { name, whatsapp: phone };
+  const updates = { name, whatsapp: phone, updatedAt: Date.now() };
   if (showRunning) {
     const ppl = parseInt(document.getElementById('prof-people-input')?.value) || 0;
     if (ppl > 0) updates.people = ppl;
@@ -1841,25 +2151,7 @@ function closeVoting() {
 }
 
 async function finalizeVoting() {
-  const parts      = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id }));
-  const songLeader = [...parts].sort((a, b) => (parseInt(b.voteSong) || 0) - (parseInt(a.voteSong) || 0))[0];
-  const perfLeader = [...parts].sort((a, b) => (parseInt(b.votePerf) || 0) - (parseInt(a.votePerf) || 0))[0];
-  const updates    = { 'settings/votingOpen': false, 'settings/votingCloseAt': null };
-
-  // Marcar ganadores con flag y resetear votos para que endShow no duplique
-  Object.keys(allParticipants).forEach(id => {
-    updates[`participants/${id}/voteSong`] = 0;
-    updates[`participants/${id}/votePerf`] = 0;
-    updates[`participants/${id}/prizePublicoSong`] = false;
-    updates[`participants/${id}/prizePublicoPerf`] = false;
-  });
-  if (songLeader && (parseInt(songLeader.voteSong) || 0) > 0) {
-    updates[`participants/${songLeader.id}/prizePublicoSong`] = true;
-  }
-  if (perfLeader && (parseInt(perfLeader.votePerf) || 0) > 0) {
-    updates[`participants/${perfLeader.id}/prizePublicoPerf`] = true;
-  }
-
+  const updates = { 'settings/votingOpen': false, 'settings/votingCloseAt': null };
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db), updates);
@@ -1867,16 +2159,6 @@ async function finalizeVoting() {
       localState.settings.votingOpen    = false;
       localState.settings.votingCloseAt = null;
       votingOpen = false;
-      Object.keys(allParticipants).forEach(id => {
-        allParticipants[id].voteSong = 0;
-        allParticipants[id].votePerf = 0;
-        allParticipants[id].prizePublicoSong = false;
-        allParticipants[id].prizePublicoPerf = false;
-      });
-      if (songLeader && (parseInt(songLeader.voteSong) || 0) > 0)
-        allParticipants[songLeader.id].prizePublicoSong = true;
-      if (perfLeader && (parseInt(perfLeader.votePerf) || 0) > 0)
-        allParticipants[perfLeader.id].prizePublicoPerf = true;
       saveLocal();
     }
   } catch(e) { console.error(e); }
@@ -1949,6 +2231,7 @@ async function adminAddParticipant() {
     reservationCode: code, songLink: sLink,
     song: '', songTitle: '', songArtist: '', karaokeLink: '', songConfirmed: false,
     timestamp: Date.now(),
+    updatedAt: Date.now(),
     prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
     juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
     extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
@@ -2017,7 +2300,7 @@ function renderAdminJury() {
     const rows = parts.map(p => ({
       name: p.name, id: p.id,
       total:  getJuryTotal(p.id, cat),
-      scores: cat === 'song' ? (p.juryScoresSong || {}) : (p.juryScoresPerf || {})
+      scores: cat === 'song' ? (p.juryScoresSong || {}) : (cat === 'perf' ? (p.juryScoresPerf || {}) : (p.juryScoresHinchada || {}))
     })).sort((a, b) => b.total - a.total);
     if (!rows.length) { el.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:8px">Sin datos</div>'; return; }
     const criteria = cat === 'song' ? SONG_CRITERIA : cat === 'perf' ? PERF_CRITERIA : HINCHADA_CRITERIA;
@@ -2052,8 +2335,8 @@ function renderAdminJury() {
   const prizesEl = document.getElementById('admin-prizes-list');
   if (prizesEl) {
     const prizeItems = [
-      { key: 'prizeSong',     label: '🎵 Mejor Canción (Jurado) +5 pts',     cat: 'song'     },
-      { key: 'prizePerf',     label: '🎭 Mejor Performance (Jurado) +5 pts', cat: 'perf'     },
+      { key: 'prizeSong',     label: '🎵 Mejor Canción (Jurado) +10 pts',    cat: 'song'     },
+      { key: 'prizePerf',     label: '🎭 Mejor Performance (Jurado) +10 pts', cat: 'perf'     },
       { key: 'prizeHinchada', label: '📣 Mejor Hinchada (Jurado) +8 pts',    cat: 'hinchada' },
     ];
     const partsList = sorted();
@@ -2088,17 +2371,12 @@ async function assignPrize(prizeKey, selId, juryCat) {
       await Promise.all(batch);
       if (targetId) {
         const updates = { [prizeKey]: true };
-        if (juryCat) {
-          const cur = parseInt(allParticipants[targetId]?.micclubPts) || 0;
-          updates.micclubPts = cur + 5;
-        }
         await dbUpdate(dbRef(db, `participants/${targetId}`), updates);
       }
     } else {
       Object.keys(allParticipants).forEach(id => allParticipants[id][prizeKey] = false);
       if (targetId) {
         allParticipants[targetId][prizeKey] = true;
-        if (juryCat) allParticipants[targetId].micclubPts = (parseInt(allParticipants[targetId].micclubPts) || 0) + 5;
       }
       saveLocal();
     }
@@ -2148,6 +2426,7 @@ async function saveParticipant() {
     whatsapp: document.getElementById('edit-wa').value.trim(),
     email:    document.getElementById('edit-email').value.trim(),
     extraPts: parseInt(document.getElementById('edit-extra').value) || 0,
+    updatedAt: Date.now(),
   };
   if (showRunning) {
     const st = document.getElementById('edit-song').value.trim();
@@ -2190,6 +2469,7 @@ async function endShow() {
 
     // Snapshot BEFORE clearing (captured now)
     const snap = JSON.parse(JSON.stringify(allParticipants));
+    enrichHistorySnapshot(snap);
     const historyEntry = {
       closedAt,
       closedDate,
@@ -2335,6 +2615,7 @@ function clearAllParticipants() {
       if (showRunning) {
         const closedAt = Date.now();
         const snap = JSON.parse(JSON.stringify(allParticipants));
+        enrichHistorySnapshot(snap);
         try {
           await dbSet(dbRef(db, `history/${closedAt}`), {
             closedAt,
@@ -2553,8 +2834,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (MODE === 'register') {
     nav('register');
   } else if (MODE === 'vote') {
-    nav('vote-public');
-    loadPublicVoteOpts();
+    nav('program');
   } else if (MODE === 'jury') {
     nav('jury');
   } else if (MODE === 'admin') {

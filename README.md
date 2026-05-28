@@ -108,7 +108,6 @@ firebase deploy --only database
 |----------|--------|
 | Asistencia | +5 |
 | Canción confirmada | +3 |
-| Dúo (exactamente 2 personas) | +2 |
 | Convocatoria | +1 por persona |
 | Referido | +10 |
 | Premio Mejor Canción | +10 |
@@ -116,14 +115,13 @@ firebase deploy --only database
 | Premio Hinchada | +8 |
 | Premio Mesa | +8 |
 | Votos del público | +1 por voto |
-| Bonus Temática activo | ×2 en premios |
 | Puntos extra manuales | configurable |
 
 ---
 
 ## Acceso admin
 
-- **Contraseña por defecto**: `micclub2025`
+- **Contraseña por defecto**: `3984`
 - Cambiarla desde **Admin → Control → Cambiar Contraseña** antes del evento
 
 ---
