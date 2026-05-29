@@ -411,6 +411,9 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── RANKING ─────────── -->
   <div id="page-ranking" class="page">
+    <!-- Lienzo de Fuegos Artificiales para Celebración -->
+    <canvas id="ranking-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.75"></canvas>
+
     <div class="hero" style="padding-bottom:6px">
       <div class="hero-title" style="font-size:clamp(20px,5.5vw,36px);letter-spacing:2px">RESULTADOS DE VOTACIÓN</div>
     </div>
@@ -430,11 +433,8 @@ if ('serviceWorker' in navigator) {
       <!-- Columna 1: Público - Mejor Canción -->
       <div class="result-column-card">
         <div class="result-column-header">
-          <div class="header-icon">🗳️</div>
-          <div>
-            <div class="header-title">PÚBLICO</div>
-            <div class="header-subtitle">Mejor Canción</div>
-          </div>
+          <div class="column-category-title">MEJOR<br>CANCIÓN</div>
+          <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
         </div>
         <div id="rank-pub-song"></div>
       </div>
@@ -442,11 +442,8 @@ if ('serviceWorker' in navigator) {
       <!-- Columna 2: Público - Mejor Performance -->
       <div class="result-column-card">
         <div class="result-column-header">
-          <div class="header-icon">🗳️</div>
-          <div>
-            <div class="header-title">PÚBLICO</div>
-            <div class="header-subtitle">Mejor Performance</div>
-          </div>
+          <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
+          <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
         </div>
         <div id="rank-pub-perf"></div>
       </div>
@@ -454,11 +451,8 @@ if ('serviceWorker' in navigator) {
       <!-- Columna 3: Jurado - Canción -->
       <div class="result-column-card">
         <div class="result-column-header">
-          <div class="header-icon">⭐</div>
-          <div>
-            <div class="header-title">JURADO</div>
-            <div class="header-subtitle">Canción</div>
-          </div>
+          <div class="column-category-title">MEJOR<br>CANCIÓN</div>
+          <div class="column-source-tag source-jury">⭐ JURADO</div>
         </div>
         <div id="rank-jury-song"></div>
       </div>
@@ -466,23 +460,17 @@ if ('serviceWorker' in navigator) {
       <!-- Columna 4: Jurado - Performance -->
       <div class="result-column-card">
         <div class="result-column-header">
-          <div class="header-icon">⭐</div>
-          <div>
-            <div class="header-title">JURADO</div>
-            <div class="header-subtitle">Performance</div>
-          </div>
+          <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
+          <div class="column-source-tag source-jury">⭐ JURADO</div>
         </div>
         <div id="rank-jury-perf"></div>
       </div>
 
-      <!-- Columna-5: Jurado - Hinchada -->
+      <!-- Columna 5: Jurado - Hinchada -->
       <div class="result-column-card">
         <div class="result-column-header">
-          <div class="header-icon">📣</div>
-          <div>
-            <div class="header-title">JURADO</div>
-            <div class="header-subtitle">Hinchada</div>
-          </div>
+          <div class="column-category-title">MEJOR<br>HINCHADA</div>
+          <div class="column-source-tag source-jury">📣 JURADO</div>
         </div>
         <div id="rank-jury-hinchada"></div>
       </div>

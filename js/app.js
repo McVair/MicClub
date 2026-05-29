@@ -48,6 +48,7 @@ let votingOpen      = false;
 let showRunning     = false;
 let navStack        = [];
 let juryCat         = 'song';
+let celebrationAnimationId = null;
 let jurySelectedId  = { song: null, perf: null, hinchada: null };
 let juryCurrentScores = { song: {}, perf: {}, hinchada: {} };
 let localState = {
@@ -71,7 +72,7 @@ function nav(page) {
   if (el) el.classList.add('active');
   currentPage = page;
   renderNav();
-  if (page === 'ranking')        updateRanking();
+  if (page === 'ranking')        { updateRanking(); startCelebration(); }
   if (page === 'show')           updateShowMode();
   if (page === 'config')         renderConfigParticipants();
   if (page === 'history')        renderHistoryPage();
@@ -1243,6 +1244,119 @@ function updateRanking() {
   renderJuryRankingInRanking();
   renderVotingToggleBtn();
   renderRankVoteLink();
+}
+
+function startCelebration() {
+  const canvas = document.getElementById('ranking-celebration-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  
+  const particles = [];
+  const fireworks = [];
+  
+  class Firework {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = canvas.height;
+      this.tx = Math.random() * canvas.width;
+      this.ty = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
+      this.speed = Math.random() * 3 + 2.5;
+      this.angle = Math.atan2(this.ty - this.y, this.tx - this.x);
+      this.dist = Math.hypot(this.tx - this.x, this.ty - this.y);
+      this.distTraveled = 0;
+      this.hue = Math.random() * 360;
+    }
+    update(index) {
+      const vx = Math.cos(this.angle) * this.speed;
+      const vy = Math.sin(this.angle) * this.speed;
+      this.x += vx;
+      this.y += vy;
+      this.distTraveled += Math.hypot(vx, vy);
+      
+      if (this.distTraveled >= this.dist) {
+        createExplosion(this.tx, this.ty, this.hue);
+        fireworks.splice(index, 1);
+      }
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${this.hue}, 100%, 75%)`;
+      ctx.fill();
+    }
+  }
+  
+  class Particle {
+    constructor(x, y, hue) {
+      this.x = x;
+      this.y = y;
+      this.angle = Math.random() * Math.PI * 2;
+      this.speed = Math.random() * 5 + 1.2;
+      this.friction = 0.94;
+      this.gravity = 0.12;
+      this.hue = hue + (Math.random() * 40 - 20);
+      this.alpha = 1;
+      this.decay = Math.random() * 0.015 + 0.007;
+    }
+    update(index) {
+      this.speed *= this.friction;
+      this.x += Math.cos(this.angle) * this.speed;
+      this.y += Math.sin(this.angle) * this.speed + this.gravity;
+      this.alpha -= this.decay;
+      if (this.alpha <= 0) {
+        particles.splice(index, 1);
+      }
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, Math.random() * 2.2 + 1, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${this.hue}, 100%, 65%, ${this.alpha})`;
+      ctx.fill();
+    }
+  }
+  
+  function createExplosion(x, y, hue) {
+    const count = 50;
+    for (let i = 0; i < count; i++) {
+      particles.push(new Particle(x, y, hue));
+    }
+  }
+  
+  function loop() {
+    if (currentPage !== 'ranking') {
+      window.removeEventListener('resize', resize);
+      celebrationAnimationId = null;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+    
+    celebrationAnimationId = requestAnimationFrame(loop);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (Math.random() < 0.04 && fireworks.length < 5) {
+      fireworks.push(new Firework());
+    }
+    
+    fireworks.forEach((fw, i) => {
+      fw.update(i);
+      fw.draw();
+    });
+    
+    particles.forEach((p, i) => {
+      p.update(i);
+      p.draw();
+    });
+  }
+  
+  if (celebrationAnimationId) cancelAnimationFrame(celebrationAnimationId);
+  loop();
 }
 
 function renderRankVoteLink() {

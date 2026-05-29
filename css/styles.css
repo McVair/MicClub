@@ -581,6 +581,15 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .score-zero { color: var(--red) !important; }
 
 /* ── RESPONSIVE RESULTS GRID (5 COLUMNS ON DESKTOP) ── */
+#page-ranking {
+  position: relative;
+}
+
+#page-ranking > *:not(#ranking-celebration-canvas) {
+  position: relative;
+  z-index: 2;
+}
+
 .results-layout-container {
   display: flex;
   flex-direction: column;
@@ -589,42 +598,98 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 
 .result-column-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: rgba(20, 20, 28, 0.8) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 168, 67, 0.15) !important;
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
   box-sizing: border-box;
+  animation: pulse-border 4s infinite alternate;
+  transition: transform 0.2s ease;
+}
+
+.result-column-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 168, 67, 0.5) !important;
 }
 
 .result-column-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding-bottom: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
 }
 
-.result-column-header .header-icon {
-  font-size: 22px;
-}
-
-.result-column-header .header-title {
+.column-category-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px;
+  font-size: clamp(26px, 3.2vw, 38px);
+  font-weight: 700;
+  line-height: 0.95;
+  text-align: center;
+  color: #ffffff;
+  text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--gold);
-  line-height: 1;
+  margin-bottom: 6px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2), 0 0 15px rgba(212, 168, 67, 0.4);
+  animation: glow-text 3s infinite alternate;
 }
 
-.result-column-header .header-subtitle {
+.column-source-tag {
   font-family: 'Oswald', sans-serif;
   font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--text2);
-  letter-spacing: 0.5px;
-  margin-top: 2px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.source-public {
+  background: linear-gradient(135deg, rgba(0, 200, 100, 0.12), rgba(0, 100, 50, 0.22));
+  color: #7affb5;
+  border-color: rgba(0, 200, 100, 0.25);
+}
+
+.source-jury {
+  background: linear-gradient(135deg, rgba(212, 168, 67, 0.12), rgba(135, 90, 0, 0.22));
+  color: #ffde8a;
+  border-color: rgba(212, 168, 67, 0.3);
+}
+
+/* Animations */
+@keyframes glow-text {
+  0% {
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.25), 0 0 12px rgba(212, 168, 67, 0.35);
+    color: #ffffff;
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(255, 222, 138, 0.6), 0 0 24px rgba(212, 168, 67, 0.75);
+    color: #ffde8a;
+  }
+  100% {
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.25), 0 0 12px rgba(212, 168, 67, 0.35);
+    color: #ffffff;
+  }
+}
+
+@keyframes pulse-border {
+  0% {
+    border-color: rgba(212, 168, 67, 0.12) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  }
+  100% {
+    border-color: rgba(212, 168, 67, 0.35) !important;
+    box-shadow: 0 8px 32px rgba(212, 168, 67, 0.15) !important;
+  }
 }
 
 @media (min-width: 992px) {
@@ -642,7 +707,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   }
   
   .result-column-card {
-    padding: 12px;
+    padding: 14px 10px;
     min-height: 400px;
   }
 }
