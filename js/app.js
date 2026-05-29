@@ -1404,7 +1404,7 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
   el.innerHTML = podiumData.map(item => {
     const isTop = item.rank <= 3;
     const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
-    const ptsColor = '#ffe600'; // very bright yellow
+    const ptsColor = 'var(--gold)'; // bright warm gold
     const medal = medals[item.rank] || `<span style="font-size:16px;color:var(--text2)">${item.rank}</span>`;
     
     // Bajar 25% el nombre de los participantes: 1.er lugar en 20px, otros en 15px
@@ -1413,21 +1413,24 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
     const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
     const ptsGlow = isTop ? `text-shadow:0 0 8px ${ptsColor}, 0 0 16px ${ptsColor};` : '';
     
-    // MC Puntos se ven blancos con el mismo glow
-    const mcPtsLabel = item.podiumPts > 0 ? `<span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.65);white-space:nowrap">+${item.podiumPts} MC</span>` : '';
+    // MC Puntos no tienen negrita (weight 400) y son 25% menores (10px) con el mismo glow
+    const mcPtsLabel = item.podiumPts > 0 ? `<span style="font-family:'Inter',sans-serif;font-size:10px;font-weight:400;color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.65);white-space:nowrap">+${item.podiumPts} MC</span>` : '';
     const songLabel = item.song ? `<span style="font-size:13px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.song)}</span>` : '<span></span>';
     
+    // Canción alineada al principio (padding-left: 0px)
     const row2Html = (item.song || item.podiumPts > 0) ? `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-left:35px;margin-top:4px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-left:0px;margin-top:4px;font-size:13px;">
         ${songLabel}
         ${mcPtsLabel}
       </div>` : '';
       
+    // Los puntos se achican proporcionalmente (sizeClass: 20px o 15px)
+    const suffixSize = sizeClass === '20' ? '12' : '9';
     return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:${sizeClass}px;min-width:30px;text-align:center;line-height:1">${medal}</div>
         <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:${sizeClass}px;color:${nameColor};${nameGlow}overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
-        <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:${ptsColor};${ptsGlow}white-space:nowrap">${item.score}<span style="font-size:12px;font-weight:400;color:#ffe600;opacity:0.85;text-shadow:none"> ${scoreSuffix}</span></div>
+        <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:700;color:${ptsColor};${ptsGlow}white-space:nowrap">${item.score}<span style="font-size:${suffixSize}px;font-weight:400;color:var(--gold);opacity:0.85;text-shadow:none"> ${scoreSuffix}</span></div>
       </div>
       ${row2Html}
     </div>`;
