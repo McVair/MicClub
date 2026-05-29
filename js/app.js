@@ -468,11 +468,11 @@ function updateProgramPage() {
   // 3. Render Sponsors grids (Top & Bottom)
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsGridHtml = sponsors.map(sp => {
-    const content = `<img src="${sp.img}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid var(--border);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">`;
+    const content = `<img src="${sp.img}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">`;
     if (sp.link) {
-      return `<a href="${esc(sp.link)}" target="_blank" style="display:block;width:80px;height:80px;flex:0 0 80px">${content}</a>`;
+      return `<a href="${esc(sp.link)}" target="_blank" style="display:block;flex:0 0 calc(25% - 9px);max-width:calc(25% - 9px);box-sizing:border-box">${content}</a>`;
     }
-    return `<div style="display:block;width:80px;height:80px;flex:0 0 80px">${content}</div>`;
+    return `<div style="display:block;flex:0 0 calc(25% - 9px);max-width:calc(25% - 9px);box-sizing:border-box">${content}</div>`;
   }).join('');
   
   const elTop = document.getElementById('program-sponsors-top');
