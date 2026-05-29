@@ -127,10 +127,14 @@ if ('serviceWorker' in navigator) {
           <button class="btn-dash" onclick="navPush('program')" style="flex:1;text-align:left;padding-left:10px">📋 Programa</button>
           <button class="btn-dash btn-copy" onclick="dashCopyLink('vote')">Copiar</button>
         </div>
-        <button class="btn-dash" onclick="navToConfig()" style="width:100%;text-align:left;padding-left:10px">⚙️ Config participantes</button>
-        <button class="btn-dash" onclick="downloadSongLinks()" style="width:100%;text-align:left;padding-left:10px">⬇️ Descargar lista de canciones</button>
-        <button class="btn-dash" onclick="downloadReservations()" style="width:100%;text-align:left;padding-left:10px">📥 Descargar reservas</button>
-        <button class="btn-dash" onclick="navPush('history')" style="width:100%;text-align:left;padding-left:10px">📚 Historial</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn-dash" onclick="navToConfig()" style="flex:1;text-align:left;padding-left:10px">⚙️ Participantes</button>
+          <button class="btn-dash" onclick="downloadSongLinks()" style="flex:1;text-align:left;padding-left:10px">⬇️ Lista de canciones</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-dash" onclick="downloadReservations()" style="flex:1;text-align:left;padding-left:10px">📥 Reservas</button>
+          <button class="btn-dash" onclick="navPush('history')" style="flex:1;text-align:left;padding-left:10px">📚 Historial</button>
+        </div>
       </div>
 
       <!-- Pruebas / Simulación -->
@@ -144,7 +148,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Borrar Todo -->
-      <button onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px">🗑️ BORRAR TODO</button>
+      <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px;display:none">🗑️ BORRAR TODO</button>
 
     </div>
   </div>
@@ -254,9 +258,9 @@ if ('serviceWorker' in navigator) {
   <!-- ─────────── PROGRAMA (PORTAL PÚBLICO) ─────────── -->
   <div id="page-program" class="page" style="padding-bottom:100px">
     <div class="hero" style="padding-bottom:12px;text-align:center">
-      <div id="program-event-name" class="hero-title" style="font-size:clamp(30px,7vw,46px);line-height:1.1;margin-bottom:4px">MicClub</div>
-      <div id="program-event-details" style="font-size:13px;color:var(--text2);margin-top:6px;letter-spacing:0.5px;display:none"></div>
-      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-top:14px;opacity:0.85">Las Alas de Mi Voz</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">Las alas de mi vox Presenta:</div>
+      <div id="program-event-name" class="hero-title" style="font-size:clamp(30px,7vw,46px);line-height:1.1;margin-bottom:8px">MicClub</div>
+      <div id="program-event-details" style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text2);margin-top:6px;letter-spacing:1px;text-transform:uppercase;display:none"></div>
     </div>
 
     <!-- Auspiciantes (Grilla Superior) -->
@@ -266,8 +270,8 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Descripción del Programa -->
-    <div class="card" style="margin-bottom:16px;background:var(--bg2);border:1px solid var(--border)">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);margin-bottom:4px;letter-spacing:1px">PROGRAMA OFICIAL</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">PROGRAMA OFICIAL</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:12px;font-style:italic">Una experiencia donde cada voz tiene un lugar.</div>
       <p style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:12px">
         MIC CLUB nace como un espacio de encuentro, expresión y celebración colectiva a través de la música. Cada edición reúne artistas invitados, participantes de la comunidad y público dispuesto a compartir una noche única, donde cantar también significa conectar, jugar, emocionarse y crear recuerdos.
@@ -276,8 +280,8 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Cronograma -->
-    <div class="card" style="margin-bottom:16px;background:var(--bg2);border:1px solid var(--border)">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);margin-bottom:16px;letter-spacing:1px">CRONOGRAMA</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">CRONOGRAMA</div>
       
       <!-- 1. Apertura -->
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
@@ -325,8 +329,8 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- ¿Querés ser parte? -->
-    <div class="card" style="margin-bottom:16px;background:var(--bg2);border:1px solid var(--border)">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);margin-bottom:10px;letter-spacing:1px">¿QUERÉS SER PARTE DE LAS PRÓXIMAS EDICIONES?</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="font-size:20px">¿QUERÉS SER PARTE DE LAS PRÓXIMAS EDICIONES?</div>
       <ul style="font-size:13px;color:var(--text);margin-left:18px;line-height:1.8;margin-bottom:14px;padding-left:0">
         <li>Sumate como participante</li>
         <li>Formá parte de los talleres de Las Alas de Mi Voz</li>
@@ -348,7 +352,7 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Panel de Administración del Programa (solo visible si adminLoggedIn === true) -->
-    <div id="program-admin-panel" class="card" style="display:none;margin-top:20px;background:var(--bg2);border:1px solid var(--border);padding:14px">
+    <div id="program-admin-panel" class="card" style="display:none;margin-top:20px;padding:14px">
       <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px">⚙️ CONFIGURACIÓN DE PROGRAMA</div>
       
       <!-- Cargar Auspiciante -->
@@ -368,6 +372,8 @@ if ('serviceWorker' in navigator) {
       <div class="form-group" style="margin-bottom:16px;border-top:1px solid rgba(255,255,255,0.04);padding-top:12px">
         <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nombre Artista Invitado</label>
         <input type="text" id="artist-name-input" placeholder="Nombre del artista" style="width:100%;margin-bottom:8px;box-sizing:border-box">
+        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Canciones / Repertorio</label>
+        <input type="text" id="artist-songs-input" placeholder="Ej: Canción A, Canción B (dejar vacío para 'repertorio selecto')" style="width:100%;margin-bottom:8px;box-sizing:border-box">
         <button class="btn btn-gold btn-sm" onclick="addGuestArtistAdmin()">Agregar Artista</button>
       </div>
 
@@ -378,15 +384,12 @@ if ('serviceWorker' in navigator) {
 
     <!-- Botón flotante para votar (estilo WhatsApp) -->
     <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:1000;pointer-events:none;padding:0 14px;box-sizing:border-box;display:flex;justify-content:flex-end">
-      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;color:#ffffff;letter-spacing:0.5px;width:150px;height:150px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
+      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;color:#F4EAD0;letter-spacing:0.5px;width:150px;height:150px;border-radius:20px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
     </div>
   </div>
 
   <!-- ─────────── VOTACIÓN PÚBLICA ─────────── -->
   <div id="page-vote-public" class="page">
-    <div class="hero" style="padding-bottom:6px">
-      <div class="hero-title">¡VOTÁ A TU FAVORITO!</div>
-    </div>
     <div id="event-banner-vote" class="event-banner" style="display:none"></div>
 
     <!-- Votación cerrada -->
@@ -410,18 +413,10 @@ if ('serviceWorker' in navigator) {
     <!-- Lienzo de Fuegos Artificiales para Celebración -->
     <canvas id="ranking-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.75"></canvas>
 
-    <div class="hero" style="padding-bottom:6px">
-      <div class="hero-title" style="font-size:clamp(20px,5.5vw,36px);letter-spacing:2px">RESULTADOS DE VOTACIÓN</div>
-    </div>
     <div id="event-banner-ranking" class="event-banner" style="display:none"></div>
     <div id="bonus-banner-rank" style="display:none" class="bonus-active">⚡ <strong>BONUS ACTIVO</strong> — Doble puntaje</div>
 
-    <!-- QR con marco dorado — solo visible cuando la votación está abierta -->
-    <div id="rank-qr-section" style="display:none;text-align:center;margin-bottom:18px">
-      <div style="display:inline-block;border:1px solid rgba(212,168,67,.45);border-radius:12px;padding:10px;background:rgba(212,168,67,.04);box-shadow:0 0 12px rgba(212,168,67,.08)">
-        <div id="rank-vote-qr" style="display:block;line-height:0"></div>
-      </div>
-    </div>
+
 
     <!-- Contenedor Responsivo de Resultados (5 Columnas en Escritorio) -->
     <div class="results-layout-container">
@@ -476,12 +471,32 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── MICCLUB (ex-SHOW) ─────────── -->
   <div id="page-show" class="page">
+    <!-- Lienzo de Fuegos Artificiales para Celebración -->
+    <canvas id="show-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.75"></canvas>
+
     <div class="hero" style="padding-bottom:4px">
       <div class="hero-title">MIC CLUB</div>
       <div class="hero-sub">Puntos Acumulados</div>
     </div>
-    <div id="event-banner-show" class="event-banner" style="display:none"></div>
-    <div id="show-rows"></div>
+    
+    <!-- Layout Container for Desktop Side-by-Side Presentation -->
+    <div class="show-layout-container">
+      <!-- Artistas Consagrados Box -->
+      <div id="consagrados-card" class="result-column-card" style="margin-top: 16px; margin-bottom: 20px; display: none; background: rgba(212, 168, 67, 0.03) !important;">
+        <div class="result-column-header">
+          <div class="column-category-title">ARTISTAS CONSAGRADOS</div>
+        </div>
+        <div id="consagrados-rows"></div>
+      </div>
+
+      <!-- Puntos Activos Box -->
+      <div class="result-column-card" style="margin-top: 16px;">
+        <div class="result-column-header">
+          <div class="column-category-title">RANKING DE PARTICIPANTES</div>
+        </div>
+        <div id="show-rows"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ─────────── JURADO ─────────── -->
@@ -551,7 +566,7 @@ if ('serviceWorker' in navigator) {
 
 <button class="btn btn-outline btn-sm" onclick="exportCSV()" style="width:100%">📤 Exportar CSV</button>
             <hr class="divider">
-            <div style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px">
+            <div id="admin-clear-db-card" style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px;display:none">
               <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">🗑️ Vaciar Base de Datos</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Elimina TODOS los participantes y deja el sistema vacío. No se puede deshacer.</div>
               <button class="btn btn-danger btn-sm" onclick="clearAllParticipants()" style="width:100%">🗑️ BORRAR TODO Y EMPEZAR DE CERO</button>

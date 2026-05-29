@@ -73,7 +73,7 @@ function nav(page) {
   currentPage = page;
   renderNav();
   if (page === 'ranking')        { updateRanking(); startCelebration(); }
-  if (page === 'show')           updateShowMode();
+  if (page === 'show')           { updateShowMode(); startCelebration(); }
   if (page === 'config')         renderConfigParticipants();
   if (page === 'history')        renderHistoryPage();
   if (page === 'jury')           renderJurySelectors();
@@ -753,23 +753,50 @@ function updateEventInfoBanners() {
     'event-banner-register', 'event-banner-vote', 'event-banner-ranking',
     'event-banner-jury', 'event-banner-show', 'event-banner-config', 'event-banner-history'
   ];
-  // IDs where the event name should be extra-prominent (voting pages)
+  // IDs where we want the prominent gold-gradient header
   const prominentIds = new Set(['event-banner-vote', 'event-banner-jury', 'event-banner-ranking']);
 
   allIds.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (ce && ce.name) {
-      const det = [ce.date, ce.time, ce.venue].filter(Boolean).join(' · ');
-      if (prominentIds.has(id)) {
-        el.innerHTML = `<div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--text);line-height:1">${esc(ce.name)}</div>${det ? `<div style="font-size:11px;color:var(--text2);margin-top:3px;letter-spacing:1px">${esc(det)}</div>` : ''}`;
-        el.style.cssText = 'display:block;text-align:center;padding:10px 14px 8px;margin-bottom:10px';
-      } else {
+
+    if (prominentIds.has(id)) {
+      let topText = '';
+      let mainTitle = '';
+      let subText = '';
+      
+      const det = ce && ce.name ? [ce.name, ce.date, ce.time, ce.venue].filter(Boolean).join(' · ') : '';
+
+      if (id === 'event-banner-vote') {
+        topText = 'Votá a tus favoritos';
+        mainTitle = 'VOTACIÓN PÚBLICA';
+        subText = det;
+      } else if (id === 'event-banner-ranking') {
+        topText = 'RESULTADOS DE VOTACIÓN';
+        mainTitle = ce && ce.name ? ce.name : 'MIC CLUB';
+        subText = ce ? [ce.date, ce.time, ce.venue].filter(Boolean).join(' · ') : '';
+      } else if (id === 'event-banner-jury') {
+        topText = 'PANEL JURADO';
+        mainTitle = 'VOTACIÓN JURADO';
+        subText = det;
+      }
+
+      el.innerHTML = `
+        <div class="hero" style="padding: 14px 0 10px; text-align: center;">
+          <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">${esc(topText)}</div>
+          <div class="hero-title">${esc(mainTitle)}</div>
+          ${subText ? `<div class="hero-sub" style="margin-top: 6px;">${esc(subText)}</div>` : ''}
+        </div>
+      `;
+      el.style.cssText = 'display:block;';
+    } else {
+      if (ce && ce.name) {
+        const det = [ce.date, ce.time, ce.venue].filter(Boolean).join(' · ');
         el.innerHTML = `<span style="font-weight:700;color:var(--text)">${esc(ce.name)}</span>${det ? `<span style="color:var(--text2);margin-left:8px;font-size:11px">${esc(det)}</span>` : ''}`;
         el.style.cssText = 'display:block';
+      } else {
+        el.style.display = 'none';
       }
-    } else {
-      el.style.display = 'none';
     }
   });
 }
@@ -1247,7 +1274,8 @@ function updateRanking() {
 }
 
 function startCelebration() {
-  const canvas = document.getElementById('ranking-celebration-canvas');
+  const canvasId = currentPage === 'ranking' ? 'ranking-celebration-canvas' : 'show-celebration-canvas';
+  const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   
@@ -1330,7 +1358,7 @@ function startCelebration() {
   }
   
   function loop() {
-    if (currentPage !== 'ranking') {
+    if (currentPage !== 'ranking' && currentPage !== 'show') {
       window.removeEventListener('resize', resize);
       celebrationAnimationId = null;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1390,6 +1418,17 @@ function copyRankVoteLink() {
     .catch(() => mcAlert('Copiá este link:\n' + url));
 }
 
+function getMedalHTML(rank) {
+  if (rank === 1) {
+    return `<div style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#B38B45;color:#000000;font-size:12px;font-weight:700;font-family:'Inter',sans-serif;box-shadow:0 0 8px rgba(179, 139, 69, 0.5)">1</div>`;
+  } else if (rank === 2) {
+    return `<div style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#3B5870;color:#F4EAD0;font-size:12px;font-weight:700;font-family:'Inter',sans-serif;box-shadow:0 0 8px rgba(59, 88, 112, 0.5)">2</div>`;
+  } else if (rank === 3) {
+    return `<div style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#3B5870;color:#F4EAD0;font-size:12px;font-weight:700;font-family:'Inter',sans-serif;box-shadow:0 0 8px rgba(59, 88, 112, 0.5)">3</div>`;
+  }
+  return `<span style="font-family:'Inter',sans-serif;font-size:15px;color:var(--text2);font-weight:500">${rank}</span>`;
+}
+
 function renderPodiumList(podiumData, elId, scoreSuffix) {
   const el = document.getElementById(elId);
   if (!el) return;
@@ -1399,19 +1438,17 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
     return;
   }
   
-  const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
-  
   el.innerHTML = podiumData.map(item => {
     const isTop = item.rank <= 3;
     const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
-    const ptsColor = 'var(--gold)'; // bright warm gold
-    const medal = medals[item.rank] || `<span style="font-size:16px;color:var(--text2)">${item.rank}</span>`;
+    const ptsColor = nameColor; // same color as name
+    const medal = getMedalHTML(item.rank);
     
     // Bajar 25% el nombre de los participantes: 1.er lugar en 20px, otros en 15px
     const sizeClass = item.rank === 1 ? '20' : '15';
     
     const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
-    const ptsGlow = isTop ? `text-shadow:0 0 8px ${ptsColor}, 0 0 16px ${ptsColor};` : '';
+    const ptsGlow = '';
     
     // MC Puntos no tienen negrita (weight 400) y son 25% menores (10px) con el mismo glow
     const mcPtsLabel = item.podiumPts > 0 ? `<span style="font-family:'Inter',sans-serif;font-size:10px;font-weight:400;color:#ffffff;text-shadow:0 0 8px rgba(255,255,255,0.65);white-space:nowrap">+${item.podiumPts} MC</span>` : '';
@@ -1430,7 +1467,7 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:${sizeClass}px;min-width:30px;text-align:center;line-height:1">${medal}</div>
         <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:${sizeClass}px;color:${nameColor};${nameGlow}overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
-        <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:700;color:${ptsColor};${ptsGlow}white-space:nowrap">${item.score}<span style="font-size:${suffixSize}px;font-weight:400;color:var(--gold);opacity:0.85;text-shadow:none"> ${scoreSuffix}</span></div>
+        <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:700;color:${ptsColor};${ptsGlow}white-space:nowrap">${item.score}<span style="font-size:${suffixSize}px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> ${scoreSuffix}</span></div>
       </div>
       ${row2Html}
     </div>`;
@@ -1461,30 +1498,62 @@ function renderJuryRankingInRanking() {
 
 function updateShowMode() {
   const parts = sortedMicclub();
-  const el    = document.getElementById('show-rows');
+  
+  // 1. Separate Consagrados (>150 pts) from active parts
+  const consagradosData = parts.filter(p => p.score > 150);
+  const activeParts = parts.filter(p => p.score <= 150);
+
+  // Render Consagrados
+  const consagradosCard = document.getElementById('consagrados-card');
+  const consagradosRows = document.getElementById('consagrados-rows');
+  const showLayoutContainer = document.querySelector('.show-layout-container');
+
+  if (consagradosCard && consagradosRows) {
+    if (consagradosData.length > 0) {
+      consagradosCard.style.display = 'block';
+      if (showLayoutContainer) showLayoutContainer.classList.add('two-columns');
+      consagradosRows.innerHTML = consagradosData.map((p) => {
+        const badge = `👑`;
+        return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px">
+          <div style="font-size:20px;min-width:30px;text-align:center;line-height:1">${badge}</div>
+          <div style="flex:1;font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--text);text-shadow:0 0 6px rgba(255,255,255,0.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
+          <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:var(--text);white-space:nowrap">${p.score}<span style="font-size:12px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> pts</span></div>
+        </div>`;
+      }).join('');
+    } else {
+      consagradosCard.style.display = 'none';
+      if (showLayoutContainer) showLayoutContainer.classList.remove('two-columns');
+    }
+  }
+
+  // Render Active Parts
+  const el = document.getElementById('show-rows');
   if (!el) return;
-  if (!parts.length) {
+  if (!activeParts.length) {
     el.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
     return;
   }
-  const medals = ['🥇', '🥈', '🥉'];
-  el.innerHTML = parts.map((p, i) => {
+  el.innerHTML = activeParts.map((p, i) => {
     const pct    = Math.min(100, (p.score / META) * 100);
     const isTop  = i < 3;
-    const rank   = isTop ? medals[i] : `<span style="font-size:13px;color:var(--text2)">${i + 1}</span>`;
-    const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
-    const ptsColor  = isTop ? 'var(--gold)' : 'var(--text2)';
-    return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+    const rank   = getMedalHTML(i + 1);
+    const nameColor = 'var(--text)'; // All names are cream white
+    
+    const sizeClass = (i === 0) ? '20' : '15';
+    const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
+    const ptsGlow = ''; // All scores have yellow glow
+    const suffixSize = sizeClass === '20' ? '12' : '9';
+    
+    return `<div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <div style="font-size:${isTop ? '20' : '14'}px;min-width:26px;text-align:center;line-height:1">${rank}</div>
-        <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? '700' : '500'};font-size:${isTop ? '15' : '14'}px;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
-        <div style="font-family:'Inter',sans-serif;font-size:${isTop ? '17' : '15'}px;font-weight:700;color:${ptsColor};white-space:nowrap">${p.score} <span style="font-size:10px;font-weight:400;color:var(--text2)">pts</span></div>
+        <div style="font-size:${sizeClass}px;min-width:30px;text-align:center;line-height:1">${rank}</div>
+        <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? '700' : '500'};font-size:${sizeClass}px;color:${nameColor};${nameGlow}white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
+        <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:700;color:${nameColor};${ptsGlow}white-space:nowrap">${p.score}<span style="font-size:${suffixSize}px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> pts</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;padding-left:36px">
-        <div style="flex:1;height:5px;background:var(--bg4);border-radius:99px;overflow:hidden">
+      <div style="padding-left:40px;margin-top:2px">
+        <div style="width:100%;height:4px;background:var(--bg4);border-radius:99px;overflow:hidden">
           <div style="width:${pct}%;height:100%;background:${isTop ? 'linear-gradient(90deg,var(--gold-dark),var(--gold-light))' : 'rgba(160,144,112,.35)'};border-radius:99px;transition:width 1s ease"></div>
         </div>
-        <span style="font-size:10px;color:var(--text2);white-space:nowrap">${META}</span>
       </div>
     </div>`;
   }).join('');
@@ -1963,11 +2032,18 @@ function renderJurySelectors() {
   const hdr = document.getElementById('jury-page-header');
   const el  = document.getElementById('jury-select-grid');
 
+  const ce  = localState.settings?.currentEvent;
+  const det = ce && ce.name ? [ce.name, ce.date, ce.time, ce.venue].filter(Boolean).join(' · ') : '';
+  const sub = det ? `${det} · Panel Jurado` : 'Panel Jurado';
+
   // Sin evento activo — bloquear todo
   if (!showRunning) {
     if (hdr) hdr.innerHTML = `
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,9vw,52px);letter-spacing:4px;line-height:1;background:linear-gradient(135deg,var(--gold-light) 0%,var(--gold) 50%,var(--gold-dark) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">JURADO</div>
-      <div style="font-family:'Inter',sans-serif;font-size:10px;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:var(--text2);margin-top:6px">Votación del Jurado</div>`;
+      <div class="hero" style="padding: 8px 0 10px; text-align: center;">
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">PANEL JURADO</div>
+        <div class="hero-title">VOTACIÓN JURADO</div>
+        <div class="hero-sub" style="margin-top: 6px;">Panel Jurado</div>
+      </div>`;
     if (el) el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text2)">
       <div style="font-size:32px;margin-bottom:12px">🎬</div>
       <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text)">No hay evento activo</div>
@@ -1978,14 +2054,13 @@ function renderJurySelectors() {
 
   // Encabezado dinámico con datos del evento
   if (hdr) {
-    const ce  = localState.settings?.currentEvent;
-    const det = ce ? [ce.date, ce.time, ce.venue].filter(Boolean).join(' · ') : '';
-    hdr.innerHTML = ce && ce.name
-      ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,9vw,52px);letter-spacing:4px;line-height:1;background:linear-gradient(135deg,var(--gold-light) 0%,var(--gold) 50%,var(--gold-dark) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${esc(ce.name)}</div>
-         ${det ? `<div style="font-size:11px;color:var(--text2);margin-top:4px;letter-spacing:1px">${esc(det)}</div>` : ''}
-         <div style="font-family:'Inter',sans-serif;font-size:10px;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:var(--text2);margin-top:8px">Votación del Jurado</div>`
-      : `<div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,9vw,52px);letter-spacing:4px;line-height:1;background:linear-gradient(135deg,var(--gold-light) 0%,var(--gold) 50%,var(--gold-dark) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">JURADO</div>
-         <div style="font-family:'Inter',sans-serif;font-size:10px;font-weight:400;letter-spacing:3px;text-transform:uppercase;color:var(--text2);margin-top:6px">Votación del Jurado</div>`;
+    hdr.innerHTML = `
+      <div class="hero" style="padding: 8px 0 10px; text-align: center;">
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">PANEL JURADO</div>
+        <div class="hero-title">VOTACIÓN JURADO</div>
+        ${det ? `<div class="hero-sub" style="margin-top: 6px;">${esc(det)}</div>` : ''}
+      </div>
+    `;
   }
 
   // Lista de participantes — solo los que tienen canción confirmada para este evento
