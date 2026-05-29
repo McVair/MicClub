@@ -424,38 +424,69 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
 
-    <!-- Votación del Público -->
-    <div class="card">
-      <div class="card-title" style="margin-bottom:12px">🗳️ Votación del Público</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div>
-          <div class="card-sub" style="margin-bottom:8px">🎵 Mejor Canción</div>
-          <div id="rank-pub-song"></div>
+    <!-- Contenedor Responsivo de Resultados (5 Columnas en Escritorio) -->
+    <div class="results-layout-container">
+      
+      <!-- Columna 1: Público - Mejor Canción -->
+      <div class="result-column-card">
+        <div class="result-column-header">
+          <div class="header-icon">🗳️</div>
+          <div>
+            <div class="header-title">PÚBLICO</div>
+            <div class="header-subtitle">Mejor Canción</div>
+          </div>
         </div>
-        <div>
-          <div class="card-sub" style="margin-bottom:8px">🎭 Mejor Performance</div>
-          <div id="rank-pub-perf"></div>
-        </div>
+        <div id="rank-pub-song"></div>
       </div>
-    </div>
 
-    <!-- Votación del Jurado -->
-    <div class="card">
-      <div class="card-title" style="margin-bottom:12px">⭐ Votación del Jurado</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div>
-          <div class="card-sub" style="margin-bottom:8px">🎵 Canción</div>
-          <div id="rank-jury-song"></div>
+      <!-- Columna 2: Público - Mejor Performance -->
+      <div class="result-column-card">
+        <div class="result-column-header">
+          <div class="header-icon">🗳️</div>
+          <div>
+            <div class="header-title">PÚBLICO</div>
+            <div class="header-subtitle">Mejor Performance</div>
+          </div>
         </div>
-        <div>
-          <div class="card-sub" style="margin-bottom:8px">🎭 Performance</div>
-          <div id="rank-jury-perf"></div>
-        </div>
-        <div style="grid-column:1/-1">
-          <div class="card-sub" style="margin-bottom:8px">📣 Hinchada</div>
-          <div id="rank-jury-hinchada"></div>
-        </div>
+        <div id="rank-pub-perf"></div>
       </div>
+
+      <!-- Columna 3: Jurado - Canción -->
+      <div class="result-column-card">
+        <div class="result-column-header">
+          <div class="header-icon">⭐</div>
+          <div>
+            <div class="header-title">JURADO</div>
+            <div class="header-subtitle">Canción</div>
+          </div>
+        </div>
+        <div id="rank-jury-song"></div>
+      </div>
+
+      <!-- Columna 4: Jurado - Performance -->
+      <div class="result-column-card">
+        <div class="result-column-header">
+          <div class="header-icon">⭐</div>
+          <div>
+            <div class="header-title">JURADO</div>
+            <div class="header-subtitle">Performance</div>
+          </div>
+        </div>
+        <div id="rank-jury-perf"></div>
+      </div>
+
+      <!-- Columna-5: Jurado - Hinchada -->
+      <div class="result-column-card">
+        <div class="result-column-header">
+          <div class="header-icon">📣</div>
+          <div>
+            <div class="header-title">JURADO</div>
+            <div class="header-subtitle">Hinchada</div>
+          </div>
+        </div>
+        <div id="rank-jury-hinchada"></div>
+      </div>
+
     </div>
   </div>
 

@@ -579,3 +579,70 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   background: rgba(255,61,107,.04) !important;
 }
 .score-zero { color: var(--red) !important; }
+
+/* ── RESPONSIVE RESULTS GRID (5 COLUMNS ON DESKTOP) ── */
+.results-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.result-column-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.result-column-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 8px;
+}
+
+.result-column-header .header-icon {
+  font-size: 22px;
+}
+
+.result-column-header .header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.result-column-header .header-subtitle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+@media (min-width: 992px) {
+  #page-ranking {
+    max-width: 95% !important;
+    width: 95% !important;
+    margin: 0 auto;
+  }
+  
+  .results-layout-container {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 12px !important;
+    align-items: start;
+  }
+  
+  .result-column-card {
+    padding: 12px;
+    min-height: 400px;
+  }
+}
