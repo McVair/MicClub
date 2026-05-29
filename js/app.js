@@ -447,7 +447,7 @@ function updateProgramPage() {
   // 2. Circular Floating Button styles (WhatsApp style in bottom-right)
   const hasVoted = !!localStorage.getItem('voted_public');
   voteBtn.innerText = hasVoted ? "Modificar\nvoto" : "VOTAR!";
-  voteBtn.style.fontSize = hasVoted ? '14px' : '16px';
+  voteBtn.style.fontSize = hasVoted ? '24px' : '32px';
   
   if (votingOpen) {
     voteBtn.disabled = false;
@@ -468,35 +468,40 @@ function updateProgramPage() {
   // 3. Render Sponsors grids (Top & Bottom)
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsGridHtml = sponsors.map(sp => {
-    const content = `<img src="${sp.img}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">`;
+    const content = `<img src="${sp.img}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid var(--border);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">`;
     if (sp.link) {
-      return `<a href="${esc(sp.link)}" target="_blank" style="display:block">${content}</a>`;
+      return `<a href="${esc(sp.link)}" target="_blank" style="display:block;width:80px;height:80px;flex:0 0 80px">${content}</a>`;
     }
-    return `<div style="display:block">${content}</div>`;
+    return `<div style="display:block;width:80px;height:80px;flex:0 0 80px">${content}</div>`;
   }).join('');
   
   const elTop = document.getElementById('program-sponsors-top');
   const elBot = document.getElementById('program-sponsors-bottom');
-  if (elTop) elTop.innerHTML = sponsorsGridHtml || '<div style="grid-column:1/-1;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
-  if (elBot) elBot.innerHTML = sponsorsGridHtml || '<div style="grid-column:1/-1;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
+  if (elTop) elTop.innerHTML = sponsorsGridHtml || '<div style="width:100%;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
+  if (elBot) elBot.innerHTML = sponsorsGridHtml || '<div style="width:100%;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
 
   // 4. Render Guest Artists
   const artists = localState.settings?.guestArtists || [];
-  const artistsHtml = artists.map(art => `
-    <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);padding:6px 12px;background:var(--bg3);border-radius:6px;margin-bottom:6px;display:inline-block;margin-right:6px;border:1px solid var(--border)">
-      🎙️ ${esc(art)}
-    </div>
-  `).join('');
+  const artistsHtml = artists.map((art, index) => {
+    const isLast = index === artists.length - 1;
+    const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
+    return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-weight:600;color:var(--text)">🎙️ ${esc(art)}</span>
+      <span style="color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.5px;text-transform:uppercase">Artista Invitado</span>
+    </div>`;
+  }).join('');
   const elArtists = document.getElementById('program-guest-artists');
-  if (elArtists) elArtists.innerHTML = artistsHtml || '<div style="font-size:12px;color:var(--text2);font-style:italic">Próximamente se anunciarán los artistas invitados de la fecha.</div>';
+  if (elArtists) elArtists.innerHTML = artistsHtml || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;font-style:italic">Próximamente se anunciarán los artistas invitados de la fecha.</div>';
 
   // 5. Render Active Participants
   const parts = Object.values(allParticipants)
     .filter(p => p.songConfirmed)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  const partsHtml = parts.map(p => {
+  const partsHtml = parts.map((p, index) => {
     const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
-    return `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;display:flex;justify-content:space-between;align-items:center">
+    const isLast = index === parts.length - 1;
+    const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
+    return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
       <span style="font-weight:600;color:var(--text)">🎤 ${esc(p.name)}</span>
       <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${songLabel}</span>
     </div>`;

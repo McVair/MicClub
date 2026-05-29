@@ -266,7 +266,7 @@ if ('serviceWorker' in navigator) {
     <!-- Auspiciantes (Grilla Superior) -->
     <div style="margin-top:8px;margin-bottom:16px">
       <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
-      <div class="sponsors-grid" id="program-sponsors-top" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px"></div>
+      <div class="sponsors-grid" id="program-sponsors-top" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px"></div>
     </div>
 
     <!-- Descripción del Programa -->
@@ -293,7 +293,7 @@ if ('serviceWorker' in navigator) {
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">2. SHOW DE ARTISTAS INVITADOS</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:6px">Artistas que llegan para encender la noche y compartir su universo con la comunidad MIC CLUB.</div>
-        <div id="program-guest-artists" style="margin-top:8px"></div>
+        <div id="program-guest-artists" style="margin-top:10px;background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
       </div>
 
       <!-- 3. Participantes Mic Club -->
@@ -325,7 +325,7 @@ if ('serviceWorker' in navigator) {
     <!-- Auspiciantes (Grilla Inferior) -->
     <div style="margin-bottom:16px">
       <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
-      <div class="sponsors-grid" id="program-sponsors-bottom" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:10px"></div>
+      <div class="sponsors-grid" id="program-sponsors-bottom" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px"></div>
     </div>
 
     <!-- ¿Querés ser parte? -->
@@ -382,7 +382,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Botón flotante para votar (estilo WhatsApp) -->
     <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:1000;pointer-events:none;padding:0 14px;box-sizing:border-box;display:flex;justify-content:flex-end">
-      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 8px 24px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:#ffffff;letter-spacing:0.5px;width:75px;height:75px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;padding:6px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
+      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;color:#ffffff;letter-spacing:0.5px;width:150px;height:150px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
     </div>
   </div>
 
