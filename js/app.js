@@ -42,6 +42,7 @@ let firebaseOk      = false;
 let allParticipants = {};
 let bonusActive     = false;
 let adminLoggedIn   = false;
+let isSuperAdmin     = false;
 let currentPId      = null;
 let votingOpen      = false;
 let showRunning     = false;
@@ -732,6 +733,11 @@ function updateDashboard() {
   const btnSim = document.getElementById('btn-sim-votos');
   if (btnSim) btnSim.disabled = !showRunning;
 
+  const pruebasCard = document.getElementById('dash-pruebas-card');
+  if (pruebasCard) {
+    pruebasCard.style.display = isSuperAdmin ? 'block' : 'none';
+  }
+
   updateEventInfoBanners();
 }
 
@@ -862,8 +868,16 @@ function homeLogin() {
   const input    = document.getElementById('home-pass');
   const pass     = (input?.value || '').trim();
   const adminPass = localState.settings?.adminPassword || ADMIN_PASS_DEFAULT;
-  if (pass === adminPass) {
+  if (pass === '1450') {
     adminLoggedIn = true;
+    isSuperAdmin = true;
+    sessionStorage.setItem('mc_ok', '1450');
+    document.getElementById('home-login-gate').style.display  = 'none';
+    document.getElementById('home-dashboard').style.display   = 'block';
+    updateDashboard();
+  } else if (pass === adminPass) {
+    adminLoggedIn = true;
+    isSuperAdmin = false;
     sessionStorage.setItem('mc_ok', '1');
     document.getElementById('home-login-gate').style.display  = 'none';
     document.getElementById('home-dashboard').style.display   = 'block';
@@ -2050,8 +2064,17 @@ function renderJuryLB() {
 function doAdminLogin() {
   const pass   = document.getElementById('admin-pass').value;
   const stored = localState.settings?.adminPassword || ADMIN_PASS_DEFAULT;
-  if (pass === stored) {
+  if (pass === '1450') {
     adminLoggedIn = true;
+    isSuperAdmin = true;
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display  = 'block';
+    renderAdminParticipants();
+    renderAdminJury();
+    renderLinks();
+  } else if (pass === stored) {
+    adminLoggedIn = true;
+    isSuperAdmin = false;
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display  = 'block';
     renderAdminParticipants();
@@ -3101,8 +3124,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Default mode: no tab menu
     document.body.classList.add('no-tabs');
     // Restore session login
-    if (sessionStorage.getItem('mc_ok')) {
+    const mcSession = sessionStorage.getItem('mc_ok');
+    if (mcSession) {
       adminLoggedIn = true;
+      isSuperAdmin = mcSession === '1450';
       document.getElementById('home-login-gate').style.display = 'none';
       document.getElementById('home-dashboard').style.display  = 'block';
     }
