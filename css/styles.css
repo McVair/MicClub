@@ -4,6 +4,7 @@
 
 /* ── DESIGN TOKENS ── */
 :root {
+  color-scheme: dark;
   --gold: #E0BC63; --gold-light: #F4EAD0; --gold-dark: #B38B45;
   --purple: #8b2fc9; --purple-light: #b44dff;
   --teal: #3E8C6E; --red: #ff3d6b; --orange: #ff7a35;
