@@ -1266,8 +1266,8 @@ function startCelebration() {
       this.x = Math.random() * canvas.width;
       this.y = canvas.height;
       this.tx = Math.random() * canvas.width;
-      this.ty = Math.random() * (canvas.height * 0.5) + canvas.height * 0.1;
-      this.speed = Math.random() * 3 + 2.5;
+      this.ty = Math.random() * (canvas.height * 0.3) + canvas.height * 0.05; // detonate at upper 5%-35% of screen
+      this.speed = Math.random() * 6 + 5.0; // double speed
       this.angle = Math.atan2(this.ty - this.y, this.tx - this.x);
       this.dist = Math.hypot(this.tx - this.x, this.ty - this.y);
       this.distTraveled = 0;
@@ -1287,7 +1287,7 @@ function startCelebration() {
     }
     draw() {
       ctx.beginPath();
-      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
       ctx.fillStyle = `hsl(${this.hue}, 100%, 75%)`;
       ctx.fill();
     }
@@ -1298,9 +1298,9 @@ function startCelebration() {
       this.x = x;
       this.y = y;
       this.angle = Math.random() * Math.PI * 2;
-      this.speed = Math.random() * 5 + 1.2;
+      this.speed = Math.random() * 10 + 2.4; // double speed
       this.friction = 0.94;
-      this.gravity = 0.12;
+      this.gravity = 0.24; // double gravity to balance double speed
       this.hue = hue + (Math.random() * 40 - 20);
       this.alpha = 1;
       this.decay = Math.random() * 0.015 + 0.007;
@@ -1340,7 +1340,7 @@ function startCelebration() {
     celebrationAnimationId = requestAnimationFrame(loop);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (Math.random() < 0.04 && fireworks.length < 5) {
+    if (Math.random() < 0.08 && fireworks.length < 10) { // double spawning rate and maximum quantity
       fireworks.push(new Firework());
     }
     
@@ -1399,16 +1399,18 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
     const isTop = item.rank <= 3;
     const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
     const ptsColor = isTop ? 'var(--gold)' : 'var(--text2)';
-    const medal = medals[item.rank] || `<span style="font-size:12px;color:var(--text2)">${item.rank}</span>`;
-    const fontSz = item.rank === 1 ? '18' : '13';
-    const mcPtsLabel = item.podiumPts > 0 ? `<span style="font-size:10px;font-weight:400;color:var(--text2);margin-left:5px;opacity:0.75"> (+${item.podiumPts} MC)</span>` : '';
-    const songLabel = item.song ? `<div style="font-size:10px;color:var(--text2);padding-left:29px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.song)}</div>` : '';
+    const medal = medals[item.rank] || `<span style="font-size:16px;color:var(--text2)">${item.rank}</span>`;
+    const sizeClass = item.rank === 1 ? '26' : '20';
+    const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
+    const ptsGlow = isTop ? `text-shadow:0 0 8px ${ptsColor}, 0 0 16px ${ptsColor};` : '';
+    const mcPtsLabel = item.podiumPts > 0 ? `<span style="font-size:12px;font-weight:400;color:var(--text2);margin-left:5px;opacity:0.75"> (+${item.podiumPts} MC)</span>` : '';
+    const songLabel = item.song ? `<div style="font-size:13px;color:var(--text2);padding-left:35px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.song)}</div>` : '';
     
-    return `<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-      <div style="display:flex;align-items:center;gap:7px">
-        <div style="font-size:${fontSz}px;min-width:22px;text-align:center;line-height:1">${medal}</div>
-        <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:13px;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
-        <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:${ptsColor};white-space:nowrap">${item.score}<span style="font-size:9px;font-weight:400;color:var(--text2)"> ${scoreSuffix}</span>${mcPtsLabel}</div>
+    return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:${sizeClass}px;min-width:30px;text-align:center;line-height:1">${medal}</div>
+        <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:${sizeClass}px;color:${nameColor};${nameGlow}overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
+        <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:${ptsColor};${ptsGlow}white-space:nowrap">${item.score}<span style="font-size:12px;font-weight:400;color:var(--text2);text-shadow:none"> ${scoreSuffix}</span>${mcPtsLabel}</div>
       </div>
       ${songLabel}
     </div>`;
