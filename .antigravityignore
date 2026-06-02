@@ -1,0 +1,43 @@
+# === DEPENDENCIAS ===
+node_modules/
+bower_components/
+
+# === BUILD / DIST ===
+dist/
+build/
+out/
+.cache/
+
+# === ASSETS BINARIOS (no los necesita leer) ===
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.svg
+**/*.ico
+**/*.mp3
+**/*.mp4
+**/*.wav
+**/*.ogg
+**/*.ttf
+**/*.woff
+**/*.woff2
+
+# === GIT ===
+.git/
+.gitignore
+
+# === SISTEMA / EDITOR ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.tmp
+
+# === ARCHIVOS DE RESPALDO ===
+**/*.bak
+**/*.old
+*_backup*
+*_old*

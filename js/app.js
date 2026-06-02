@@ -40,6 +40,7 @@ const JURY_ID = (() => {
 let db, dbRef, dbSet, dbGet, dbOnValue, dbPush, dbUpdate, dbRemove;
 let firebaseOk      = false;
 let allParticipants = {};
+let freeKaraokeList = {};
 let bonusActive     = false;
 let adminLoggedIn   = false;
 let isSuperAdmin     = false;
@@ -211,6 +212,10 @@ function initFirebase() {
       allParticipants = snap.val() || {};
       updateUI();
     });
+    dbOnValue(dbRef(db, 'freeKaraoke'), snap => {
+      freeKaraokeList = snap.val() || {};
+      updateUI();
+    });
     dbOnValue(dbRef(db, 'settings'), snap => {
       const s = snap.val() || {};
       bonusActive   = !!s.bonus;
@@ -238,6 +243,7 @@ function setupLocal() {
   const s = localStorage.getItem('micclub_data');
   if (s) { try { localState = JSON.parse(s); } catch(e) {} }
   allParticipants = localState.participants || {};
+  freeKaraokeList = localState.freeKaraoke || {};
   bonusActive     = !!localState.settings?.bonus;
   votingOpen      = !!localState.settings?.votingOpen;
   showRunning     = !!localState.settings?.showRunning;
@@ -248,6 +254,7 @@ function setupLocal() {
 
 function saveLocal() {
   localState.participants = allParticipants;
+  localState.freeKaraoke = freeKaraokeList;
   localStorage.setItem('micclub_data', JSON.stringify(localState));
   updateUI();
 }
@@ -420,6 +427,7 @@ function updateUI() {
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
   renderLinks();
+  updateFreeKaraokePages();
 }
 
 function updateProgramPage() {
@@ -681,15 +689,31 @@ function updateDashboard() {
   const showBtn = document.getElementById('dash-show-btn');
   if (showBtn) {
     if (showRunning) {
-      showBtn.textContent       = 'TERMINAR EVENTO';
+      showBtn.innerHTML         = 'TERMINAR<br>EVENTO';
       showBtn.style.background  = 'linear-gradient(135deg,#aa3d50,#7a2535)';
       showBtn.style.color       = '#fff';
       showBtn.style.borderColor = '#aa3d50';
     } else {
-      showBtn.textContent       = 'INICIAR EVENTO';
+      showBtn.innerHTML         = 'INICIAR<br>EVENTO';
       showBtn.style.background  = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
       showBtn.style.color       = '#0a0a0f';
       showBtn.style.borderColor = '#4d9e6a';
+    }
+  }
+
+  // Botón KARAOKE LIBRE (Amarillo/Gold)
+  const freeBtn = document.getElementById('dash-free-karaoke-btn');
+  if (freeBtn) {
+    if (showRunning) {
+      freeBtn.style.opacity       = '1';
+      freeBtn.style.pointerEvents = 'auto';
+      freeBtn.style.background    = 'linear-gradient(135deg,var(--gold),#8a640f)';
+      freeBtn.style.color         = '#0a0a0f';
+    } else {
+      freeBtn.style.background    = 'linear-gradient(135deg,#2e2411,#1a1409)';
+      freeBtn.style.color         = '#5e481c';
+      freeBtn.style.opacity       = '0.55';
+      freeBtn.style.pointerEvents = 'none';
     }
   }
 
@@ -2357,16 +2381,16 @@ function renderVotingToggleBtn() {
       dashBtn.style.opacity       = '1';
       dashBtn.style.pointerEvents = 'auto';
       if (votingOpen) {
-        dashBtn.textContent      = 'CERRAR VOTACIÓN';
+        dashBtn.innerHTML        = 'CERRAR<br>VOTACIÓN';
         dashBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         dashBtn.style.color      = '#fff';
       } else {
-        dashBtn.textContent      = 'ABRIR VOTACIÓN';
+        dashBtn.innerHTML        = 'ABRIR<br>VOTACIÓN';
         dashBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
         dashBtn.style.color      = '#0a0a0f';
       }
     } else {
-      dashBtn.textContent         = 'ABRIR VOTACIÓN';
+      dashBtn.innerHTML           = 'ABRIR<br>VOTACIÓN';
       dashBtn.style.background    = 'linear-gradient(135deg,#1a3324,#101e16)';
       dashBtn.style.color         = '#3a6648';
       dashBtn.style.opacity       = '0.55';
@@ -2745,6 +2769,7 @@ async function endShow() {
       'settings/votingCloseAt': null,
       'settings/showRunning':   false,
       'settings/currentEvent':  null,
+      'freeKaraoke':            null,
     };
 
     Object.keys(allParticipants).forEach(id => {
@@ -2793,6 +2818,8 @@ async function endShow() {
       localState.settings.votingCloseAt = null;
       localState.settings.showRunning   = false;
       localState.settings.currentEvent  = null;
+      localState.freeKaraoke            = {};
+      freeKaraokeList                   = {};
       if (!localState.history) localState.history = {};
       localState.history[closedAt] = historyEntry;
       saveLocal();
@@ -2808,6 +2835,19 @@ async function endShow() {
 // Se llama automáticamente al cargar datos cuando showRunning === false.
 async function enforceNoShowState() {
   if (showRunning) return; // solo actúa cuando no hay evento
+  
+  if (Object.keys(freeKaraokeList).length > 0) {
+    try {
+      if (firebaseOk) {
+        await dbUpdate(dbRef(db), { freeKaraoke: null });
+      } else {
+        freeKaraokeList = {};
+        localState.freeKaraoke = {};
+        saveLocal();
+      }
+    } catch(e) { console.error('enforceNoShowState freeKaraoke cleanup error:', e); }
+  }
+
   const dirty = Object.entries(allParticipants).filter(([, p]) =>
     p.songConfirmed || p.songTitle || p.karaokeLink || (parseInt(p.people) || 0) > 0 ||
     (parseInt(p.voteSong) || 0) > 0 || (parseInt(p.votePerf) || 0) > 0 ||
@@ -2877,13 +2917,16 @@ function clearAllParticipants() {
       }
       await dbSet(dbRef(db, 'participants'), null);
       await dbSet(dbRef(db, 'history'), null);
+      await dbSet(dbRef(db, 'freeKaraoke'), null);
       await dbUpdate(dbRef(db, 'settings'), {
         votingOpen: false, votingCloseAt: null, bonus: false,
         showRunning: false, currentEvent: null
       });
     } else {
       allParticipants = {};
+      freeKaraokeList = {};
       localState.participants = {};
+      localState.freeKaraoke = {};
       localState.history = {};
       localState.settings.votingOpen    = false;
       localState.settings.votingCloseAt = null;
@@ -2894,6 +2937,7 @@ function clearAllParticipants() {
     }
     bonusActive = false; votingOpen = false; showRunning = false;
     allParticipants = {};
+    freeKaraokeList = {};
     localStorage.removeItem('voted_public');
     updateUI();
     mcAlert('✅ Base de datos vaciada. El sistema está limpio.');
@@ -3369,3 +3413,209 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.location.hash === '#show') nav('show');
   setInterval(() => { if (!firebaseOk) updateUI(); }, 10000);
 });
+
+// ── KARAOKE LIBRE ─────────────────────────────────────────────────────────────
+function updateFreeKaraokePages() {
+  const currentEvent = localState.settings?.currentEvent;
+  const eventDate = currentEvent?.date || '';
+  const sortedFreeItems = Object.entries(freeKaraokeList)
+    .map(([id, item]) => ({ id, ...item }))
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const isFull = sortedFreeItems.length >= 20;
+
+  // 1. Programa Público
+  const progSection = document.getElementById('program-free-karaoke-section');
+  if (progSection) {
+    if (showRunning) {
+      progSection.style.display = 'block';
+      const dateEl = document.getElementById('program-free-karaoke-date');
+      if (dateEl) dateEl.textContent = eventDate ? `(${eventDate})` : '';
+
+      const regBtn = document.getElementById('program-free-karaoke-reg-btn');
+      const fullBanner = document.getElementById('program-free-karaoke-full-banner');
+      if (isFull) {
+        if (regBtn) regBtn.style.display = 'none';
+        if (fullBanner) fullBanner.style.display = 'block';
+      } else {
+        if (regBtn) regBtn.style.display = 'flex';
+        if (fullBanner) fullBanner.style.display = 'none';
+      }
+
+      const listWrap = document.getElementById('program-free-karaoke-list-wrap');
+      const countEl = document.getElementById('program-free-karaoke-count');
+      const listEl = document.getElementById('program-free-karaoke-list');
+      
+      if (listWrap) listWrap.style.display = sortedFreeItems.length > 0 ? 'block' : 'none';
+      if (countEl) countEl.textContent = `${sortedFreeItems.length}/20`;
+      if (listEl) {
+        listEl.innerHTML = sortedFreeItems.map((item, index) => {
+          const isLast = index === sortedFreeItems.length - 1;
+          const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
+          return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+          </div>`;
+        }).join('');
+      }
+    } else {
+      progSection.style.display = 'none';
+    }
+  }
+
+  // 2. Registro Público
+  const freeSub = document.getElementById('free-karaoke-sub');
+  if (freeSub) freeSub.textContent = 'Quiero participar del karaoke ' + (eventDate ? `(${eventDate})` : '');
+
+  const registerFullBanner = document.getElementById('free-karaoke-full-banner');
+  const registerFormCard = document.getElementById('free-karaoke-form-card');
+  if (registerFullBanner && registerFormCard) {
+    if (isFull) {
+      registerFullBanner.style.display = 'block';
+      registerFormCard.style.display = 'none';
+    } else {
+      registerFullBanner.style.display = 'none';
+      registerFormCard.style.display = 'block';
+    }
+  }
+
+  const badgeEl = document.getElementById('free-karaoke-count-badge');
+  if (badgeEl) badgeEl.textContent = `${sortedFreeItems.length}/20`;
+
+  const pubListEl = document.getElementById('free-karaoke-public-list');
+  if (pubListEl) {
+    pubListEl.innerHTML = sortedFreeItems.map((item, index) => {
+      const isLast = index === sortedFreeItems.length - 1;
+      const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
+      return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(item.name)}</span>
+        <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+      </div>`;
+    }).join('') || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;font-style:italic">¡Sé el primero en inscribirte!</div>';
+  }
+
+  // 3. Panel de Administración
+  const adminCountEl = document.getElementById('admin-free-karaoke-count');
+  if (adminCountEl) adminCountEl.textContent = `${sortedFreeItems.length}/20`;
+
+  const adminListEl = document.getElementById('admin-free-karaoke-list');
+  if (adminListEl) {
+    adminListEl.innerHTML = sortedFreeItems.map((item, index) => {
+      const ytButton = item.youtubeLink ? `
+        <a href="${esc(item.youtubeLink)}" target="_blank" class="btn btn-sm btn-outline" style="border-color:#ff0000;color:#ff0000;font-size:11px;padding:6px 10px;min-height:auto;display:inline-flex;align-items:center;gap:4px;text-decoration:none">
+          🎬 YouTube
+        </a>
+      ` : '';
+      
+      return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:700;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px">${index + 1}. 🎤 ${esc(item.name)}</span>
+          <span style="font-size:11px;color:var(--text2)">${new Date(item.createdAt || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text)">
+          <strong>Canción:</strong> ${esc(item.songTitle)}<br>
+          <strong>Artista:</strong> ${esc(item.songArtist)}
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+          ${ytButton}
+          <button class="btn btn-sm" onclick="deleteFreeKaraokeItem('${item.id}')" style="border-color:rgba(255,61,107,.4);color:rgba(255,61,107,.7);font-size:11px;padding:6px 10px;min-height:auto;background:transparent;cursor:pointer">
+            🗑️ Borrar
+          </button>
+        </div>
+      </div>`;
+    }).join('') || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:20px;font-style:italic">No hay inscripciones registradas para esta fecha.</div>';
+  }
+}
+
+async function submitFreeKaraoke() {
+  const name = (document.getElementById('fk-name')?.value || '').trim();
+  const song = (document.getElementById('fk-song')?.value || '').trim();
+  const artist = (document.getElementById('fk-artist')?.value || '').trim();
+  const youtube = (document.getElementById('fk-youtube')?.value || '').trim();
+  const errEl = document.getElementById('free-karaoke-form-err');
+
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+
+  // Validaciones obligatorias
+  if (!name || !song || !artist) {
+    if (errEl) {
+      errEl.textContent = 'Por favor, completá todos los campos obligatorios (*).';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  // Validar cupo
+  const count = Object.keys(freeKaraokeList).length;
+  if (count >= 20) {
+    mcAlert('Lo sentimos, el cupo de 20 canciones para el Karaoke Libre de esta fecha ya está completo.');
+    return;
+  }
+
+  // Validar link de youtube si existe
+  if (youtube && !youtube.startsWith('http://') && !youtube.startsWith('https://')) {
+    if (errEl) {
+      errEl.textContent = 'El enlace de YouTube debe comenzar con http:// o https://';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  const entry = {
+    name,
+    songTitle: song,
+    songArtist: artist,
+    youtubeLink: youtube || null,
+    createdAt: Date.now()
+  };
+
+  try {
+    if (firebaseOk) {
+      const newRef = dbPush(dbRef(db, 'freeKaraoke'));
+      await dbSet(newRef, entry);
+    } else {
+      const localId = 'fk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      freeKaraokeList[localId] = entry;
+      saveLocal();
+    }
+
+    // Limpiar campos
+    const inputName = document.getElementById('fk-name');
+    const inputSong = document.getElementById('fk-song');
+    const inputArtist = document.getElementById('fk-artist');
+    const inputYt = document.getElementById('fk-youtube');
+    if (inputName) inputName.value = '';
+    if (inputSong) inputSong.value = '';
+    if (inputArtist) inputArtist.value = '';
+    if (inputYt) inputYt.value = '';
+
+    mcAlert('✅ ¡Te inscribiste correctamente al Karaoke Libre!');
+    navBack();
+  } catch(e) {
+    console.error(e);
+    if (errEl) {
+      errEl.textContent = 'Error al procesar la inscripción: ' + e.message;
+      errEl.style.display = 'block';
+    }
+  }
+}
+
+async function deleteFreeKaraokeItem(itemId) {
+  mcConfirm('¿Estás seguro de que querés borrar esta inscripción?', async () => {
+    try {
+      if (firebaseOk) {
+        await dbRemove(dbRef(db, `freeKaraoke/${itemId}`));
+      } else {
+        delete freeKaraokeList[itemId];
+        saveLocal();
+        updateUI();
+      }
+      mcAlert('✅ Inscripción eliminada correctamente.');
+    } catch(e) {
+      console.error(e);
+      mcAlert('Error al borrar la inscripción: ' + e.message);
+    }
+  });
+}

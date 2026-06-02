@@ -83,9 +83,11 @@ if ('serviceWorker' in navigator) {
       <!-- Iniciar / Terminar Evento + Votación -->
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <button id="dash-vote-toggle-btn" onclick="toggleVoting()"
-          style="flex:1;background:linear-gradient(135deg,#1a3324,#101e16);color:#3a6648;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;padding:12px 8px;cursor:pointer;min-height:52px;opacity:.55;pointer-events:none">ABRIR VOTACIÓN</button>
-        <button id="dash-show-btn" class="btn-dash btn-show-action" onclick="dashToggleShow()"
-          style="flex:1">INICIAR EVENTO</button>
+          style="flex:1;background:linear-gradient(135deg,#1a3324,#101e16);color:#3a6648;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">ABRIR<br>VOTACIÓN</button>
+        <button id="dash-show-btn" onclick="dashToggleShow()"
+          style="flex:1;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">INICIAR<br>EVENTO</button>
+        <button id="dash-free-karaoke-btn" onclick="navPush('admin-free-karaoke')"
+          style="flex:1;background:linear-gradient(135deg,#2e2411,#1a1409);color:#5e481c;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">KARAOKE<br>LIBRE</button>
       </div>
 
       <!-- Stats -->
@@ -320,6 +322,27 @@ if ('serviceWorker' in navigator) {
       <div style="padding-bottom:4px">
         <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">6. KARAOKE ABIERTO</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">El escenario se libera. Cantá, celebrá, improvisá y seguí compartiendo la música con esta comunidad que no para de crecer. Porque a veces las mejores canciones suceden después del final.</div>
+        
+        <!-- Contenedor dinámico de Karaoke Libre público -->
+        <div id="program-free-karaoke-section" style="margin-top:14px;display:none;border-top:1px solid rgba(255,255,255,.04);padding-top:10px">
+          <!-- Botón de inscripción (2 renglones: arriba texto, abajo fecha) -->
+          <button id="program-free-karaoke-reg-btn" onclick="navPush('karaoke-free-register')" class="btn btn-gold" style="width:100%;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;text-align:center;padding:8px 12px;margin-bottom:12px">
+            <span style="font-size:13px;letter-spacing:0.5px">Inscribite para el karaoke libre</span>
+            <span id="program-free-karaoke-date" style="font-size:11px;opacity:0.85;font-weight:400;margin-top:2px"></span>
+          </button>
+          
+          <div id="program-free-karaoke-full-banner" class="alert alert-warning" style="display:none;text-align:center;font-size:13px;padding:12px;margin-bottom:12px">
+            El cupo del karaoke libre está completo.
+          </div>
+          
+          <!-- Lista pública compacta -->
+          <div id="program-free-karaoke-list-wrap" style="display:none">
+            <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-free-karaoke-count">0/20</span>)</div>
+            <div id="program-free-karaoke-list" style="background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)">
+              <!-- Canciones 1-20 inscriptas -->
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -386,6 +409,75 @@ if ('serviceWorker' in navigator) {
     <!-- Botón flotante para votar (estilo WhatsApp) -->
     <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:1000;pointer-events:none;padding:0 14px;box-sizing:border-box;display:flex;justify-content:flex-end">
       <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;color:#F4EAD0;letter-spacing:0.5px;width:150px;height:150px;border-radius:20px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
+    </div>
+  </div>
+
+  <!-- ─────────── REGISTRO KARAOKE LIBRE ─────────── -->
+  <div id="page-karaoke-free-register" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title" style="font-size:clamp(30px,9vw,48px)" id="free-karaoke-title">QUIERO PARTICIPAR</div>
+      <div class="hero-sub" id="free-karaoke-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px">Quiero participar del karaoke</div>
+    </div>
+
+    <!-- Mensaje de cupo completo -->
+    <div id="free-karaoke-full-banner" class="card" style="display:none;background:rgba(212,168,67,.06);border:2px solid var(--gold);padding:24px 16px;text-align:center;margin-bottom:16px">
+      <div style="font-size:38px;margin-bottom:10px">⚠️</div>
+      <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:var(--gold);line-height:1.4">El cupo del karaoke libre está completo.</div>
+    </div>
+
+    <!-- Formulario de inscripción -->
+    <div id="free-karaoke-form-card" class="card" style="padding:16px;margin-bottom:16px">
+      <div class="card-title" style="font-size:18px;margin-bottom:14px">📝 Formulario de Inscripción</div>
+      <div class="modal-field-group">
+        <div class="modal-row">
+          <label>Nombre *</label>
+          <input type="text" id="fk-name" placeholder="Tu nombre o pseudónimo" maxlength="50" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:10px 12px;outline:none;box-sizing:border-box">
+        </div>
+        <div class="modal-row">
+          <label>Canción *</label>
+          <input type="text" id="fk-song" placeholder="Ej: Bella Ciao" maxlength="80" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:10px 12px;outline:none;box-sizing:border-box">
+        </div>
+        <div class="modal-row">
+          <label>Artista *</label>
+          <input type="text" id="fk-artist" placeholder="Ej: Manu Chao" maxlength="80" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:10px 12px;outline:none;box-sizing:border-box">
+        </div>
+        <div class="modal-row">
+          <label>Youtube</label>
+          <input type="url" id="fk-youtube" placeholder="https://youtube.com/watch?v=... (opcional)" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:10px 12px;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div id="free-karaoke-form-err" class="alert alert-error mt-12" style="display:none"></div>
+      <button class="btn btn-gold mt-12" onclick="submitFreeKaraoke()" style="width:100%;min-height:50px;font-size:15px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:0.5px">🚀 INSCRIBIRME</button>
+    </div>
+
+    <!-- Lista pública de inscriptos -->
+    <div class="card" style="padding:14px">
+      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between">
+        <span>📋 Lista de Inscriptos</span>
+        <span id="free-karaoke-count-badge" style="background:var(--bg4);border:1px solid var(--border);padding:2px 8px;border-radius:10px">0/20</span>
+      </div>
+      <div id="free-karaoke-public-list">
+        <!-- Canciones 1-20 inscriptas -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── PANEL ADMIN - KARAOKE LIBRE ─────────── -->
+  <div id="page-admin-free-karaoke" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title" style="font-size:clamp(30px,9vw,48px)">KARAOKE LIBRE</div>
+      <div class="hero-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px">Moderación e Inscripciones</div>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <span>⚙️ CONTROL DE INSCRIPCIONES</span>
+        <span id="admin-free-karaoke-count" style="font-size:11px;background:var(--bg4);padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--text1)">0/20</span>
+      </div>
+
+      <div id="admin-free-karaoke-list" style="display:grid;gap:10px">
+        <!-- Lista de moderación -->
+      </div>
     </div>
   </div>
 
