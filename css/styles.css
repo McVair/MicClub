@@ -4,7 +4,7 @@
 
 /* ── DESIGN TOKENS ── */
 :root {
-  color-scheme: dark;
+  color-scheme: only dark;
   --gold: #E0BC63; --gold-light: #F4EAD0; --gold-dark: #B38B45;
   --purple: #8b2fc9; --purple-light: #b44dff;
   --teal: #3E8C6E; --red: #ff3d6b; --orange: #ff7a35;
@@ -105,11 +105,13 @@ body::before {
 .card-title {
   font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 4.5vw, 24px);
   letter-spacing: 2px; margin-bottom: 14px;
+  color: var(--gold);
   background: linear-gradient(135deg, #F4EAD0 0%, #E0BC63 50%, #B38B45 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
+  color-scheme: only dark;
 }
 .card-sub {
   font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
@@ -174,8 +176,10 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .hero-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(30px, 9vw, 52px); letter-spacing: 4px; line-height: 1;
+  color: var(--gold);
   background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  color-scheme: only dark;
 }
 .hero-sub {
   font-family: 'Inter', sans-serif; font-weight: 400;
