@@ -133,11 +133,65 @@ function updatePeopleCheck() {
 }
 
 function updateSongCheck() {
+  const name   = document.getElementById('prof-name-input')?.value.trim();
+  const phone  = document.getElementById('prof-phone-input')?.value.trim();
   const title  = document.getElementById('s-title')?.value.trim();
   const artist = document.getElementById('s-artist')?.value.trim();
   const link   = document.getElementById('s-link')?.value.trim();
   const ck     = document.getElementById('song-saved-check');
-  if (ck) ck.style.display = (title && artist && link) ? 'flex' : 'none';
+  const btn    = document.getElementById('confirm-all-btn');
+  const errEl  = document.getElementById('confirm-all-err');
+
+  let isLinkOk = false;
+  if (link) {
+    try {
+      const parsed = new URL(link);
+      isLinkOk = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch (e) {
+      isLinkOk = false;
+    }
+  }
+
+  let songValid = true;
+  if (showRunning) {
+    const allSongEmpty = !title && !artist && !link;
+    const allSongFilled = !!(title && artist && link && isLinkOk);
+    songValid = allSongEmpty || allSongFilled;
+  }
+
+  const namePhoneValid = !!(name && phone);
+
+  let isValid = false;
+  let errorMsg = '';
+
+  if (!namePhoneValid) {
+    errorMsg = 'Escribí tu nombre y WhatsApp (son obligatorios).';
+  } else if (!songValid) {
+    if (!title || !artist || !link) {
+      errorMsg = 'Si completás la canción, debés llenar todos los campos (Canción, Artista y Link Karaoke).';
+    } else if (!isLinkOk) {
+      errorMsg = 'El link de karaoke debe ser una dirección web válida (ej: https://youtube.com/...).';
+    }
+  } else {
+    isValid = true;
+  }
+
+  if (ck) {
+    ck.style.display = (showRunning && title && artist && link && isLinkOk) ? 'flex' : 'none';
+  }
+
+  if (btn) {
+    btn.disabled = !isValid;
+  }
+
+  if (errEl) {
+    if (errorMsg) {
+      errEl.textContent = errorMsg;
+      errEl.style.display = 'block';
+    } else {
+      errEl.style.display = 'none';
+    }
+  }
 }
 
 async function saveAndExit() {
@@ -159,18 +213,28 @@ async function saveAndExit() {
     const artist = document.getElementById('s-artist')?.value.trim();
     const link   = document.getElementById('s-link')?.value.trim();
     if (ppl > 0) updates.people = ppl;
-    // Guardar canción solo si los tres campos están completos
-    if (title && artist && link && link.startsWith('http')) {
+    
+    let isLinkOk = false;
+    if (link) {
+      try {
+        const parsed = new URL(link);
+        isLinkOk = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch (e) {
+        isLinkOk = false;
+      }
+    }
+
+    if (title && artist && link && isLinkOk) {
       updates.songTitle     = title;
       updates.songArtist    = artist;
       updates.song          = `${title} — ${artist}`;
       updates.karaokeLink   = link;
       updates.songConfirmed = true;
-    } else if (title || artist || link) {
-      // Campos parciales: guardar sin confirmar
-      updates.songTitle     = title  || '';
-      updates.songArtist    = artist || '';
-      updates.karaokeLink   = link   || '';
+    } else {
+      updates.songTitle     = '';
+      updates.songArtist    = '';
+      updates.karaokeLink   = '';
+      updates.song          = '';
       updates.songConfirmed = false;
     }
   }
@@ -2687,10 +2751,69 @@ function openModal(id) {
     if (epMesa)     epMesa.checked     = !!p.prizeMesa;
   }
   document.getElementById('edit-modal').classList.add('open');
+  validateAdminForm();
 }
 
 function closeModal() {
   document.getElementById('edit-modal').classList.remove('open');
+}
+
+function validateAdminForm() {
+  const name   = document.getElementById('edit-name')?.value.trim();
+  const phone  = document.getElementById('edit-wa')?.value.trim();
+  const title  = document.getElementById('edit-song')?.value.trim();
+  const artist = document.getElementById('edit-artist')?.value.trim();
+  const link   = document.getElementById('edit-karlink')?.value.trim();
+  
+  const btn    = document.getElementById('edit-save-btn');
+  const errEl  = document.getElementById('edit-modal-err');
+
+  let isLinkOk = false;
+  if (link) {
+    try {
+      const parsed = new URL(link);
+      isLinkOk = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch (e) {
+      isLinkOk = false;
+    }
+  }
+
+  let songValid = true;
+  if (showRunning) {
+    const allSongEmpty = !title && !artist && !link;
+    const allSongFilled = !!(title && artist && link && isLinkOk);
+    songValid = allSongEmpty || allSongFilled;
+  }
+
+  const namePhoneValid = !!(name && phone);
+
+  let isValid = false;
+  let errorMsg = '';
+
+  if (!namePhoneValid) {
+    errorMsg = 'Nombre y WhatsApp son obligatorios.';
+  } else if (!songValid) {
+    if (!title || !artist || !link) {
+      errorMsg = 'Si completás la canción, debés llenar todos los campos (Canción, Artista y Link Karaoke).';
+    } else if (!isLinkOk) {
+      errorMsg = 'El link de karaoke debe ser una dirección web válida (ej: https://youtube.com/...).';
+    }
+  } else {
+    isValid = true;
+  }
+
+  if (btn) {
+    btn.disabled = !isValid;
+  }
+
+  if (errEl) {
+    if (errorMsg) {
+      errEl.textContent = errorMsg;
+      errEl.style.display = 'block';
+    } else {
+      errEl.style.display = 'none';
+    }
+  }
 }
 
 async function saveParticipant() {
@@ -2706,11 +2829,30 @@ async function saveParticipant() {
     const st = document.getElementById('edit-song').value.trim();
     const sa = document.getElementById('edit-artist').value.trim();
     const kl = document.getElementById('edit-karlink').value.trim();
-    upd.songTitle    = st;
-    upd.songArtist   = sa;
-    upd.karaokeLink  = kl;
-    upd.song         = st && sa ? `${st} — ${sa}` : (st || '');
-    upd.songConfirmed = !!(st && sa && kl);
+    
+    let isLinkOk = false;
+    if (kl) {
+      try {
+        const parsed = new URL(kl);
+        isLinkOk = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch (e) {
+        isLinkOk = false;
+      }
+    }
+
+    if (st && sa && kl && isLinkOk) {
+      upd.songTitle     = st;
+      upd.songArtist    = sa;
+      upd.karaokeLink   = kl;
+      upd.song          = `${st} — ${sa}`;
+      upd.songConfirmed = true;
+    } else {
+      upd.songTitle     = '';
+      upd.songArtist    = '';
+      upd.karaokeLink   = '';
+      upd.song          = '';
+      upd.songConfirmed = false;
+    }
     upd.people        = parseInt(document.getElementById('edit-ppl').value) || 0;
   }
   if (firebaseOk) {

@@ -214,8 +214,8 @@ if ('serviceWorker' in navigator) {
         <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px">Mi Perfil</div>
         <div class="modal-field-group">
           <div class="modal-row"><label>Email</label><span id="prof-email" style="flex:1;font-size:14px;color:var(--text2);padding:4px 0"></span></div>
-          <div class="modal-row"><label>Nombre</label><input type="text" id="prof-name-input" class="inline-edit" maxlength="50" placeholder="Tu nombre"></div>
-          <div class="modal-row"><label>WhatsApp</label><input type="tel" id="prof-phone-input" class="inline-edit" placeholder="+54 11 1234-5678"></div>
+          <div class="modal-row"><label>Nombre *</label><input type="text" id="prof-name-input" class="inline-edit" maxlength="50" placeholder="Tu nombre" oninput="updateSongCheck()"></div>
+          <div class="modal-row"><label>WhatsApp *</label><input type="tel" id="prof-phone-input" class="inline-edit" placeholder="+54 11 1234-5678" oninput="updateSongCheck()"></div>
         </div>
       </div>
 
@@ -241,9 +241,9 @@ if ('serviceWorker' in navigator) {
             <span id="song-saved-check" style="display:none;background:var(--teal);color:#0a0a0f;border-radius:50%;width:20px;height:20px;font-size:12px;align-items:center;justify-content:center;font-weight:700">✓</span>
           </div>
           <div class="modal-field-group">
-            <div class="modal-row"><label>Canción</label><input type="text" id="s-title" class="inline-edit" placeholder="Ej: Bohemian Rhapsody" maxlength="80" oninput="updateSongCheck()"></div>
-            <div class="modal-row"><label>Artista</label><input type="text" id="s-artist" class="inline-edit" placeholder="Ej: Queen" maxlength="80" oninput="updateSongCheck()"></div>
-            <div class="modal-row"><label>Link Karaoke</label><input type="url" id="s-link" class="inline-edit" placeholder="https://youtube.com/watch?v=..." oninput="updateSongCheck()"></div>
+            <div class="modal-row"><label>Canción *</label><input type="text" id="s-title" class="inline-edit" placeholder="Ej: Bohemian Rhapsody" maxlength="80" oninput="updateSongCheck()"></div>
+            <div class="modal-row"><label>Artista *</label><input type="text" id="s-artist" class="inline-edit" placeholder="Ej: Queen" maxlength="80" oninput="updateSongCheck()"></div>
+            <div class="modal-row"><label>Link Karaoke *</label><input type="url" id="s-link" class="inline-edit" placeholder="https://youtube.com/watch?v=..." oninput="updateSongCheck()"></div>
           </div>
         </div>
 
@@ -738,8 +738,8 @@ if ('serviceWorker' in navigator) {
 
     <!-- Siempre editable -->
     <div class="modal-field-group">
-      <div class="modal-row"><label>Nombre</label><input type="text" id="edit-name" maxlength="50"></div>
-      <div class="modal-row"><label>WhatsApp</label><input type="tel" id="edit-wa"></div>
+      <div class="modal-row"><label>Nombre *</label><input type="text" id="edit-name" maxlength="50" oninput="validateAdminForm()"></div>
+      <div class="modal-row"><label>WhatsApp *</label><input type="tel" id="edit-wa" oninput="validateAdminForm()"></div>
       <div class="modal-row"><label>Email</label><input type="email" id="edit-email"></div>
       <div class="modal-row"><label>Puntos Extra</label><input type="number" id="edit-extra" value="0" min="0"></div>
     </div>
@@ -749,15 +749,17 @@ if ('serviceWorker' in navigator) {
       <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin:12px 0 8px">Evento actual</div>
       <div class="modal-field-group">
         <div class="modal-row"><label>Personas</label><input type="number" id="edit-ppl" min="0" max="20" placeholder="Ej: 2"></div>
-        <div class="modal-row"><label>Canción</label><input type="text" id="edit-song" maxlength="80"></div>
-        <div class="modal-row"><label>Artista</label><input type="text" id="edit-artist" maxlength="80"></div>
-        <div class="modal-row"><label>Link Karaoke</label><input type="url" id="edit-karlink"></div>
+        <div class="modal-row"><label>Canción *</label><input type="text" id="edit-song" maxlength="80" oninput="validateAdminForm()"></div>
+        <div class="modal-row"><label>Artista *</label><input type="text" id="edit-artist" maxlength="80" oninput="validateAdminForm()"></div>
+        <div class="modal-row"><label>Link Karaoke *</label><input type="url" id="edit-karlink" oninput="validateAdminForm()"></div>
       </div>
     </div>
 
+    <div id="edit-modal-err" class="alert alert-error" style="display:none;margin-top:10px"></div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
       <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-gold"    onclick="saveParticipant()">Guardar</button>
+      <button class="btn btn-gold" id="edit-save-btn" onclick="saveParticipant()">Guardar</button>
     </div>
   </div>
 </div>
