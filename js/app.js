@@ -450,8 +450,10 @@ function enrichHistorySnapshot(snap) {
 }
 
 function calcScore(p) {
+  const pid = p.id || Object.keys(allParticipants).find(k => allParticipants[k] === p);
+  if (!pid) return calcBaseScore(p);
   const scores = getEventScores(allParticipants);
-  return scores[p.id]?.total ?? calcBaseScore(p);
+  return scores[pid]?.total ?? calcBaseScore(p);
 }
 
 function calcMicclubScore(p) {
@@ -580,15 +582,32 @@ function updateProgramPage() {
   if (elArtists) elArtists.innerHTML = artistsHtml || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;font-style:italic">Próximamente se anunciarán los artistas invitados de la fecha.</div>';
 
   // 5. Render Active Participants
+  const eventDate = currentEvent?.date || '';
+  const regBtn = document.getElementById('program-participants-reg-btn');
+  const dateEl = document.getElementById('program-participants-date');
+  const listWrap = document.getElementById('program-participants-list-wrap');
+  const countEl = document.getElementById('program-participants-count');
+
+  if (showRunning) {
+    if (regBtn) regBtn.style.display = 'flex';
+    if (dateEl) dateEl.textContent = eventDate ? `(${eventDate})` : '';
+  } else {
+    if (regBtn) regBtn.style.display = 'none';
+  }
+
   const parts = Object.values(allParticipants)
     .filter(p => p.songConfirmed)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  if (listWrap) listWrap.style.display = (showRunning && parts.length > 0) ? 'block' : 'none';
+  if (countEl) countEl.textContent = parts.length;
+
   const partsHtml = parts.map((p, index) => {
     const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
     const isLast = index === parts.length - 1;
     const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
     return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-weight:600;color:var(--text)">🎤 ${esc(p.name)}</span>
+      <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(p.name)}</span>
       <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${songLabel}</span>
     </div>`;
   }).join('');
@@ -2930,7 +2949,7 @@ async function endShow() {
     };
 
     Object.keys(allParticipants).forEach(id => {
-      const p        = allParticipants[id];
+      const p        = { ...allParticipants[id], id };
       const eventPts = calcScore(p);
       updates[`participants/${id}/micclubPts`]          = (parseInt(p.micclubPts) || 0) + eventPts;
       updates[`participants/${id}/voteSong`]            = 0;

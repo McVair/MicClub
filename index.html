@@ -303,7 +303,18 @@ if ('serviceWorker' in navigator) {
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">3. PARTICIPANTES MIC CLUB</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:8px">Llegó el momento más importante: la comunidad toma el escenario. Cada participante viene a dejar su huella, compartir su voz y vivir su momento. Porque en MIC CLUB no hay espectadores. Todos pueden convertirse en protagonistas.</div>
-        <div id="program-participants-list" style="margin-top:10px;background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
+        
+        <!-- Botón de inscripción a Participantes Mic Club -->
+        <button id="program-participants-reg-btn" onclick="navPush('register')" class="btn btn-gold" style="width:100%;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;text-align:center;padding:8px 12px;margin-bottom:12px;display:none">
+          <span style="font-size:13px;letter-spacing:0.5px;text-transform:uppercase">participantes mic club</span>
+          <span id="program-participants-date" style="font-size:11px;opacity:0.85;font-weight:400;margin-top:2px"></span>
+        </button>
+
+        <!-- Lista pública compacta -->
+        <div id="program-participants-list-wrap" style="display:none">
+          <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-participants-count">0</span>)</div>
+          <div id="program-participants-list" style="background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
+        </div>
       </div>
 
       <!-- 4. Votación -->
@@ -795,6 +806,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.6" defer></script>
+<script src="js/app.js?v=1.7" defer></script>
 </body>
 </html>
