@@ -431,7 +431,7 @@ function getEventScores(partsObjOrArr) {
   
   parts.forEach(p => {
     const s = scores[p.id];
-    s.total = s.base + s.votes + s.pubSongPts + s.pubPerfPts + s.jurySongPts + s.juryPerfPts + s.juryHinchadaPts;
+    s.total = s.base + s.pubSongPts + s.pubPerfPts + s.jurySongPts + s.juryPerfPts + s.juryHinchadaPts;
   });
   
   return scores;

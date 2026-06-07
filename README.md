@@ -114,7 +114,6 @@ firebase deploy --only database
 | Premio Mejor Performance | +10 |
 | Premio Hinchada | +8 |
 | Premio Mesa | +8 |
-| Votos del público | +1 por voto |
 | Puntos extra manuales | configurable |
 
 ---
