@@ -326,7 +326,7 @@ function saveLocal() {
 // ── MOTOR DE PUNTOS ──────────────────────────────────────────────────────────
 function calcBaseScore(p) {
   const people = parseInt(p.people) || 0;
-  let pts = 2;                        // inscribirse al show
+  let pts = 5;                        // inscribirse al show
   pts += people;                      // 1 pt por cada reserva
   if (p.songConfirmed) pts += 3;      // canción elegida
   pts += parseInt(p.extraPts) || 0;   // extra manual del admin

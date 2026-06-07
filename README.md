@@ -106,7 +106,7 @@ firebase deploy --only database
 
 | Concepto | Puntos |
 |----------|--------|
-| Asistencia | +2 |
+| Asistencia | +5 |
 | Canción confirmada | +3 |
 | Convocatoria | +1 por persona |
 | Referido | +10 |
