@@ -57,6 +57,30 @@ let localState = {
   settings: { adminPassword: ADMIN_PASS_DEFAULT, bonus: false, votingOpen: false, showRunning: false }
 };
 
+let revealedCategories = {
+  'rank-pub-song': false,
+  'rank-pub-perf': false,
+  'rank-jury-song': false,
+  'rank-jury-perf': false,
+  'rank-jury-hinchada': false
+};
+let lastEventName = null;
+
+function resetRevealedCategories() {
+  revealedCategories = {
+    'rank-pub-song': false,
+    'rank-pub-perf': false,
+    'rank-jury-song': false,
+    'rank-jury-perf': false,
+    'rank-jury-hinchada': false
+  };
+}
+
+window.revealCategory = function(elId) {
+  revealedCategories[elId] = true;
+  updateRanking();
+};
+
 // ── URL ROUTING ──────────────────────────────────────────────────────────────
 const urlParams = new URLSearchParams(window.location.search);
 const MODE      = urlParams.get('mode') || 'home';
@@ -283,6 +307,12 @@ function initFirebase() {
     });
     dbOnValue(dbRef(db, 'settings'), snap => {
       const s = snap.val() || {};
+      const ce = s.currentEvent || {};
+      const currentEventName = ce.name || '';
+      if (currentEventName !== lastEventName) {
+        resetRevealedCategories();
+        lastEventName = currentEventName;
+      }
       bonusActive   = !!s.bonus;
       votingOpen    = !!s.votingOpen;
       showRunning   = !!s.showRunning;
@@ -312,6 +342,14 @@ function setupLocal() {
   bonusActive     = !!localState.settings?.bonus;
   votingOpen      = !!localState.settings?.votingOpen;
   showRunning     = !!localState.settings?.showRunning;
+  
+  const ce = localState.settings?.currentEvent || {};
+  const currentEventName = ce.name || '';
+  if (currentEventName !== lastEventName) {
+    resetRevealedCategories();
+    lastEventName = currentEventName;
+  }
+
   if (!showRunning) enforceNoShowState();
   updateUI();
   setInterval(updateUI, 8000);
@@ -1674,12 +1712,21 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
   const el = document.getElementById(elId);
   if (!el) return;
   
+  if (!revealedCategories[elId]) {
+    el.innerHTML = `
+      <div class="reveal-podium-card" style="text-align:center; padding: 35px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+        <div style="font-family:'Bebas Neue',sans-serif; font-size: 26px; letter-spacing: 1px; background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; color: transparent; text-shadow: 0 0 12px rgba(223, 172, 74, 0.25); line-height: 1.2;">Los ganadores son...</div>
+        <button class="btn btn-outline" style="width: auto; padding: 10px 24px; min-height: 38px; font-size: 12px;" onclick="revealCategory('${elId}')">MOSTRAR</button>
+      </div>`;
+    return;
+  }
+  
   if (!podiumData.length) {
     el.innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:10px 0">Sin votos aún</div>';
     return;
   }
   
-  el.innerHTML = podiumData.map(item => {
+  const contentHtml = podiumData.map(item => {
     const isTop = item.rank <= 3;
     const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
     const ptsColor = nameColor; // same color as name
@@ -1713,6 +1760,8 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
       ${row2Html}
     </div>`;
   }).join('');
+
+  el.innerHTML = `<div style="animation: fadeUp 0.6s ease-out forwards;">${contentHtml}</div>`;
 }
 
 function renderPublicVoteRanking() {
@@ -2703,6 +2752,7 @@ function resetEvent() {
         saveLocal();
       }
       votingOpen = true;
+      resetRevealedCategories();
       mcAlert('✅ Evento reseteado. Los participantes ya pueden inscribir nuevas canciones.');
       updateUI();
     } catch(e) { console.error(e); mcAlert('Error al resetear.'); }
