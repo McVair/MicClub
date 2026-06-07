@@ -461,13 +461,21 @@ function calcMicclubScore(p) {
 
 function sorted() {
   return Object.entries(allParticipants)
-    .map(([id, p]) => ({ ...p, id, score: calcScore(p) }))
+    .map(([id, p]) => {
+      const enriched = { ...p, id };
+      enriched.score = calcScore(enriched);
+      return enriched;
+    })
     .sort((a, b) => b.score - a.score);
 }
 
 function sortedMicclub() {
   return Object.entries(allParticipants)
-    .map(([id, p]) => ({ ...p, id, score: calcMicclubScore(p) }))
+    .map(([id, p]) => {
+      const enriched = { ...p, id };
+      enriched.score = calcMicclubScore(enriched);
+      return enriched;
+    })
     .sort((a, b) => b.score - a.score);
 }
 
@@ -1120,7 +1128,7 @@ function renderHistoryPage() {
     }
     el.innerHTML = entries.map(([key, h]) => {
       const ev    = h.eventInfo || {};
-      const parts = Object.values(h.participants || {});
+      const parts = Object.entries(h.participants || {}).map(([id, p]) => ({ ...p, id }));
       const date  = h.closedDate || new Date(parseInt(key)).toLocaleDateString('es-AR');
       const det   = [date, ev.time, ev.venue].filter(Boolean).join(' · ');
       return `<button onclick="showHistoryDetail('${key}')" style="width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer;display:block">
@@ -1146,7 +1154,7 @@ function showHistoryDetail(key) {
   const h     = _historyData[key];
   if (!h) return;
   const ev    = h.eventInfo || {};
-  const parts = Object.values(h.participants || {});
+  const parts = Object.entries(h.participants || {}).map(([id, p]) => ({ ...p, id }));
   const date  = h.closedDate || new Date(parseInt(key)).toLocaleDateString('es-AR');
   const det   = [date, ev.time, ev.venue].filter(Boolean).join(' · ');
 
