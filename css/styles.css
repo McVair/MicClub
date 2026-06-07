@@ -5,13 +5,13 @@
 /* ── DESIGN TOKENS ── */
 :root {
   color-scheme: only dark;
-  --gold: #E0BC63; --gold-light: #F4EAD0; --gold-dark: #B38B45;
+  --gold: #DFAC4A; --gold-light: #FCE0AD; --gold-dark: #8E5B12;
   --purple: #8b2fc9; --purple-light: #b44dff;
   --teal: #3E8C6E; --red: #ff3d6b; --orange: #ff7a35;
-  --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a26; --bg4: #222235;
-  --text: #F4EAD0; --text2: #a09070;
-  --border: rgba(224,188,99,0.18);
-  --glow-gold: 0 0 20px rgba(224,188,99,0.3);
+  --bg: #0D0C10; --bg2: #16151A; --bg3: #16151A; --bg4: #212026;
+  --text: #F4F4F6; --text2: #92909C;
+  --border: rgba(223, 172, 74, 0.25);
+  --glow-gold: 0 0 20px rgba(223, 172, 74, 0.3);
   --glow-purple: 0 0 22px rgba(139,47,201,0.45);
   --glow-teal: 0 0 20px rgba(62,140,110,0.25);
   --tap-min: 48px;
@@ -94,7 +94,7 @@ body::before {
   inset: 0;
   border-radius: 14px;
   padding: 2px;
-  background: linear-gradient(135deg, #876730 0%, #B29241 50%, #5D4214 100%) !important;
+  background: linear-gradient(135deg, #FCE0AD, #DFAC4A, #8E5B12) !important;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) border-box;
   -webkit-mask-composite: destination-out;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) border-box;
@@ -636,7 +636,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   inset: 0;
   border-radius: 12px;
   padding: 2px;
-  background: linear-gradient(135deg, #876730 0%, #B29241 50%, #5D4214 100%) !important;
+  background: linear-gradient(135deg, #FCE0AD, #DFAC4A, #8E5B12) !important;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) border-box;
   -webkit-mask-composite: destination-out;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) border-box;
@@ -767,3 +767,147 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     margin-bottom: 0 !important;
   }
 }
+
+/* ── COLOR TEST PALETTE OVERRIDES ── */
+
+/* 1. Base Text Colors */
+body, .rank-name, .vote-row-name, .jury-sel-name, .p-name, .show-name, input, select, textarea, .inline-edit {
+  color: #F4F4F6 !important;
+}
+
+/* 2. Metadata Text Colors */
+.rank-song, .vote-card .vc-song, .jury-sel-song, .vote-row-song, .show-song, .p-info, .stat-label, label, .vote-pill {
+  color: #92909C !important;
+}
+
+/* 3. Main Titles Gradient Text */
+.card-title, .hero-title, .show-title, .column-category-title, .modal-title,
+div[style*="font-family:'Bebas Neue'"],
+span[style*="font-family:'Bebas Neue'"],
+div[style*="font-family:'Oswald'"][style*="font-size:14px"],
+div[style*="font-family:'Oswald'"][style*="font-size:16px"],
+div[style*="font-family:'Oswald'"][style*="font-weight:700"]:not([style*="display:flex"]):not(button):not(a),
+div[style*="font-family:'Oswald'"][style*="font-weight:600"]:not([style*="display:flex"]):not(button):not(a) {
+  background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+/* 4. Subtitles Gradient Text */
+.card-sub, .hero-sub, .show-subtitle, .jury-cat-title,
+div[style*="font-family:'Oswald'"][style*="font-size:11px"]:not([style*="display:flex"]),
+div[style*="font-family:'Oswald'"][style*="font-size:12px"]:not([style*="display:flex"]) {
+  background: linear-gradient(90deg, #FFFFFF 0%, #92909C 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+/* 5. Separator Gradient Lines */
+.divider {
+  height: 1px;
+  border: none !important;
+  background: linear-gradient(90deg, transparent, rgba(223, 172, 74, 0.4), transparent) !important;
+  margin: 16px 0;
+}
+
+#program-participants-list > div,
+#program-free-karaoke-list > div,
+#program-guest-artists > div {
+  border-bottom: none !important;
+  position: relative;
+}
+
+#program-participants-list > div:not(:last-child)::after,
+#program-free-karaoke-list > div:not(:last-child)::after,
+#program-guest-artists > div:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(223, 172, 74, 0.4), transparent) !important;
+}
+
+/* 6. Secondary Panels Gradient Borders */
+.p-item, .vote-row, .pub-vote-row, .jury-lb-row, .vote-card, .stat-box {
+  border: 1px solid transparent !important;
+  background: linear-gradient(var(--bg2), var(--bg2)) padding-box,
+              linear-gradient(135deg, rgba(252, 224, 173, 0.3), rgba(223, 172, 74, 0.2)) border-box !important;
+}
+
+/* 7. Secondary Buttons (Very Dark Gold Gradient with Gradient Borders) */
+.btn-dash, .btn-outline, .jury-sel-btn, .score-btn, button[onclick*="navBack"] {
+  border: 1px solid transparent !important;
+  background: linear-gradient(135deg, #271906 0%, #140D03 100%) padding-box,
+              linear-gradient(135deg, rgba(252, 224, 173, 0.35), rgba(223, 172, 74, 0.2)) border-box !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Hover & Active States (Apply hover and active to all buttons) */
+.btn-dash:hover, .btn-dash:active,
+.btn-outline:hover, .btn-outline:active,
+.jury-sel-btn:hover, .jury-sel-btn:active,
+.score-btn:hover, .score-btn:active,
+button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
+  background: linear-gradient(135deg, #3A2609 0%, #140D03 100%) padding-box,
+              linear-gradient(135deg, rgba(252, 224, 173, 0.55), rgba(223, 172, 74, 0.35)) border-box !important;
+  filter: brightness(1.15) !important;
+}
+
+/* Specific button text fixes inside dark buttons */
+.jury-sel-btn .jury-sel-name {
+  color: #ffffff !important;
+}
+.jury-sel-btn .jury-sel-song {
+  color: #92909C !important;
+}
+
+/* Already Scored Jury Buttons */
+.jury-sel-btn.scored {
+  border: 1px solid var(--gold) !important;
+  background: rgba(223, 172, 74, 0.08) !important;
+}
+.jury-sel-btn.scored .jury-sel-name {
+  color: var(--gold) !important;
+}
+.jury-sel-btn.scored .jury-sel-song {
+  color: #92909C !important;
+}
+
+/* Criteria score active buttons */
+.score-btn.active {
+  background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 100%) !important;
+  border-color: #FCE0AD !important;
+  color: #0D0C10 !important;
+}
+
+/* 8. Top Dashboard Buttons Hover & Active States */
+#dash-vote-toggle-btn,
+#dash-free-karaoke-btn,
+#dash-participants-btn,
+#dash-show-btn {
+  transition: filter 0.15s, transform 0.15s !important;
+}
+#dash-vote-toggle-btn:hover,
+#dash-free-karaoke-btn:hover,
+#dash-participants-btn:hover,
+#dash-show-btn:hover {
+  filter: brightness(1.15) !important;
+  transform: translateY(-1px);
+}
+#dash-vote-toggle-btn:active,
+#dash-free-karaoke-btn:active,
+#dash-participants-btn:active,
+#dash-show-btn:active {
+  filter: brightness(0.9) !important;
+  transform: translateY(0);
+}
+

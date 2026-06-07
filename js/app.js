@@ -326,10 +326,19 @@ function saveLocal() {
 // ── MOTOR DE PUNTOS ──────────────────────────────────────────────────────────
 function calcBaseScore(p) {
   const people = parseInt(p.people) || 0;
+  const extra = parseInt(p.extraPts) || 0;
+  const hasSong = !!p.songConfirmed;
+  const hasPrizes = p.prizeSong || p.prizePerf || p.prizeHinchada || p.prizeMesa || p.prizePublicoSong || p.prizePublicoPerf;
+
+  // Si no confirmó canción, no reservó lugares, no tiene extras ni premios, NO asistió a este show.
+  if (!hasSong && people === 0 && extra === 0 && !hasPrizes) {
+    return 0;
+  }
+
   let pts = 5;                        // inscribirse al show
   pts += people;                      // 1 pt por cada reserva
   if (p.songConfirmed) pts += 3;      // canción elegida
-  pts += parseInt(p.extraPts) || 0;   // extra manual del admin
+  pts += extra;                       // extra manual del admin
   if (p.prizeSong) pts += 10;
   if (p.prizePerf) pts += 10;
   if (p.prizeHinchada) pts += 8;
@@ -810,6 +819,22 @@ function updateDashboard() {
       freeBtn.style.color         = '#5e481c';
       freeBtn.style.opacity       = '0.55';
       freeBtn.style.pointerEvents = 'none';
+    }
+  }
+
+  // Botón PARTICIPANTES MIC CLUB (Amarillo/Gold)
+  const partsBtn = document.getElementById('dash-participants-btn');
+  if (partsBtn) {
+    if (showRunning) {
+      partsBtn.style.opacity       = '1';
+      partsBtn.style.pointerEvents = 'auto';
+      partsBtn.style.background    = 'linear-gradient(135deg,var(--gold),#8a640f)';
+      partsBtn.style.color         = '#0a0a0f';
+    } else {
+      partsBtn.style.background    = 'linear-gradient(135deg,#2e2411,#1a1409)';
+      partsBtn.style.color         = '#5e481c';
+      partsBtn.style.opacity       = '0.55';
+      partsBtn.style.pointerEvents = 'none';
     }
   }
 
