@@ -455,7 +455,8 @@ function calcScore(p) {
 }
 
 function calcMicclubScore(p) {
-  return calcScore(p) + (parseInt(p.micclubPts) || 0);
+  const eventPts = showRunning ? calcScore(p) : 0;
+  return eventPts + (parseInt(p.micclubPts) || 0);
 }
 
 function sorted() {
