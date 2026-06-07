@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.4">
+<link rel="stylesheet" href="css/styles.css?v=1.5">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -86,7 +86,7 @@ if ('serviceWorker' in navigator) {
           style="flex:1;background:linear-gradient(135deg,#1a3324,#101e16);color:#3a6648;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">ABRIR<br>VOTACIÓN</button>
         <button id="dash-free-karaoke-btn" onclick="navPush('admin-free-karaoke')"
           style="flex:1;background:linear-gradient(135deg,#2e2411,#1a1409);color:#5e481c;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">KARAOKE<br>LIBRE</button>
-        <button id="dash-participants-btn" onclick="navPush('admin'); setAdminTab('parts');"
+        <button id="dash-participants-btn" onclick="navPush('admin-micclub-participants')"
           style="flex:1;background:linear-gradient(135deg,#2e2411,#1a1409);color:#5e481c;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">PARTICIPANTES<br>MIC CLUB</button>
         <button id="dash-show-btn" onclick="dashToggleShow()"
           style="flex:1;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">INICIAR<br>EVENTO</button>
@@ -494,6 +494,25 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 
+  <!-- ─────────── PANEL ADMIN - PARTICIPANTES MIC CLUB ─────────── -->
+  <div id="page-admin-micclub-participants" class="page">
+    <div class="hero" style="padding-bottom:6px">
+      <div class="hero-title" style="font-size:clamp(30px,9vw,48px)">PARTICIPANTES</div>
+      <div class="hero-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px">Moderación e Inscripciones</div>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <span>⚙️ CONTROL DE PARTICIPANTES</span>
+        <span id="admin-micclub-participants-count" style="font-size:11px;background:var(--bg4);padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--text1)">0</span>
+      </div>
+
+      <div id="admin-micclub-participants-list" style="display:grid;gap:10px">
+        <!-- Lista de participantes Mic Club -->
+      </div>
+    </div>
+  </div>
+
   <!-- ─────────── VOTACIÓN PÚBLICA ─────────── -->
   <div id="page-vote-public" class="page">
     <div id="event-banner-vote" class="event-banner" style="display:none"></div>
@@ -808,6 +827,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.8" defer></script>
+<script src="js/app.js?v=1.9" defer></script>
 </body>
 </html>

@@ -76,6 +76,7 @@ function nav(page) {
   if (page === 'ranking')        { updateRanking(); startCelebration(); }
   if (page === 'show')           { updateShowMode(); startCelebration(); }
   if (page === 'config')         renderConfigParticipants();
+  if (page === 'admin-micclub-participants') renderAdminMicClubParticipants();
   if (page === 'history')        renderHistoryPage();
   if (page === 'jury')           renderJurySelectors();
   if (page === 'register')       resetRegisterPage();
@@ -514,6 +515,7 @@ function updateUI() {
   if (adminLoggedIn) { renderAdminParticipants(); renderAdminJury(); }
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
+  if (currentPage === 'admin-micclub-participants') renderAdminMicClubParticipants();
   renderLinks();
   updateFreeKaraokePages();
 }
@@ -2682,6 +2684,77 @@ function renderAdminParticipants() {
       <div class="p-actions">
         <button class="btn btn-outline btn-sm" onclick="openModal('${p.id}')">✏️ Editar</button>
         <button class="btn btn-danger btn-sm"  onclick="delParticipant('${p.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAdminMicClubParticipants() {
+  const parts = sorted();
+  const countEl = document.getElementById('admin-micclub-participants-count');
+  if (countEl) countEl.textContent = parts.length;
+
+  const el = document.getElementById('admin-micclub-participants-list');
+  if (!el) return;
+  if (!parts.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text2);padding:20px;font-style:italic">No hay participantes registrados.</div>';
+    return;
+  }
+
+  el.innerHTML = parts.map((p, index) => {
+    const badges = [];
+    if (p.prizeSong)        badges.push('<span class="badge badge-gold">🎵 Canción</span>');
+    if (p.prizePerf)        badges.push('<span class="badge badge-purple">🎭 Perf</span>');
+    if (p.prizeHinchada)    badges.push('<span class="badge badge-teal">📣 Hinchada</span>');
+    if (p.prizeMesa)        badges.push('<span class="badge badge-teal">🪑 Mesa</span>');
+    if (p.prizePublicoSong) badges.push('<span class="badge badge-gold">🎤 Púb. Canción</span>');
+    if (p.prizePublicoPerf) badges.push('<span class="badge badge-purple">🏆 Púb. Perf</span>');
+
+    const sStatus = p.songConfirmed
+      ? `<span style="color:var(--teal);font-size:11px;font-weight:600">✅ Canción OK</span>`
+      : `<span style="color:var(--red);font-size:11px;font-weight:600">⚠️ Sin canción</span>`;
+
+    const songText = p.song ? esc(p.song) : '<span style="color:var(--red);font-style:italic">Sin canción registrada</span>';
+    
+    const karLink = p.karaokeLink 
+      ? `<div style="margin-top:2px">🎬 <strong>Karaoke:</strong> <a href="${esc(p.karaokeLink)}" target="_blank" style="color:var(--purple-light);word-break:break-all">${esc(p.karaokeLink)}</a></div>` 
+      : '';
+    const songLink = p.songLink 
+      ? `<div style="margin-top:2px">🔗 <strong>Link Canción:</strong> <a href="${esc(p.songLink)}" target="_blank" style="color:var(--teal);word-break:break-all">${esc(p.songLink)}</a></div>` 
+      : '';
+    
+    const badgeMarkup = badges.length 
+      ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${badges.join('')}</div>` 
+      : '';
+
+    return `<div style="padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px">${index + 1}. 🎤 ${esc(p.name)}</span>
+        <span style="font-size:11px;color:var(--text2)">${new Date(p.timestamp || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
+      </div>
+      
+      <div style="font-size:13px;color:var(--text);line-height:1.4">
+        <div><strong>Canción:</strong> ${songText} ${sStatus}</div>
+        ${karLink}
+        ${songLink}
+        
+        <div style="margin-top:6px;display:grid;grid-template-columns:1fr;gap:4px;font-size:12px;color:var(--text2);background:rgba(255,255,255,0.01);padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.03)">
+          <div style="display:flex;justify-content:space-between"><span>📱 <strong>WhatsApp:</strong></span> <span>${esc(p.whatsapp || '—')}</span></div>
+          <div style="display:flex;justify-content:space-between"><span>📧 <strong>Email:</strong></span> <span>${esc(p.email || '—')}</span></div>
+          <div style="display:flex;justify-content:space-between"><span>🔑 <strong>Reserva:</strong></span> <span>${esc(p.reservationCode || '—')} (${p.people || 0} pers.)</span></div>
+          <div style="display:flex;justify-content:space-between"><span>⭐ <strong>Puntos:</strong></span> <span>${p.score || 0} pts (MC: ${p.micclubPts || 0})</span></div>
+          <div style="display:flex;justify-content:space-between"><span>👤 <strong>Referido por:</strong></span> <span>${esc(p.referrer || '—')}</span></div>
+        </div>
+        ${badgeMarkup}
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn btn-sm btn-outline" onclick="openModal('${p.id}')" style="font-size:11px;padding:6px 10px;min-height:auto;background:transparent;cursor:pointer">
+          ✏️ Editar
+        </button>
+        <button class="btn btn-sm" onclick="delParticipant('${p.id}')" style="border-color:rgba(255,61,107,.4);color:rgba(255,61,107,.7);font-size:11px;padding:6px 10px;min-height:auto;background:transparent;cursor:pointer">
+          🗑️ Borrar
+        </button>
       </div>
     </div>`;
   }).join('');
