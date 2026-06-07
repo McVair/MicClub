@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.5">
+<link rel="stylesheet" href="css/styles.css?v=1.6">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -85,9 +85,9 @@ if ('serviceWorker' in navigator) {
         <button id="dash-vote-toggle-btn" onclick="toggleVoting()"
           style="flex:1;background:linear-gradient(135deg,#1a3324,#101e16);color:#3a6648;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">ABRIR<br>VOTACIÓN</button>
         <button id="dash-free-karaoke-btn" onclick="navPush('admin-free-karaoke')"
-          style="flex:1;background:linear-gradient(135deg,#2e2411,#1a1409);color:#5e481c;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">KARAOKE<br>LIBRE</button>
+          style="flex:1;background:linear-gradient(135deg,#16151a,#0d0c10);color:rgba(255,255,255,0.25);border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">KARAOKE<br>LIBRE</button>
         <button id="dash-participants-btn" onclick="navPush('admin-micclub-participants')"
-          style="flex:1;background:linear-gradient(135deg,#2e2411,#1a1409);color:#5e481c;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">PARTICIPANTES<br>MIC CLUB</button>
+          style="flex:1;background:linear-gradient(135deg,#16151a,#0d0c10);color:rgba(255,255,255,0.25);border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">PARTICIPANTES<br>MIC CLUB</button>
         <button id="dash-show-btn" onclick="dashToggleShow()"
           style="flex:1;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">INICIAR<br>EVENTO</button>
       </div>
@@ -306,11 +306,7 @@ if ('serviceWorker' in navigator) {
         <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">3. PARTICIPANTES MIC CLUB</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:8px">Llegó el momento más importante: la comunidad toma el escenario. Cada participante viene a dejar su huella, compartir su voz y vivir su momento. Porque en MIC CLUB no hay espectadores. Todos pueden convertirse en protagonistas.</div>
         
-        <!-- Botón de inscripción a Participantes Mic Club -->
-        <button id="program-participants-reg-btn" onclick="navPush('register')" class="btn btn-gold" style="width:100%;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;text-align:center;padding:8px 12px;margin-bottom:12px;display:none">
-          <span style="font-size:13px;letter-spacing:0.5px;text-transform:uppercase">participantes mic club</span>
-          <span id="program-participants-date" style="font-size:11px;opacity:0.85;font-weight:400;margin-top:2px"></span>
-        </button>
+
 
         <!-- Lista pública compacta -->
         <div id="program-participants-list-wrap" style="display:none">
@@ -827,6 +823,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.10" defer></script>
+<script src="js/app.js?v=1.11" defer></script>
 </body>
 </html>

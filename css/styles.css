@@ -724,7 +724,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 
 @media (min-width: 992px) {
-  #page-ranking {
+  #page-ranking, #page-history-detail {
     max-width: 95% !important;
     width: 95% !important;
     margin: 0 auto;
@@ -842,10 +842,10 @@ div[style*="font-family:'Oswald'"][style*="font-size:12px"]:not([style*="display
               linear-gradient(135deg, rgba(252, 224, 173, 0.3), rgba(223, 172, 74, 0.2)) border-box !important;
 }
 
-/* 7. Secondary Buttons (Very Dark Gold Gradient with Gradient Borders) */
+/* 7. Secondary Buttons (Black Gradient with Gradient Borders) */
 .btn-dash, .btn-outline, .jury-sel-btn, .score-btn, button[onclick*="navBack"] {
   border: 1px solid transparent !important;
-  background: linear-gradient(135deg, #271906 0%, #140D03 100%) padding-box,
+  background: linear-gradient(135deg, #16151A 0%, #0D0C10 100%) padding-box,
               linear-gradient(135deg, rgba(252, 224, 173, 0.35), rgba(223, 172, 74, 0.2)) border-box !important;
   color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
@@ -857,7 +857,7 @@ div[style*="font-family:'Oswald'"][style*="font-size:12px"]:not([style*="display
 .jury-sel-btn:hover, .jury-sel-btn:active,
 .score-btn:hover, .score-btn:active,
 button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
-  background: linear-gradient(135deg, #3A2609 0%, #140D03 100%) padding-box,
+  background: linear-gradient(135deg, #222129 0%, #0D0C10 100%) padding-box,
               linear-gradient(135deg, rgba(252, 224, 173, 0.55), rgba(223, 172, 74, 0.35)) border-box !important;
   filter: brightness(1.15) !important;
 }

@@ -817,8 +817,8 @@ function updateDashboard() {
       freeBtn.style.background    = 'linear-gradient(135deg,var(--gold),#8a640f)';
       freeBtn.style.color         = '#0a0a0f';
     } else {
-      freeBtn.style.background    = 'linear-gradient(135deg,#2e2411,#1a1409)';
-      freeBtn.style.color         = '#5e481c';
+      freeBtn.style.background    = 'linear-gradient(135deg,#16151a,#0d0c10)';
+      freeBtn.style.color         = 'rgba(255,255,255,0.25)';
       freeBtn.style.opacity       = '0.55';
       freeBtn.style.pointerEvents = 'none';
     }
@@ -833,8 +833,8 @@ function updateDashboard() {
       partsBtn.style.background    = 'linear-gradient(135deg,var(--gold),#8a640f)';
       partsBtn.style.color         = '#0a0a0f';
     } else {
-      partsBtn.style.background    = 'linear-gradient(135deg,#2e2411,#1a1409)';
-      partsBtn.style.color         = '#5e481c';
+      partsBtn.style.background    = 'linear-gradient(135deg,#16151a,#0d0c10)';
+      partsBtn.style.color         = 'rgba(255,255,255,0.25)';
       partsBtn.style.opacity       = '0.55';
       partsBtn.style.pointerEvents = 'none';
     }
@@ -1204,16 +1204,10 @@ function showHistoryDetail(key) {
   const date  = h.closedDate || new Date(parseInt(key)).toLocaleDateString('es-AR');
   const det   = [date, ev.time, ev.venue].filter(Boolean).join(' · ');
 
-  // Ranking por puntos del evento calculando los podios históricos
   const scores = getEventScores(parts);
   const ranked = parts
     .map(p => ({ ...p, eventPts: scores[p.id]?.total || 0 }))
     .sort((a, b) => b.eventPts - a.eventPts);
-
-  // Mejor Canción público
-  const topSong = [...parts].sort((a, b) => (parseInt(b.voteSong) || 0) - (parseInt(a.voteSong) || 0));
-  // Mejor Performance público
-  const topPerf = [...parts].sort((a, b) => (parseInt(b.votePerf) || 0) - (parseInt(a.votePerf) || 0));
 
   const medals = ['🥇', '🥈', '🥉'];
 
@@ -1221,7 +1215,10 @@ function showHistoryDetail(key) {
     const votes = p.eventVotesPublico !== undefined ? p.eventVotesPublico : ((parseInt(p.voteSong) || 0) + (parseInt(p.votePerf) || 0));
     const jury = p.eventJuryTotal !== undefined ? p.eventJuryTotal : (getJuryTotalForPart(p, 'song') + getJuryTotalForPart(p, 'perf') + getJuryTotalForPart(p, 'hinchada'));
     const micclub = p.eventMicclubPts !== undefined ? p.eventMicclubPts : (scores[p.id]?.total || calcBaseScore(p));
-    const songLine = p.songTitle ? `<div style="font-size:11px;color:var(--text2);margin-bottom:2px">${esc(p.songTitle)}${p.songArtist ? ' · ' + esc(p.songArtist) : ''}</div>` : '';
+    
+    const songTitleVal = p.songTitle || (p.song && p.song.includes(' — ') ? p.song.split(' — ')[0] : p.song || '');
+    const songArtistVal = p.songArtist || (p.song && p.song.includes(' — ') ? p.song.split(' — ')[1] : '');
+    const songLine = songTitleVal ? `<div style="font-size:11px;color:var(--text2);margin-bottom:2px">${esc(songTitleVal)}${songArtistVal ? ' · ' + esc(songArtistVal) : ''}</div>` : '';
     
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
       <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text2);min-width:28px">${medals[i] || (i+1)}</span>
@@ -1236,11 +1233,56 @@ function showHistoryDetail(key) {
     </div>`;
   }).join('');
 
-  const voteRow = (p, val, label) =>
-    `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px">
-      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(p.name)}</span>
-      <span style="color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:17px;margin-left:8px">${val} ${label}</span>
-    </div>`;
+  const partsWithSong = parts.filter(p => p.songConfirmed || p.songTitle || p.song);
+
+  const getRankPill = (rank) => {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return `<span style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text2)">${rank}</span>`;
+  };
+
+  const renderHistoryCategoryList = (sortedParts, scoreGetter, unit) => {
+    let currentRank = 0;
+    let currentScore = -1;
+    
+    return sortedParts.map((p, index) => {
+      const score = scoreGetter(p);
+      if (score !== currentScore) {
+        currentRank = index + 1;
+        currentScore = score;
+      }
+      const medal = getRankPill(currentRank);
+      const isTop = currentRank <= 3;
+      const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
+      const sizeClass = currentRank === 1 ? '14' : '12';
+      
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+          <div style="font-size:14px;min-width:20px;text-align:center">${medal}</div>
+          <div style="font-family:'Inter',sans-serif;font-weight:${isTop ? 600 : 400};font-size:${sizeClass}px;color:${nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
+        </div>
+        <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:600;color:${nameColor};white-space:nowrap;margin-left:8px">
+          ${score} <span style="font-size:9px;font-weight:400;color:var(--text2)">${unit}</span>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--text2);font-size:12px;text-align:center;padding:10px 0">Sin participantes</div>';
+  };
+
+  const pubSongSorted = [...partsWithSong].sort((a, b) => (parseInt(b.voteSong) || 0) - (parseInt(a.voteSong) || 0));
+  const partsSongSortedHTML = renderHistoryCategoryList(pubSongSorted, p => parseInt(p.voteSong) || 0, 'votos');
+
+  const pubPerfSorted = [...partsWithSong].sort((a, b) => (parseInt(b.votePerf) || 0) - (parseInt(a.votePerf) || 0));
+  const partsPerfSortedHTML = renderHistoryCategoryList(pubPerfSorted, p => parseInt(p.votePerf) || 0, 'votos');
+
+  const jurySongSorted = [...partsWithSong].sort((a, b) => getJuryTotalForPart(b, 'song') - getJuryTotalForPart(a, 'song'));
+  const jurySongSortedHTML = renderHistoryCategoryList(jurySongSorted, p => getJuryTotalForPart(p, 'song'), 'pts');
+
+  const juryPerfSorted = [...partsWithSong].sort((a, b) => getJuryTotalForPart(b, 'perf') - getJuryTotalForPart(a, 'perf'));
+  const juryPerfSortedHTML = renderHistoryCategoryList(juryPerfSorted, p => getJuryTotalForPart(p, 'perf'), 'pts');
+
+  const juryHinchadaSorted = [...partsWithSong].sort((a, b) => getJuryTotalForPart(b, 'hinchada') - getJuryTotalForPart(a, 'hinchada'));
+  const juryHinchadaSortedHTML = renderHistoryCategoryList(juryHinchadaSorted, p => getJuryTotalForPart(p, 'hinchada'), 'pts');
 
   const el = document.getElementById('history-detail-content');
   if (el) {
@@ -1255,12 +1297,64 @@ function showHistoryDetail(key) {
         ${rankRows || '<div style="color:var(--text2);font-size:13px">Sin datos</div>'}
       </div>
 
-      <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Votación del Público</div>
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px">
-        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;letter-spacing:1px">MEJOR CANCIÓN</div>
-        ${topSong.filter(p => (parseInt(p.voteSong)||0) > 0).slice(0,5).map(p => voteRow(p, parseInt(p.voteSong), 'votos')).join('') || '<div style="color:var(--text2);font-size:12px">Sin votos</div>'}
-        <div style="font-size:11px;color:var(--text2);margin:10px 0 6px;letter-spacing:1px">MEJOR PERFORMANCE</div>
-        ${topPerf.filter(p => (parseInt(p.votePerf)||0) > 0).slice(0,5).map(p => voteRow(p, parseInt(p.votePerf), 'votos')).join('') || '<div style="color:var(--text2);font-size:12px">Sin votos</div>'}
+      <div style="font-size:10px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Categorías y Votaciones</div>
+      <div class="results-layout-container" style="margin-top:10px">
+        
+        <!-- 1. Público: Mejor Canción -->
+        <div class="result-column-card">
+          <div class="result-column-header">
+            <div class="column-category-title" style="font-size:16px;letter-spacing:1px">MEJOR<br>CANCIÓN</div>
+            <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
+          </div>
+          <div style="display:grid;gap:6px">
+            ${partsSongSortedHTML}
+          </div>
+        </div>
+
+        <!-- 2. Público: Mejor Performance -->
+        <div class="result-column-card">
+          <div class="result-column-header">
+            <div class="column-category-title" style="font-size:16px;letter-spacing:1px">MEJOR<br>PERFORMANCE</div>
+            <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
+          </div>
+          <div style="display:grid;gap:6px">
+            ${partsPerfSortedHTML}
+          </div>
+        </div>
+
+        <!-- 3. Jurado: Canción -->
+        <div class="result-column-card">
+          <div class="result-column-header">
+            <div class="column-category-title" style="font-size:16px;letter-spacing:1px">CANCIÓN</div>
+            <div class="column-source-tag source-jury">⭐ JURADO</div>
+          </div>
+          <div style="display:grid;gap:6px">
+            ${jurySongSortedHTML}
+          </div>
+        </div>
+
+        <!-- 4. Jurado: Performance -->
+        <div class="result-column-card">
+          <div class="result-column-header">
+            <div class="column-category-title" style="font-size:16px;letter-spacing:1px">PERFORMANCE</div>
+            <div class="column-source-tag source-jury">⭐ JURADO</div>
+          </div>
+          <div style="display:grid;gap:6px">
+            ${juryPerfSortedHTML}
+          </div>
+        </div>
+
+        <!-- 5. Jurado: Hinchada -->
+        <div class="result-column-card">
+          <div class="result-column-header">
+            <div class="column-category-title" style="font-size:16px;letter-spacing:1px">HINCHADA</div>
+            <div class="column-source-tag source-jury">📣 JURADO</div>
+          </div>
+          <div style="display:grid;gap:6px">
+            ${juryHinchadaSortedHTML}
+          </div>
+        </div>
+
       </div>
     `;
   }
