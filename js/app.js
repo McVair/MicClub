@@ -330,6 +330,10 @@ function calcBaseScore(p) {
   pts += people;                      // 1 pt por cada reserva
   if (p.songConfirmed) pts += 3;      // canción elegida
   pts += parseInt(p.extraPts) || 0;   // extra manual del admin
+  if (p.prizeSong) pts += 10;
+  if (p.prizePerf) pts += 10;
+  if (p.prizeHinchada) pts += 8;
+  if (p.prizeMesa) pts += 8;
   return pts;
 }
 
@@ -2601,6 +2605,7 @@ function renderAdminParticipants() {
     if (p.prizeSong)        badges.push('<span class="badge badge-gold">🎵</span>');
     if (p.prizePerf)        badges.push('<span class="badge badge-purple">🎭</span>');
     if (p.prizeHinchada)    badges.push('<span class="badge badge-teal">📣</span>');
+    if (p.prizeMesa)        badges.push('<span class="badge badge-teal">🪑</span>');
     if (p.prizePublicoSong) badges.push('<span class="badge badge-gold">🎤</span>');
     if (p.prizePublicoPerf) badges.push('<span class="badge badge-purple">🏆</span>');
     const sStatus = p.songConfirmed
@@ -2676,6 +2681,7 @@ function renderAdminJury() {
       { key: 'prizeSong',     label: '🎵 Mejor Canción (Jurado) +10 pts',    cat: 'song'     },
       { key: 'prizePerf',     label: '🎭 Mejor Performance (Jurado) +10 pts', cat: 'perf'     },
       { key: 'prizeHinchada', label: '📣 Mejor Hinchada (Jurado) +8 pts',    cat: 'hinchada' },
+      { key: 'prizeMesa',     label: '🪑 Mejor Mesa (Jurado) +8 pts',        cat: null       },
     ];
     const partsList = sorted();
     prizesEl.innerHTML = prizeItems.map(pr => {
@@ -2934,6 +2940,7 @@ async function endShow() {
       updates[`participants/${id}/prizeSong`]           = false;
       updates[`participants/${id}/prizePerf`]           = false;
       updates[`participants/${id}/prizeHinchada`]       = false;
+      updates[`participants/${id}/prizeMesa`]           = false;
       updates[`participants/${id}/people`]              = 0;
     });
 
@@ -2993,7 +3000,8 @@ async function enforceNoShowState() {
   const dirty = Object.entries(allParticipants).filter(([, p]) =>
     p.songConfirmed || p.songTitle || p.karaokeLink || (parseInt(p.people) || 0) > 0 ||
     (parseInt(p.voteSong) || 0) > 0 || (parseInt(p.votePerf) || 0) > 0 ||
-    p.juryScoresSong || p.juryScoresPerf || p.juryScoresHinchada
+    p.juryScoresSong || p.juryScoresPerf || p.juryScoresHinchada ||
+    p.prizeSong || p.prizePerf || p.prizeHinchada || p.prizeMesa
   );
   if (!dirty.length) return;
   const updates = {};
@@ -3013,6 +3021,7 @@ async function enforceNoShowState() {
     updates[`participants/${id}/prizeSong`]          = false;
     updates[`participants/${id}/prizePerf`]          = false;
     updates[`participants/${id}/prizeHinchada`]      = false;
+    updates[`participants/${id}/prizeMesa`]          = false;
     updates[`participants/${id}/prizePublicoSong`]   = false;
     updates[`participants/${id}/prizePublicoPerf`]   = false;
     // Actualiza también la copia local inmediatamente
@@ -3020,7 +3029,7 @@ async function enforceNoShowState() {
       songConfirmed: false, songTitle: '', songArtist: '', song: '', karaokeLink: '',
       people: 0, voteSong: 0, votePerf: 0,
       juryScoresSong: null, juryScoresPerf: null, juryScoresHinchada: null, juryScoresPublico: null,
-      prizeSong: false, prizePerf: false, prizeHinchada: false,
+      prizeSong: false, prizePerf: false, prizeHinchada: false, prizeMesa: false,
       prizePublicoSong: false, prizePublicoPerf: false,
     });
   });
@@ -3133,7 +3142,7 @@ function seedTestData() {
           song: `${f.song} — ${f.artist}`, songTitle: f.song, songArtist: f.artist,
           karaokeLink: f.link, songConfirmed: true,
           timestamp: Date.now() + Math.floor(Math.random() * 1000),
-          prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
+          prizeSong: false, prizePerf: false, prizeHinchada: false, prizeMesa: false, prizePublicoSong: false, prizePublicoPerf: false,
           juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
           extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
         };
@@ -3286,7 +3295,7 @@ async function simularEvento() {
       songConfirmed: true,
       timestamp: Date.now(),
       updatedAt: Date.now(),
-      prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
+      prizeSong: false, prizePerf: false, prizeHinchada: false, prizeMesa: false, prizePublicoSong: false, prizePublicoPerf: false,
       juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
       extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
     };
