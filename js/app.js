@@ -66,6 +66,8 @@ let revealedCategories = {
 };
 let lastEventName = null;
 
+let pantallaTab = 'artistas';
+
 function resetRevealedCategories() {
   revealedCategories = {
     'rank-pub-song': false,
@@ -83,7 +85,10 @@ window.revealCategory = function(elId) {
 
 // ── URL ROUTING ──────────────────────────────────────────────────────────────
 const urlParams = new URLSearchParams(window.location.search);
-const MODE      = urlParams.get('mode') || 'home';
+let MODE        = urlParams.get('mode') || 'home';
+if (window.location.pathname === '/pantalla') {
+  MODE = 'pantalla';
+}
 const URL_CODE  = (urlParams.get('code') || '').toUpperCase();
 let currentPage = 'home';
 
@@ -99,6 +104,7 @@ function nav(page) {
   renderNav();
   if (page === 'ranking')        { updateRanking(); startCelebration(); }
   if (page === 'show')           { updateShowMode(); startCelebration(); }
+  if (page === 'pantalla')       { setPantallaTab(pantallaTab || 'artistas'); updatePantallaSponsors(); }
   if (page === 'config')         renderConfigParticipants();
   if (page === 'admin-micclub-participants') renderAdminMicClubParticipants();
   if (page === 'history')        renderHistoryPage();
@@ -550,10 +556,18 @@ function updateUI() {
   handleVotingState();
   updateEventInfoBanners();
   if (MODE === 'vote') loadPublicVoteOpts();
-  if (adminLoggedIn) { renderAdminParticipants(); renderAdminJury(); }
+  if (adminLoggedIn) { 
+    renderAdminParticipants(); 
+    renderAdminJury(); 
+    updateAdminNextEventPreview();
+  }
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
   if (currentPage === 'admin-micclub-participants') renderAdminMicClubParticipants();
+  if (currentPage === 'pantalla') {
+    updatePantallaContent();
+    updatePantallaSponsors();
+  }
   renderLinks();
   updateFreeKaraokePages();
 }
@@ -622,8 +636,11 @@ function updateProgramPage() {
   const artistsHtml = artists.map((art, index) => {
     const isLast = index === artists.length - 1;
     const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
+    const name = typeof art === 'object' ? art.name : art;
+    const song = typeof art === 'object' ? art.song : '';
+    const songDisplay = song ? ` (${esc(song)})` : '';
     return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-weight:600;color:var(--text)">🎙️ ${esc(art)}</span>
+      <span style="font-weight:600;color:var(--text)">🎙️ ${esc(name)}${songDisplay}</span>
       <span style="color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.5px;text-transform:uppercase">Artista Invitado</span>
     </div>`;
   }).join('');
@@ -687,12 +704,17 @@ function renderProgramAdminPanel() {
     </div>
   `).join('');
   
-  const artistsHtml = artists.map((art, idx) => `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;background:var(--bg3);padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02)">
-      <span style="flex:1;font-size:12px;color:var(--text)">${esc(art)}</span>
-      <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:4px 8px;min-height:auto;font-size:11px;margin-left:auto" onclick="deleteGuestArtistAdmin(${idx})">Eliminar</button>
-    </div>
-  `).join('');
+  const artistsHtml = artists.map((art, idx) => {
+    const name = typeof art === 'object' ? art.name : art;
+    const song = typeof art === 'object' ? art.song : '';
+    const display = song ? `${name} - ${song}` : name;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;background:var(--bg3);padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02)">
+        <span style="flex:1;font-size:12px;color:var(--text)">${esc(display)}</span>
+        <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:4px 8px;min-height:auto;font-size:11px;margin-left:auto" onclick="deleteGuestArtistAdmin(${idx})">Eliminar</button>
+      </div>
+    `;
+  }).join('');
   
   document.getElementById('admin-sponsors-list').innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin auspiciantes</div>';
   document.getElementById('admin-artists-list').innerHTML = artistsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin artistas invitados</div>';
@@ -769,11 +791,13 @@ async function deleteSponsorAdmin(idx) {
 }
 
 async function addGuestArtistAdmin() {
-  const inp = document.getElementById('artist-name-input');
-  const name = (inp?.value || '').trim();
+  const nameInp = document.getElementById('artist-name-input');
+  const songInp = document.getElementById('artist-songs-input');
+  const name = (nameInp?.value || '').trim();
+  const song = (songInp?.value || '').trim();
   if (!name) return;
   const artists = localState.settings?.guestArtists || [];
-  artists.push(name);
+  artists.push({ name, song });
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, 'settings'), { guestArtists: artists });
@@ -781,7 +805,8 @@ async function addGuestArtistAdmin() {
       localState.settings.guestArtists = artists;
       saveLocal();
     }
-    inp.value = '';
+    nameInp.value = '';
+    if (songInp) songInp.value = '';
     updateProgramPage();
     mcAlert('Artista agregado.');
   } catch(err) {
@@ -805,10 +830,95 @@ async function deleteGuestArtistAdmin(idx) {
   }
 }
 
+async function uploadNextEventImage() {
+  const fileIn = document.getElementById('next-event-file');
+  if (!fileIn || !fileIn.files || !fileIn.files[0]) {
+    mcAlert('Por favor selecciona una imagen.');
+    return;
+  }
+  
+  const file = fileIn.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = async function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 800;
+      let w = img.width;
+      let h = img.height;
+      if (w > h) {
+        if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+      } else {
+        if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+      
+      try {
+        if (firebaseOk) {
+          await dbUpdate(dbRef(db, 'settings'), { nextEventImage: compressedBase64 });
+        } else {
+          if (!localState.settings) localState.settings = {};
+          localState.settings.nextEventImage = compressedBase64;
+          saveLocal();
+        }
+        fileIn.value = '';
+        updateAdminNextEventPreview();
+        if (currentPage === 'pantalla') renderPantallaContent();
+        mcAlert('✅ Imagen del próximo evento cargada con éxito.');
+      } catch(err) {
+        console.error(err);
+        mcAlert('Error al guardar la imagen.');
+      }
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+async function deleteNextEventImage() {
+  mcConfirm('¿Eliminar la imagen del próximo evento?', async () => {
+    try {
+      if (firebaseOk) {
+        await dbUpdate(dbRef(db, 'settings'), { nextEventImage: null });
+      } else {
+        if (localState.settings) {
+          localState.settings.nextEventImage = null;
+        }
+        saveLocal();
+      }
+      updateAdminNextEventPreview();
+      if (currentPage === 'pantalla') renderPantallaContent();
+      mcAlert('✅ Imagen del próximo evento eliminada.');
+    } catch(err) {
+      console.error(err);
+      mcAlert('Error al eliminar la imagen.');
+    }
+  });
+}
+
+function updateAdminNextEventPreview() {
+  const imgUrl = localState.settings?.nextEventImage || null;
+  const container = document.getElementById('admin-next-event-preview-container');
+  const img = document.getElementById('admin-next-event-preview');
+  if (imgUrl) {
+    if (img) img.src = imgUrl;
+    if (container) container.style.display = 'block';
+  } else {
+    if (img) img.src = '';
+    if (container) container.style.display = 'none';
+  }
+}
+
 window.addSponsorAdmin = addSponsorAdmin;
 window.deleteSponsorAdmin = deleteSponsorAdmin;
 window.addGuestArtistAdmin = addGuestArtistAdmin;
 window.deleteGuestArtistAdmin = deleteGuestArtistAdmin;
+window.uploadNextEventImage = uploadNextEventImage;
+window.deleteNextEventImage = deleteNextEventImage;
 
 // ── DASHBOARD HOME ────────────────────────────────────────────────────────────
 function updateDashboard() {
@@ -1469,7 +1579,7 @@ async function startShow(name, date, time, venue) {
 }
 
 function dashCopyLink(mode) {
-  const urlMap = { vote: '?mode=vote', jury: '?mode=jury', ranking: '?mode=ranking', micclub: '?mode=micclub', register: '?mode=register' };
+  const urlMap = { vote: '?mode=vote', jury: '?mode=jury', ranking: '?mode=ranking', micclub: '?mode=micclub', register: '?mode=register', pantalla: '?mode=pantalla' };
   const url = buildBaseURL() + (urlMap[mode] || ('?mode=' + mode));
   navigator.clipboard?.writeText(url)
     .then(() => mcAlert('✅ Link copiado al portapapeles'))
@@ -1712,11 +1822,12 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
   const el = document.getElementById(elId);
   if (!el) return;
   
-  if (!revealedCategories[elId]) {
+  const stateKey = elId.replace('pantalla-', '');
+  if (!revealedCategories[stateKey]) {
     el.innerHTML = `
       <div class="reveal-podium-card" style="text-align:center; padding: 35px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
         <div style="font-family:'Bebas Neue',sans-serif; font-size: 26px; letter-spacing: 1px; background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; color: transparent; text-shadow: 0 0 12px rgba(223, 172, 74, 0.25); line-height: 1.2;">Los ganadores son...</div>
-        <button class="btn btn-outline" style="width: auto; padding: 10px 24px; min-height: 38px; font-size: 12px;" onclick="revealCategory('${elId}')">MOSTRAR</button>
+        <button class="btn btn-outline" style="width: auto; padding: 10px 24px; min-height: 38px; font-size: 12px;" onclick="revealCategory('${stateKey}')">MOSTRAR</button>
       </div>`;
     return;
   }
@@ -1772,6 +1883,9 @@ function renderPublicVoteRanking() {
   
   renderPodiumList(pubSongPodium, 'rank-pub-song', 'votos');
   renderPodiumList(pubPerfPodium, 'rank-pub-perf', 'votos');
+  
+  renderPodiumList(pubSongPodium, 'pantalla-rank-pub-song', 'votos');
+  renderPodiumList(pubPerfPodium, 'pantalla-rank-pub-perf', 'votos');
 }
 
 function renderJuryRankingInRanking() {
@@ -1784,46 +1898,30 @@ function renderJuryRankingInRanking() {
   renderPodiumList(jurySongPodium, 'rank-jury-song', 'pts');
   renderPodiumList(juryPerfPodium, 'rank-jury-perf', 'pts');
   renderPodiumList(juryHinchadaPodium, 'rank-jury-hinchada', 'pts');
+  
+  renderPodiumList(jurySongPodium, 'pantalla-rank-jury-song', 'pts');
+  renderPodiumList(juryPerfPodium, 'pantalla-rank-jury-perf', 'pts');
+  renderPodiumList(juryHinchadaPodium, 'pantalla-rank-jury-hinchada', 'pts');
 }
 
 function updateShowMode() {
   const parts = sortedMicclub();
   
-  // 1. Separate Consagrados (>150 pts) from active parts
+  // Separate Consagrados (>150 pts) from active parts
   const consagradosData = parts.filter(p => p.score > 150);
   const activeParts = parts.filter(p => p.score <= 150);
 
-  // Render Consagrados
-  const consagradosCard = document.getElementById('consagrados-card');
-  const consagradosRows = document.getElementById('consagrados-rows');
-  const showLayoutContainer = document.querySelector('.show-layout-container');
+  // Render HTML strings
+  const consagradosHtml = consagradosData.map((p) => {
+    const badge = `👑`;
+    return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px">
+      <div style="font-size:20px;min-width:30px;text-align:center;line-height:1">${badge}</div>
+      <div style="flex:1;font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--text);text-shadow:0 0 6px rgba(255,255,255,0.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
+      <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:var(--text);white-space:nowrap">${p.score}<span style="font-size:12px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> pts</span></div>
+    </div>`;
+  }).join('');
 
-  if (consagradosCard && consagradosRows) {
-    if (consagradosData.length > 0) {
-      consagradosCard.style.display = 'block';
-      if (showLayoutContainer) showLayoutContainer.classList.add('two-columns');
-      consagradosRows.innerHTML = consagradosData.map((p) => {
-        const badge = `👑`;
-        return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px">
-          <div style="font-size:20px;min-width:30px;text-align:center;line-height:1">${badge}</div>
-          <div style="flex:1;font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--text);text-shadow:0 0 6px rgba(255,255,255,0.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
-          <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:var(--text);white-space:nowrap">${p.score}<span style="font-size:12px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> pts</span></div>
-        </div>`;
-      }).join('');
-    } else {
-      consagradosCard.style.display = 'none';
-      if (showLayoutContainer) showLayoutContainer.classList.remove('two-columns');
-    }
-  }
-
-  // Render Active Parts
-  const el = document.getElementById('show-rows');
-  if (!el) return;
-  if (!activeParts.length) {
-    el.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
-    return;
-  }
-  el.innerHTML = activeParts.map((p, i) => {
+  const activeHtml = activeParts.map((p, i) => {
     const pct    = Math.min(100, (p.score / META) * 100);
     const isTop  = i < 3;
     const rank   = getMedalHTML(i + 1);
@@ -1847,6 +1945,62 @@ function updateShowMode() {
       </div>
     </div>`;
   }).join('');
+
+  // 1. Render on original show page
+  const consagradosCard = document.getElementById('consagrados-card');
+  const consagradosRows = document.getElementById('consagrados-rows');
+  const showLayoutContainer = document.querySelector('.show-layout-container');
+
+  if (consagradosCard && consagradosRows) {
+    if (consagradosData.length > 0) {
+      consagradosCard.style.display = 'block';
+      if (showLayoutContainer) showLayoutContainer.classList.add('two-columns');
+      consagradosRows.innerHTML = consagradosHtml;
+    } else {
+      consagradosCard.style.display = 'none';
+      if (showLayoutContainer) showLayoutContainer.classList.remove('two-columns');
+    }
+  }
+
+  const el = document.getElementById('show-rows');
+  if (el) {
+    if (!activeParts.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
+    } else {
+      el.innerHTML = activeHtml;
+    }
+  }
+
+  // 2. Render on public monitor screen (pantalla)
+  const pConsagradosCard = document.getElementById('pantalla-consagrados-card');
+  const pConsagradosRows = document.getElementById('pantalla-consagrados-rows');
+  const pShowRows = document.getElementById('pantalla-show-rows');
+  const pContainer = pShowRows?.closest('.show-layout-container');
+
+  if (pConsagradosCard && pConsagradosRows) {
+    if (consagradosData.length > 0) {
+      pConsagradosCard.style.display = 'block';
+      pConsagradosRows.innerHTML = consagradosHtml;
+      if (pContainer) {
+        pContainer.style.display = 'grid';
+        pContainer.style.gridTemplateColumns = '1fr 1fr';
+        pContainer.style.gap = '20px';
+      }
+    } else {
+      pConsagradosCard.style.display = 'none';
+      if (pContainer) {
+        pContainer.style.display = 'block';
+      }
+    }
+  }
+
+  if (pShowRows) {
+    if (!activeParts.length) {
+      pShowRows.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
+    } else {
+      pShowRows.innerHTML = activeHtml;
+    }
+  }
 }
 
 function updateBonusBanners() {
@@ -3440,9 +3594,10 @@ function renderLinks() {
   if (!el || !adminLoggedIn) return;
   const base  = buildBaseURL();
   const links = [
-    { icon: '🎤', label: 'Link de Reserva',          url: base + '?mode=register', desc: 'Para que los participantes se inscriban' },
-    { icon: '🗳️', label: 'Link de Votación Pública', url: base + '?mode=vote',     desc: 'Un solo QR/link para votar. Compartí durante el evento.' },
-    { icon: '⭐', label: 'Panel de Jurado',           url: base + '?mode=jury',     desc: 'Solo para los jurados.' },
+    { icon: '🎤', label: 'Link de Reserva',          url: base + '?mode=register', desc: 'Para que los participantes se inscriban', btnText: '↗ Abrir' },
+    { icon: '🗳️', label: 'Link de Votación Pública', url: base + '?mode=vote',     desc: 'Un solo QR/link para votar. Compartí durante el evento.', btnText: '↗ Abrir' },
+    { icon: '⭐', label: 'Panel de Jurado',           url: base + '?mode=jury',     desc: 'Solo para los jurados.', btnText: '↗ Abrir' },
+    { icon: '📺', label: 'Pantalla Pública',          url: base + '?mode=pantalla', desc: 'Para proyectar en la TV/proyector.', btnText: 'Mostrar' },
   ];
   el.innerHTML = links.map(l => `
     <div style="background:var(--bg3);border-radius:9px;padding:12px;margin-bottom:10px;border:1px solid var(--border)">
@@ -3452,7 +3607,7 @@ function renderLinks() {
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="copyLink('${esc(l.url)}')">📋 Copiar</button>
         <a href="${esc(l.url)}" target="_blank" style="text-decoration:none">
-          <button class="btn btn-outline btn-sm">↗ Abrir</button>
+          <button class="btn btn-outline btn-sm">${esc(l.btnText || '↗ Abrir')}</button>
         </a>
       </div>
     </div>`).join('');
@@ -4013,3 +4168,220 @@ async function deleteFreeKaraokeItem(itemId) {
     }
   });
 }
+
+// ── PANTALLA PÚBLICA DE PRESENTACIÓN ──────────────────────────────────────────
+function setPantallaTab(tab) {
+  pantallaTab = tab;
+  
+  // Actualizar estilos de los botones en el sidebar
+  const buttons = document.querySelectorAll('#page-pantalla .pantalla-sidebar button');
+  if (buttons.length >= 6) {
+    buttons.forEach(btn => {
+      btn.style.background = 'linear-gradient(135deg, #16151A 0%, #0D0C10 100%)';
+      btn.style.borderColor = 'rgba(252, 224, 173, 0.35)';
+      btn.style.color = '#ffffff';
+    });
+    
+    const tabBtnMap = {
+      artistas: 0,
+      participantes: 1,
+      votos: 2,
+      ranking: 3,
+      proximo: 4,
+      karaoke: 5
+    };
+    const activeBtn = buttons[tabBtnMap[tab]];
+    if (activeBtn) {
+      activeBtn.style.background = 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)';
+      activeBtn.style.color = 'var(--bg)';
+      activeBtn.style.borderColor = 'var(--gold)';
+    }
+  }
+  
+  // Fuegos artificiales en pestaña de Resultados Votación
+  const canvas = document.getElementById('pantalla-celebration-canvas');
+  if (canvas) {
+    if (tab === 'votos') {
+      canvas.style.display = 'block';
+      startCelebration();
+    } else {
+      canvas.style.display = 'none';
+    }
+  }
+  
+  renderPantallaContent();
+}
+
+function renderPantallaContent() {
+  const container = document.getElementById('pantalla-tab-content');
+  if (!container) return;
+  
+  if (pantallaTab === 'artistas') {
+    const artists = localState.settings?.guestArtists || [];
+    if (!artists.length) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay artistas invitados cargados aún para este evento.</div>`;
+      return;
+    }
+    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+      artists.map((art, idx) => {
+        const name = typeof art === 'object' ? art.name : art;
+        const song = typeof art === 'object' ? art.song : '';
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 28px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 20px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
+          </div>
+        `;
+      }).join('')
+    }</div>`;
+  }
+  else if (pantallaTab === 'participantes') {
+    const parts = Object.values(allParticipants)
+      .filter(p => p.songConfirmed)
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    if (!parts.length) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando confirmación de participantes...</div>`;
+      return;
+    }
+    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+      parts.map((p, index) => {
+        const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+          </div>
+        `;
+      }).join('')
+    }</div>`;
+  }
+  else if (pantallaTab === 'votos') {
+    container.innerHTML = `
+      <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>CANCIÓN</div>
+            <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
+          </div>
+          <div id="pantalla-rank-pub-song"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
+            <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
+          </div>
+          <div id="pantalla-rank-pub-perf"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>CANCIÓN</div>
+            <div class="column-source-tag source-jury">⭐ JURADO</div>
+          </div>
+          <div id="pantalla-rank-jury-song"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
+            <div class="column-source-tag source-jury">⭐ JURADO</div>
+          </div>
+          <div id="pantalla-rank-jury-perf"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>HINCHADA</div>
+            <div class="column-source-tag source-jury">📣 JURADO</div>
+          </div>
+          <div id="pantalla-rank-jury-hinchada"></div>
+        </div>
+      </div>
+    `;
+    // Populate
+    renderPublicVoteRanking();
+    renderJuryRankingInRanking();
+  }
+  else if (pantallaTab === 'ranking') {
+    container.innerHTML = `
+      <div class="show-layout-container" style="display: grid; gap: 20px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
+        <div class="result-column-card" style="margin: 0;">
+          <div class="result-column-header">
+            <div class="column-category-title">🏆 PUNTOS ACUMULADOS</div>
+          </div>
+          <div id="pantalla-show-rows" style="padding:10px 14px"></div>
+        </div>
+        <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
+          <div class="result-column-header">
+            <div class="column-category-title">👑 CONSAGRADOS (>150 pts)</div>
+          </div>
+          <div id="pantalla-consagrados-rows" style="padding:10px 14px"></div>
+        </div>
+      </div>
+    `;
+    updateShowMode();
+  }
+  else if (pantallaTab === 'proximo') {
+    const imgUrl = localState.settings?.nextEventImage || null;
+    if (!imgUrl) {
+      container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 60px 20px; gap: 20px; animation: fadeUp 0.5s ease-out forwards; height:100%; box-sizing:border-box">
+        <div style="font-size: 48px;">📅</div>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size: 32px; color: var(--gold); letter-spacing: 1px;">Próximo Evento</div>
+        <div style="color: var(--text2); font-size: 15px; text-align: center; max-width: 500px; line-height: 1.6;">Estad atentos, próximamente confirmaremos la fecha del siguiente encuentro.</div>
+      </div>`;
+      return;
+    }
+    container.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; max-height: calc(100vh - 160px); overflow:hidden; animation: fadeUp 0.5s ease-out forwards;">
+      <img src="${imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);">
+    </div>`;
+  }
+  else if (pantallaTab === 'karaoke') {
+    const sortedFreeItems = Object.entries(freeKaraokeList)
+      .map(([id, p]) => ({ ...p, id }))
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    if (!sortedFreeItems.length) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay inscriptos en Karaoke Libre aún.</div>`;
+      return;
+    }
+    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+      sortedFreeItems.map((item, index) => {
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+          </div>
+        `;
+      }).join('')
+    }</div>`;
+  }
+}
+
+function updatePantallaContent() {
+  const currentEvent = localState.settings?.currentEvent;
+  const nameEl = document.getElementById('pantalla-event-name');
+  const detailsEl = document.getElementById('pantalla-event-details');
+  if (nameEl && detailsEl) {
+    if (showRunning && currentEvent && currentEvent.name) {
+      nameEl.textContent = currentEvent.name;
+      const det = [currentEvent.date, currentEvent.time, currentEvent.venue].filter(Boolean).join(' · ');
+      detailsEl.textContent = det;
+    } else {
+      nameEl.textContent = "MIC CLUB";
+      detailsEl.textContent = "Show de Talentos · Las Alas de mi Voz";
+    }
+  }
+  
+  renderPantallaContent();
+}
+
+function updatePantallaSponsors() {
+  const sponsors = localState.settings?.sponsors || [];
+  const sponsorsHtml = sponsors.map(sp => `
+    <div style="width: 70px; height: 70px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center;">
+      <img src="${sp.img}" style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+  `).join('');
+  const elSponsors = document.getElementById('pantalla-sponsors');
+  if (elSponsors) {
+    elSponsors.innerHTML = sponsorsHtml || '<div style="font-size: 10px; color: var(--text2); text-align: center; width: 100%;">Sin auspiciantes cargados</div>';
+  }
+}
+
+window.setPantallaTab = setPantallaTab;

@@ -911,3 +911,55 @@ button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
   transform: translateY(0);
 }
 
+/* 9. Public Presentation Screen Layout */
+.pantalla-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #0A0A0F;
+}
+.pantalla-sidebar {
+  background: #111015;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px 20px;
+  box-sizing: border-box;
+  justify-content: space-between;
+  overflow-y: auto;
+}
+.pantalla-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 32px;
+  position: relative;
+}
+@media (max-width: 768px) {
+  .pantalla-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+  .pantalla-sidebar {
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 16px;
+    gap: 16px;
+  }
+  .pantalla-content {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 20px 16px;
+  }
+}
+
+

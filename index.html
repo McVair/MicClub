@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.6">
+<link rel="stylesheet" href="css/styles.css?v=1.7">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -131,6 +131,13 @@ if ('serviceWorker' in navigator) {
         <div style="display:flex;gap:6px">
           <button class="btn-dash" onclick="navPush('program')" style="flex:1;text-align:left;padding-left:10px">📋 Programa</button>
           <button class="btn-dash btn-copy" onclick="dashCopyLink('vote')">Copiar</button>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-dash" onclick="navPush('pantalla')" style="flex:1;text-align:left;padding-left:10px">📺 Pantalla Pública</button>
+          <button class="btn-dash btn-copy" onclick="dashCopyLink('pantalla')" style="width:auto;padding:10px 16px">Copiar</button>
+          <a href="?mode=pantalla" target="_blank" style="text-decoration:none;display:contents">
+            <button class="btn-dash" style="width:auto;padding:10px 16px">Mostrar</button>
+          </a>
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn-dash" onclick="navToConfig()" style="flex:1;text-align:left;padding-left:10px">⚙️ Participantes</button>
@@ -590,6 +597,48 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 
+  <!-- ─────────── PANTALLA PÚBLICA DE PRESENTACIÓN ─────────── -->
+  <div id="page-pantalla" class="page" style="padding: 0;">
+    <div class="pantalla-layout">
+      <!-- Columna Izquierda (Sidebar) -->
+      <div class="pantalla-sidebar">
+        <!-- Botones de Navegación del Panel -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px;">PANELES DE PANTALLA</div>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('artistas')">🎙️ Artistas Invitados</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('participantes')">👥 Participantes MC</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('votos')">🗳️ Resultados Votación</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('ranking')">🏆 Ranking Mic Club</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('proximo')">🖼️ Próximo Evento</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('karaoke')">🎵 Karaoke Libre</button>
+        </div>
+        
+        <!-- Auspiciantes (Siempre visibles abajo en el sidebar) -->
+        <div style="margin-top: 30px;">
+          <div style="font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1.5px; color: var(--gold); border-bottom: 1px solid rgba(223, 172, 74, 0.25); padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase;">AUSPICIANTES</div>
+          <div id="pantalla-sponsors" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px;"></div>
+        </div>
+      </div>
+      
+      <!-- Columna Derecha (Content Area) -->
+      <div class="pantalla-content">
+        <!-- Nombre del Evento (Siempre visible arriba) -->
+        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; margin-bottom: 25px; position: relative; width: 100%;">
+          <div id="pantalla-event-name" style="font-family:'Bebas Neue',sans-serif; font-size: 38px; letter-spacing: 2px; color: var(--gold); line-height: 1.1;">-</div>
+          <div id="pantalla-event-details" style="font-size: 13px; color: var(--text2); margin-top: 4px; letter-spacing: 0.5px;">-</div>
+          
+          <!-- Canvas de fuegos artificiales dedicado para pantalla de resultados -->
+          <canvas id="pantalla-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.45;display:none"></canvas>
+        </div>
+        
+        <!-- Area de Contenido Variable -->
+        <div id="pantalla-tab-content" style="flex: 1; position: relative; z-index: 1; width: 100%;">
+          <!-- Aquí se carga la información correspondiente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ─────────── MICCLUB (ex-SHOW) ─────────── -->
   <div id="page-show" class="page">
     <!-- Lienzo de Fuegos Artificiales para Celebración -->
@@ -686,6 +735,21 @@ if ('serviceWorker' in navigator) {
 
 
 <button class="btn btn-outline btn-sm" onclick="exportCSV()" style="width:100%">📤 Exportar CSV</button>
+
+            <!-- Cargar Flyer del Próximo Evento -->
+            <div style="background:rgba(212,168,67,.06);border:1px solid var(--gold-dark);border-radius:8px;padding:13px;margin-top:10px">
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🖼️ Flyer Próximo Evento</div>
+              <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Cargá el flyer o imagen promocional para el próximo evento. Se mostrará en la pantalla del público.</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <input type="file" id="next-event-file" accept="image/*" style="width:100%;font-size:12px;color:var(--text2)">
+                <button class="btn btn-gold btn-sm" onclick="uploadNextEventImage()">CARGAR IMAGEN DE NUEVO EVENTO</button>
+                <div id="admin-next-event-preview-container" style="display:none;margin-top:8px;text-align:center">
+                  <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Flyer actual:</div>
+                  <img id="admin-next-event-preview" src="" style="max-height:100px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);display:block;margin:0 auto 6px">
+                  <button class="btn btn-danger btn-sm" onclick="deleteNextEventImage()" style="min-height:auto;padding:4px 8px;font-size:11px;width:auto">Eliminar Flyer</button>
+                </div>
+              </div>
+            </div>
             <hr class="divider">
             <div id="admin-clear-db-card" style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px;display:none">
               <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">🗑️ Vaciar Base de Datos</div>
@@ -823,6 +887,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.11" defer></script>
+<script src="js/app.js?v=1.12" defer></script>
 </body>
 </html>
