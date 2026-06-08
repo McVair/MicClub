@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.7">
+<link rel="stylesheet" href="css/styles.css?v=1.8">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -598,7 +598,7 @@ if ('serviceWorker' in navigator) {
   </div>
 
   <!-- ─────────── PANTALLA PÚBLICA DE PRESENTACIÓN ─────────── -->
-  <div id="page-pantalla" class="page" style="padding: 0;">
+  <div id="page-pantalla" class="page" style="padding: 0; max-width: none; margin: 0; width: 100%;">
     <div class="pantalla-layout">
       <!-- Columna Izquierda (Sidebar) -->
       <div class="pantalla-sidebar">
@@ -614,7 +614,7 @@ if ('serviceWorker' in navigator) {
         </div>
         
         <!-- Auspiciantes (Siempre visibles abajo en el sidebar) -->
-        <div style="margin-top: 30px;">
+        <div>
           <div style="font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1.5px; color: var(--gold); border-bottom: 1px solid rgba(223, 172, 74, 0.25); padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase;">AUSPICIANTES</div>
           <div id="pantalla-sponsors" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px;"></div>
         </div>
@@ -887,6 +887,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.12" defer></script>
+<script src="js/app.js?v=1.13" defer></script>
 </body>
 </html>

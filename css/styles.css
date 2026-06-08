@@ -928,7 +928,8 @@ button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
   height: 100%;
   padding: 24px 20px;
   box-sizing: border-box;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 30px;
   overflow-y: auto;
 }
 .pantalla-content {

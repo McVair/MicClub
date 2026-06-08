@@ -104,7 +104,7 @@ function nav(page) {
   renderNav();
   if (page === 'ranking')        { updateRanking(); startCelebration(); }
   if (page === 'show')           { updateShowMode(); startCelebration(); }
-  if (page === 'pantalla')       { setPantallaTab(pantallaTab || 'artistas'); updatePantallaSponsors(); }
+  if (page === 'pantalla')       { updatePantallaContent(); setPantallaTab(pantallaTab || 'artistas'); updatePantallaSponsors(); }
   if (page === 'config')         renderConfigParticipants();
   if (page === 'admin-micclub-participants') renderAdminMicClubParticipants();
   if (page === 'history')        renderHistoryPage();
@@ -290,7 +290,7 @@ async function saveAndExit() {
 function updateBackBtn() {
   const bar = document.getElementById('back-bar');
   if (!bar) return;
-  bar.style.display = (MODE === 'home' && navStack.length > 0) ? 'block' : 'none';
+  bar.style.display = (MODE === 'home' && navStack.length > 0 && currentPage !== 'pantalla') ? 'block' : 'none';
 }
 
 function renderNav() { /* nav removed — navigation via buttons + back bar */ }
@@ -3953,6 +3953,8 @@ document.addEventListener('DOMContentLoaded', () => {
     nav('ranking');
   } else if (MODE === 'micclub') {
     nav('show');
+  } else if (MODE === 'pantalla') {
+    nav('pantalla');
   } else {
     nav('home');
   }
