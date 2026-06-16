@@ -872,10 +872,10 @@ function updateRegistrationPageUI() {
     if (selector) selector.style.display = 'none';
     if (gate) {
       gate.style.display = 'block';
-      if (gateTitle && gateTitle.textContent === 'NO HAY EVENTOS') {
+      if (gateTitle) {
         gateTitle.textContent = 'RESERVA';
       }
-      if (gateSub && gateSub.textContent === 'No hay shows activos en curso en este momento') {
+      if (gateSub) {
         gateSub.textContent = 'Tu perfil · Canción · Puntos';
       }
       if (rEmailBtn) rEmailBtn.disabled = false;
@@ -886,6 +886,12 @@ function updateRegistrationPageUI() {
       if (selector) selector.style.display = 'block';
       if (gate) gate.style.display = 'none';
       if (banner) banner.style.display = 'none';
+      if (gateTitle) {
+        gateTitle.textContent = 'RESERVA';
+      }
+      if (gateSub) {
+        gateSub.textContent = 'Tu perfil · Canción · Puntos';
+      }
       renderRegistrationEventSelectorList(ev1, ev2);
     } else if (ev1) {
       selectRegistrationEvent('event1');
