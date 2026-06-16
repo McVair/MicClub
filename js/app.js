@@ -723,6 +723,23 @@ async function checkAndMigrate() {
   }
 }
 
+function getJuryTotalForPart(p, cat) {
+  if (!p) return 0;
+  let scores;
+  if      (cat === 'song')     scores = p.juryScoresSong     || {};
+  else if (cat === 'perf')     scores = p.juryScoresPerf     || {};
+  else if (cat === 'hinchada') scores = p.juryScoresHinchada || {};
+  else return 0;
+
+  const vals = Object.values(scores);
+  if (!vals.length) return 0;
+  if (typeof vals[0] === 'object' && vals[0] !== null) {
+    return vals.reduce((total, js) =>
+      total + Object.values(js).reduce((s, v) => s + (parseInt(v) || 0), 0), 0);
+  }
+  return vals.reduce((s, v) => s + (parseInt(v) || 0), 0);
+}
+
 function getJuryTotal(pid, cat) {
   const activeEventId = getCurrentEventId();
   const p = allParticipants[pid];
