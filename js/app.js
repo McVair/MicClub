@@ -1271,45 +1271,6 @@ function updateDashboard() {
       ev1Reserved += parseInt(pPpl) || 0;
       if (pSong) ev1WithSong++;
     });
-    const spots1 = document.getElementById('event1-spots');
-    if (spots1) spots1.textContent = `${ev1Reserved} / ${ev1.capacity || '∞'} reservados`;
-    
-    const name1 = document.getElementById('event1-name');
-    if (name1) name1.textContent = ev1.name;
-    
-    const det1 = document.getElementById('event1-details');
-    if (det1) det1.textContent = [ev1.date, ev1.time, ev1.venue].filter(Boolean).join(' · ');
-    
-    const info1 = document.getElementById('event1-info');
-    if (info1) info1.style.display = 'block';
-    
-    const badge1 = document.getElementById('event1-badge');
-    if (badge1) badge1.style.display = (closest?.id === 'event1') ? 'inline-block' : 'none';
-    
-    const btn1 = document.getElementById('event1-action-btn');
-    if (btn1) {
-      btn1.innerHTML = '🎬 TERMINAR EVENTO 1';
-      btn1.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
-      btn1.style.color = '#fff';
-      btn1.style.borderColor = '#aa3d50';
-    }
-  } else {
-    const spots1 = document.getElementById('event1-spots');
-    if (spots1) spots1.textContent = 'Inactivo';
-    
-    const info1 = document.getElementById('event1-info');
-    if (info1) info1.style.display = 'none';
-    
-    const badge1 = document.getElementById('event1-badge');
-    if (badge1) badge1.style.display = 'none';
-    
-    const btn1 = document.getElementById('event1-action-btn');
-    if (btn1) {
-      btn1.innerHTML = '▶️ INICIAR EVENTO 1';
-      btn1.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-      btn1.style.color = '#0a0a0f';
-      btn1.style.borderColor = '#4d9e6a';
-    }
   }
 
   // Calcular estadísticas Evento 2
@@ -1324,45 +1285,93 @@ function updateDashboard() {
       ev2Reserved += parseInt(pPpl) || 0;
       if (pSong) ev2WithSong++;
     });
-    const spots2 = document.getElementById('event2-spots');
-    if (spots2) spots2.textContent = `${ev2Reserved} / ${ev2.capacity || '∞'} reservados`;
-    
-    const name2 = document.getElementById('event2-name');
-    if (name2) name2.textContent = ev2.name;
-    
-    const det2 = document.getElementById('event2-details');
-    if (det2) det2.textContent = [ev2.date, ev2.time, ev2.venue].filter(Boolean).join(' · ');
-    
-    const info2 = document.getElementById('event2-info');
-    if (info2) info2.style.display = 'block';
-    
-    const badge2 = document.getElementById('event2-badge');
-    if (badge2) badge2.style.display = (closest?.id === 'event2') ? 'inline-block' : 'none';
-    
-    const btn2 = document.getElementById('event2-action-btn');
-    if (btn2) {
-      btn2.innerHTML = '🎬 TERMINAR EVENTO 2';
-      btn2.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
-      btn2.style.color = '#fff';
-      btn2.style.borderColor = '#aa3d50';
-    }
-  } else {
-    const spots2 = document.getElementById('event2-spots');
-    if (spots2) spots2.textContent = 'Inactivo';
-    
-    const info2 = document.getElementById('event2-info');
-    if (info2) info2.style.display = 'none';
-    
-    const badge2 = document.getElementById('event2-badge');
-    if (badge2) badge2.style.display = 'none';
-    
-    const btn2 = document.getElementById('event2-action-btn');
-    if (btn2) {
-      btn2.innerHTML = '▶️ INICIAR EVENTO 2';
-      btn2.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-      btn2.style.color = '#0a0a0f';
-      btn2.style.borderColor = '#4d9e6a';
-    }
+  }
+
+  // Renderizar dinámicamente el listado de eventos en paralelo ordenado (más próximo primero)
+  const elPanel = document.getElementById('events-control-panel');
+  if (elPanel) {
+    const list = [
+      { slot: 'event1', data: ev1, reserved: ev1Reserved, withSong: ev1WithSong },
+      { slot: 'event2', data: ev2, reserved: ev2Reserved, withSong: ev2WithSong }
+    ];
+
+    const activeEvents = list.filter(item => item.data);
+    const inactiveEvents = list.filter(item => !item.data);
+
+    activeEvents.sort((a, b) => {
+      const tA = parseEventDate(a.data.date);
+      const tB = parseEventDate(b.data.date);
+      return tA - tB;
+    });
+
+    const sortedList = [...activeEvents, ...inactiveEvents];
+
+    let html = '';
+    sortedList.forEach((item, index) => {
+      const orderNum = index + 1;
+      const slot = item.slot;
+      const ev = item.data;
+      
+      if (ev) {
+        // Activo: nombre del evento - fecha, hora y lugar [TERMINAR EVENTO] n/n reservados
+        const name = ev.name || '';
+        const details = `${ev.date}, ${ev.time} y ${ev.venue}`;
+        const eventText = `${name} - ${details}`;
+        const btnText = '🎬 TERMINAR EVENTO';
+        const btnBg = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+        const btnColor = '#fff';
+        const btnBorder = '#aa3d50';
+        const spotsText = `${item.reserved} / ${ev.capacity || '∞'} reservados`;
+        
+        html += `
+          <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+              <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);line-height:1;flex-shrink:0">${orderNum}.</span>
+              <span style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500" title="${esc(eventText)}">
+                ${esc(eventText)}
+              </span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+              <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer">
+                ${btnText}
+              </button>
+              <span style="font-size:12px;color:var(--teal);font-weight:bold;min-width:95px;text-align:right">
+                ${spotsText}
+              </span>
+            </div>
+          </div>
+        `;
+      } else {
+        // Inactivo
+        const slotLabel = slot === 'event1' ? 'Evento 1' : 'Evento 2';
+        const eventText = `Sin evento activo (${slotLabel})`;
+        const btnText = `▶️ INICIAR EVENTO`;
+        const btnBg = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+        const btnColor = '#0a0a0f';
+        const btnBorder = '#4d9e6a';
+        const spotsText = 'Inactivo';
+        
+        html += `
+          <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+              <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text2);line-height:1;flex-shrink:0">${orderNum}.</span>
+              <span style="font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500">
+                ${eventText}
+              </span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+              <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer">
+                ${btnText}
+              </button>
+              <span style="font-size:12px;color:var(--text2);font-weight:bold;min-width:95px;text-align:right">
+                ${spotsText}
+              </span>
+            </div>
+          </div>
+        `;
+      }
+    });
+    elPanel.innerHTML = html;
   }
 
   // Actualizar estadísticas globales para el evento vivo

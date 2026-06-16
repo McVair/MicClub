@@ -72,46 +72,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Control de Eventos en Paralelo -->
-      <div class="card" style="padding:16px;margin-bottom:12px;background:var(--bg2);border:1px solid var(--border)">
-        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;text-align:center">Eventos en Paralelo</div>
-        
-        <div style="display:grid;grid-template-columns:1fr;gap:12px" id="events-control-panel">
-          <!-- Evento 1 -->
-          <div id="event1-card" style="border:1px solid rgba(255,255,255,0.05);background:var(--bg3);border-radius:10px;padding:12px;position:relative">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)">EVENTO 1</span>
-                <span id="event1-badge" style="display:none;background:var(--teal);color:#0a0a0f;font-size:9px;font-family:'Oswald',sans-serif;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:8px;vertical-align:middle">⚡ ACTIVO VIVO</span>
-              </div>
-              <div id="event1-spots" style="font-size:11px;color:var(--text2)">Inactivo</div>
-            </div>
-            <div id="event1-info" style="display:none;margin-top:6px">
-              <div id="event1-name" style="font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;color:#fff"></div>
-              <div id="event1-details" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
-            </div>
-            <div style="display:flex;gap:6px;margin-top:10px">
-              <button id="event1-action-btn" class="btn btn-sm" onclick="dashToggleShow('event1')" style="width:100%;min-height:36px;font-size:12px;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:1px solid #4d9e6a">▶️ INICIAR EVENTO 1</button>
-            </div>
-          </div>
-
-          <!-- Evento 2 -->
-          <div id="event2-card" style="border:1px solid rgba(255,255,255,0.05);background:var(--bg3);border-radius:10px;padding:12px;position:relative">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)">EVENTO 2</span>
-                <span id="event2-badge" style="display:none;background:var(--teal);color:#0a0a0f;font-size:9px;font-family:'Oswald',sans-serif;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:8px;vertical-align:middle">⚡ ACTIVO VIVO</span>
-              </div>
-              <div id="event2-spots" style="font-size:11px;color:var(--text2)">Inactivo</div>
-            </div>
-            <div id="event2-info" style="display:none;margin-top:6px">
-              <div id="event2-name" style="font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;color:#fff"></div>
-              <div id="event2-details" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
-            </div>
-            <div style="display:flex;gap:6px;margin-top:10px">
-              <button id="event2-action-btn" class="btn btn-sm" onclick="dashToggleShow('event2')" style="width:100%;min-height:36px;font-size:12px;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:1px solid #4d9e6a">▶️ INICIAR EVENTO 2</button>
-            </div>
-          </div>
-        </div>
+      <div id="events-control-panel" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px">
       </div>
 
       <!-- Acciones del Evento Activo Principal -->
@@ -942,6 +903,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.15" defer></script>
+<script src="js/app.js?v=1.16" defer></script>
 </body>
 </html>
