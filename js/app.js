@@ -855,6 +855,65 @@ function getJuryLeader(cat) {
     .sort((a, b) => b.score - a.score)[0];
 }
 
+function updateRegistrationPageUI() {
+  if (currentPage !== 'register') return;
+  
+  const gate = document.getElementById('reg-email-gate');
+  const selector = document.getElementById('reg-event-selector');
+  const banner = document.getElementById('reg-cupo-banner');
+  const gateTitle = document.getElementById('register-page-title');
+  const gateSub = document.getElementById('register-page-sub');
+  const rEmailBtn = document.getElementById('reg-email-btn');
+  
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+  
+  if (selectedEventId) {
+    if (selector) selector.style.display = 'none';
+    if (gate) {
+      gate.style.display = 'block';
+      if (gateTitle && gateTitle.textContent === 'NO HAY EVENTOS') {
+        gateTitle.textContent = 'RESERVA';
+      }
+      if (gateSub && gateSub.textContent === 'No hay shows activos en curso en este momento') {
+        gateSub.textContent = 'Tu perfil · Canción · Puntos';
+      }
+      if (rEmailBtn) rEmailBtn.disabled = false;
+    }
+    updateRegistrationCupoBanner();
+  } else {
+    if (ev1 && ev2) {
+      if (selector) selector.style.display = 'block';
+      if (gate) gate.style.display = 'none';
+      if (banner) banner.style.display = 'none';
+      renderRegistrationEventSelectorList(ev1, ev2);
+    } else if (ev1) {
+      selectRegistrationEvent('event1');
+    } else if (ev2) {
+      selectRegistrationEvent('event2');
+    } else {
+      const hasLoadedSettings = (localState.settings && Object.keys(localState.settings).length > 4);
+      if (hasLoadedSettings && !ev1 && !ev2) {
+        if (selector) selector.style.display = 'none';
+        if (gate) {
+          gate.style.display = 'block';
+          if (gateTitle) gateTitle.textContent = 'NO HAY EVENTOS';
+          if (gateSub) gateSub.textContent = 'No hay shows activos en curso en este momento';
+          if (rEmailBtn) rEmailBtn.disabled = true;
+        }
+      } else {
+        if (selector) selector.style.display = 'none';
+        if (gate) {
+          gate.style.display = 'block';
+          if (gateTitle) gateTitle.textContent = 'CARGANDO...';
+          if (gateSub) gateSub.textContent = 'Buscando eventos activos...';
+          if (rEmailBtn) rEmailBtn.disabled = true;
+        }
+      }
+    }
+  }
+}
+
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
 function updateUI() {
   updateDashboard();
@@ -874,6 +933,7 @@ function updateUI() {
   }
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
+  if (currentPage === 'register') updateRegistrationPageUI();
   if (currentPage === 'admin-micclub-participants') renderAdminMicClubParticipants();
   if (currentPage === 'pantalla') {
     updatePantallaContent();
@@ -1181,7 +1241,7 @@ function updateDashboard() {
   if (ev1) {
     Object.values(allParticipants).forEach(p => {
       const res = p.reservations?.event1 || {};
-      const isMigratedActive = (closest?.id === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+      const isMigratedActive = (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0));
       const pPpl = isMigratedActive ? (p.people || 0) : (res.people || 0);
       const pSong = isMigratedActive ? p.songConfirmed : res.songConfirmed;
       ev1Reserved += parseInt(pPpl) || 0;
@@ -1234,7 +1294,7 @@ function updateDashboard() {
   if (ev2) {
     Object.values(allParticipants).forEach(p => {
       const res = p.reservations?.event2 || {};
-      const isMigratedActive = (closest?.id === 'event2' && (!p.reservations || !p.reservations.event2) && (p.songConfirmed || (p.people && p.people > 0)));
+      const isMigratedActive = false;
       const pPpl = isMigratedActive ? (p.people || 0) : (res.people || 0);
       const pSong = isMigratedActive ? p.songConfirmed : res.songConfirmed;
       ev2Reserved += parseInt(pPpl) || 0;
@@ -2622,27 +2682,7 @@ function resetRegisterPage() {
   if (peopleCheck) peopleCheck.style.display = 'none';
   if (songCheck)   songCheck.style.display   = 'none';
 
-  const ev1 = localState.settings?.events?.event1;
-  const ev2 = localState.settings?.events?.event2;
-  
-  if (ev1 && ev2) {
-    if (selector) selector.style.display = 'block';
-    renderRegistrationEventSelectorList(ev1, ev2);
-  } else if (ev1) {
-    selectRegistrationEvent('event1');
-  } else if (ev2) {
-    selectRegistrationEvent('event2');
-  } else {
-    if (gate) {
-      gate.style.display = 'block';
-      const gateTitle = document.getElementById('register-page-title');
-      if (gateTitle) gateTitle.textContent = 'NO HAY EVENTOS';
-      const gateSub = document.getElementById('register-page-sub');
-      if (gateSub) gateSub.textContent = 'No hay shows activos en curso en este momento';
-      const rEmailBtn = document.getElementById('reg-email-btn');
-      if (rEmailBtn) rEmailBtn.disabled = true;
-    }
-  }
+  updateRegistrationPageUI();
 }
 
 function renderRegistrationEventSelectorList(ev1, ev2) {
