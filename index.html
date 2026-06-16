@@ -65,22 +65,56 @@ if ('serviceWorker' in navigator) {
     <!-- Dashboard (visible tras login) -->
     <div id="home-dashboard" style="display:none">
 
-      <!-- Título / Evento activo -->
-      <div style="text-align:center;padding:10px 0 14px">
-        <!-- Sin evento activo -->
-        <div id="dash-no-event">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
-          <div style="font-size:10px;letter-spacing:4px;color:var(--text2);text-transform:uppercase;margin-top:4px">LAS ALAS DE MI VOZ</div>
-        </div>
-        <!-- Con evento activo -->
-        <div id="dash-has-event" style="display:none">
-          <div id="dash-event-name" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,12vw,64px);letter-spacing:3px;color:var(--gold);line-height:1.05"></div>
-          <div id="dash-event-details" style="font-size:13px;color:var(--text2);margin-top:8px;letter-spacing:0.5px"></div>
-          <div style="font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:var(--text);opacity:.9;margin-top:10px;text-transform:uppercase;letter-spacing:3px">MIC CLUB · LAS ALAS DE MI VOZ</div>
+      <!-- Título -->
+      <div style="text-align:center;padding:10px 0 8px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
+        <div style="font-size:10px;letter-spacing:4px;color:var(--text2);text-transform:uppercase;margin-top:4px">LAS ALAS DE MI VOZ</div>
+      </div>
+
+      <!-- Control de Eventos en Paralelo -->
+      <div class="card" style="padding:16px;margin-bottom:12px;background:var(--bg2);border:1px solid var(--border)">
+        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;text-align:center">Eventos en Paralelo</div>
+        
+        <div style="display:grid;grid-template-columns:1fr;gap:12px" id="events-control-panel">
+          <!-- Evento 1 -->
+          <div id="event1-card" style="border:1px solid rgba(255,255,255,0.05);background:var(--bg3);border-radius:10px;padding:12px;position:relative">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)">EVENTO 1</span>
+                <span id="event1-badge" style="display:none;background:var(--teal);color:#0a0a0f;font-size:9px;font-family:'Oswald',sans-serif;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:8px;vertical-align:middle">⚡ ACTIVO VIVO</span>
+              </div>
+              <div id="event1-spots" style="font-size:11px;color:var(--text2)">Inactivo</div>
+            </div>
+            <div id="event1-info" style="display:none;margin-top:6px">
+              <div id="event1-name" style="font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;color:#fff"></div>
+              <div id="event1-details" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:10px">
+              <button id="event1-action-btn" class="btn btn-sm" onclick="dashToggleShow('event1')" style="width:100%;min-height:36px;font-size:12px;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:1px solid #4d9e6a">▶️ INICIAR EVENTO 1</button>
+            </div>
+          </div>
+
+          <!-- Evento 2 -->
+          <div id="event2-card" style="border:1px solid rgba(255,255,255,0.05);background:var(--bg3);border-radius:10px;padding:12px;position:relative">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)">EVENTO 2</span>
+                <span id="event2-badge" style="display:none;background:var(--teal);color:#0a0a0f;font-size:9px;font-family:'Oswald',sans-serif;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:8px;vertical-align:middle">⚡ ACTIVO VIVO</span>
+              </div>
+              <div id="event2-spots" style="font-size:11px;color:var(--text2)">Inactivo</div>
+            </div>
+            <div id="event2-info" style="display:none;margin-top:6px">
+              <div id="event2-name" style="font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;color:#fff"></div>
+              <div id="event2-details" style="font-size:12px;color:var(--text2);margin-top:2px"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:10px">
+              <button id="event2-action-btn" class="btn btn-sm" onclick="dashToggleShow('event2')" style="width:100%;min-height:36px;font-size:12px;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:1px solid #4d9e6a">▶️ INICIAR EVENTO 2</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Iniciar / Terminar Evento + Votación -->
+      <!-- Acciones del Evento Activo Principal -->
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <button id="dash-vote-toggle-btn" onclick="toggleVoting()"
           style="flex:1;background:linear-gradient(135deg,#1a3324,#101e16);color:#3a6648;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">ABRIR<br>VOTACIÓN</button>
@@ -88,8 +122,7 @@ if ('serviceWorker' in navigator) {
           style="flex:1;background:linear-gradient(135deg,#16151a,#0d0c10);color:rgba(255,255,255,0.25);border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">KARAOKE<br>LIBRE</button>
         <button id="dash-participants-btn" onclick="navPush('admin-micclub-participants')"
           style="flex:1;background:linear-gradient(135deg,#16151a,#0d0c10);color:rgba(255,255,255,0.25);border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">PARTICIPANTES<br>MIC CLUB</button>
-        <button id="dash-show-btn" onclick="dashToggleShow()"
-          style="flex:1;background:linear-gradient(135deg,#4d9e6a,#2d6642);color:#0a0a0f;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;padding:6px 4px;cursor:pointer;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">INICIAR<br>EVENTO</button>
+        <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
       </div>
 
       <!-- Stats -->
@@ -172,6 +205,28 @@ if ('serviceWorker' in navigator) {
       <div class="hero-sub" id="register-page-sub">Tu perfil · Canción · Puntos</div>
     </div>
     <div id="event-banner-register" class="event-banner" style="display:none"></div>
+
+    <!-- Banner de Cupo/Evento Seleccionado (visible durante toda la reserva) -->
+    <div id="reg-cupo-banner" style="display:none;background:var(--bg2);border:1px solid var(--gold-dark);border-radius:10px;padding:12px;margin-bottom:14px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div>
+          <div id="cupo-banner-event-name" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);line-height:1.15"></div>
+          <div id="cupo-banner-event-details" style="font-size:11px;color:var(--text2);margin-top:2px"></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div id="cupo-banner-spots" style="font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);font-weight:700"></div>
+          <button id="cupo-banner-change-btn" class="btn btn-outline btn-sm" onclick="resetRegisterPage()" style="margin-top:6px;min-height:auto;padding:2px 8px;font-size:10px;width:auto;display:none">Cambiar evento</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector de Evento Inicial (visible si hay 2 eventos activos) -->
+    <div id="reg-event-selector" class="card" style="display:none;padding:16px;margin-bottom:14px">
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;text-align:center">Elegí tu evento</div>
+      <div id="reg-event-selector-list" style="display:grid;grid-template-columns:1fr;gap:12px">
+        <!-- Renderizado dinámico desde JS -->
+      </div>
+    </div>
 
     <!-- A · Puerta de email (siempre visible primero) -->
     <div id="reg-email-gate" class="card">

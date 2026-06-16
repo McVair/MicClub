@@ -137,23 +137,74 @@ async function navBack() {
 }
 
 async function autoSaveSong() {
-  if (!showRunning || !currentPId) return;
+  if (!showRunning || !currentPId || !selectedEventId) return;
   const title  = document.getElementById('s-title')?.value.trim();
   const artist = document.getElementById('s-artist')?.value.trim();
   const link   = document.getElementById('s-link')?.value.trim();
   if (!title || !artist || !link) return;
-  if (!link.startsWith('http')) return;
-  const updates = { songTitle: title, songArtist: artist, song: `${title} — ${artist}`, karaokeLink: link, songConfirmed: true, updatedAt: Date.now() };
+  
+  let isLinkOk = false;
+  try {
+    const parsed = new URL(link);
+    isLinkOk = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch(e) {}
+  if (!isLinkOk) return;
+
+  const updates = { updatedAt: Date.now() };
+  const oldRes = allParticipants[currentPId]?.reservations?.[selectedEventId] || {};
+  const reservationUpdate = {
+    ...oldRes,
+    songTitle: title,
+    songArtist: artist,
+    song: `${title} — ${artist}`,
+    karaokeLink: link,
+    songConfirmed: true
+  };
+  updates[`reservations/${selectedEventId}`] = reservationUpdate;
+  
+  if (selectedEventId === 'event1') {
+    updates.songTitle = '';
+    updates.songArtist = '';
+    updates.song = '';
+    updates.karaokeLink = '';
+    updates.songConfirmed = false;
+  }
+  
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, `participants/${currentPId}`), updates);
     } else {
-      Object.assign(allParticipants[currentPId], updates);
+      const p = allParticipants[currentPId];
+      p.updatedAt = Date.now();
+      if (!p.reservations) p.reservations = {};
+      p.reservations[selectedEventId] = reservationUpdate;
+      if (selectedEventId === 'event1') {
+        p.songTitle = '';
+        p.songArtist = '';
+        p.song = '';
+        p.karaokeLink = '';
+        p.songConfirmed = false;
+      }
       saveLocal();
     }
-    if (allParticipants[currentPId]) Object.assign(allParticipants[currentPId], updates);
+    
+    if (allParticipants[currentPId]) {
+      allParticipants[currentPId].updatedAt = Date.now();
+      if (!allParticipants[currentPId].reservations) allParticipants[currentPId].reservations = {};
+      allParticipants[currentPId].reservations[selectedEventId] = reservationUpdate;
+      if (selectedEventId === 'event1') {
+        allParticipants[currentPId].songTitle = '';
+        allParticipants[currentPId].songArtist = '';
+        allParticipants[currentPId].song = '';
+        allParticipants[currentPId].karaokeLink = '';
+        allParticipants[currentPId].songConfirmed = false;
+      }
+    }
+    
     const ck = document.getElementById('song-saved-check');
     if (ck) ck.style.display = 'inline';
+    
+    updateRegistrationCupoBanner();
   } catch(e) { console.error('autoSaveSong:', e); }
 }
 
@@ -238,12 +289,26 @@ async function saveAndExit() {
 
   const updates = { name, whatsapp: phone, updatedAt: Date.now() };
 
-  if (showRunning) {
+  if (showRunning && selectedEventId) {
     const ppl    = parseInt(document.getElementById('prof-people-input')?.value) || 0;
     const title  = document.getElementById('s-title')?.value.trim();
     const artist = document.getElementById('s-artist')?.value.trim();
     const link   = document.getElementById('s-link')?.value.trim();
-    if (ppl > 0) updates.people = ppl;
+    
+    // Validar capacidad
+    const spots = getEventSpots(selectedEventId);
+    const currentRes = allParticipants[currentPId]?.reservations?.[selectedEventId] || {};
+    const isMigratedActive = (selectedEventId === 'event1' && (!allParticipants[currentPId]?.reservations || !allParticipants[currentPId]?.reservations.event1) && (allParticipants[currentPId]?.songConfirmed || (allParticipants[currentPId]?.people && allParticipants[currentPId]?.people > 0)));
+    const currentPpl = isMigratedActive ? (allParticipants[currentPId]?.people || 0) : (currentRes.people || 0);
+    const capacityLimit = spots.isLimited ? (spots.remaining + currentPpl) : 999999;
+    
+    if (spots.isLimited && ppl > capacityLimit) {
+      if (errEl) {
+        errEl.textContent = `Solo quedan ${capacityLimit} lugares disponibles. Modificá tu cantidad de invitados.`;
+        errEl.style.display = 'block';
+      }
+      return;
+    }
     
     let isLinkOk = false;
     if (link) {
@@ -255,13 +320,42 @@ async function saveAndExit() {
       }
     }
 
+    const reservationUpdate = {
+      people: ppl,
+      songTitle: '',
+      songArtist: '',
+      song: '',
+      karaokeLink: '',
+      songConfirmed: false
+    };
+
     if (title && artist && link && isLinkOk) {
-      updates.songTitle     = title;
-      updates.songArtist    = artist;
-      updates.song          = `${title} — ${artist}`;
-      updates.karaokeLink   = link;
-      updates.songConfirmed = true;
-    } else {
+      reservationUpdate.songTitle     = title;
+      reservationUpdate.songArtist    = artist;
+      reservationUpdate.song          = `${title} — ${artist}`;
+      reservationUpdate.karaokeLink   = link;
+      reservationUpdate.songConfirmed = true;
+    }
+
+    const oldRes = allParticipants[currentPId]?.reservations?.[selectedEventId] || {};
+    Object.assign(reservationUpdate, {
+      voteSong: oldRes.voteSong || 0,
+      votePerf: oldRes.votePerf || 0,
+      juryScoresSong: oldRes.juryScoresSong || {},
+      juryScoresPerf: oldRes.juryScoresPerf || {},
+      juryScoresHinchada: oldRes.juryScoresHinchada || {},
+      juryScoresPublico: oldRes.juryScoresPublico || {},
+      prizeSong: !!oldRes.prizeSong,
+      prizePerf: !!oldRes.prizePerf,
+      prizeHinchada: !!oldRes.prizeHinchada,
+      prizePublicoSong: !!oldRes.prizePublicoSong,
+      prizePublicoPerf: !!oldRes.prizePublicoPerf
+    });
+
+    updates[`reservations/${selectedEventId}`] = reservationUpdate;
+    
+    if (selectedEventId === 'event1') {
+      updates.people        = 0;
       updates.songTitle     = '';
       updates.songArtist    = '';
       updates.karaokeLink   = '';
@@ -275,10 +369,40 @@ async function saveAndExit() {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, `participants/${currentPId}`), updates);
     } else {
-      Object.assign(allParticipants[currentPId], updates);
+      const p = allParticipants[currentPId];
+      p.name = name;
+      p.whatsapp = phone;
+      p.updatedAt = Date.now();
+      if (showRunning && selectedEventId) {
+        if (!p.reservations) p.reservations = {};
+        p.reservations[selectedEventId] = updates[`reservations/${selectedEventId}`];
+        if (selectedEventId === 'event1') {
+          p.people = 0;
+          p.songTitle = '';
+          p.songArtist = '';
+          p.song = '';
+          p.karaokeLink = '';
+          p.songConfirmed = false;
+        }
+      }
       saveLocal();
     }
-    if (allParticipants[currentPId]) Object.assign(allParticipants[currentPId], updates);
+    if (allParticipants[currentPId]) {
+      allParticipants[currentPId].name = name;
+      allParticipants[currentPId].whatsapp = phone;
+      if (showRunning && selectedEventId) {
+        if (!allParticipants[currentPId].reservations) allParticipants[currentPId].reservations = {};
+        allParticipants[currentPId].reservations[selectedEventId] = updates[`reservations/${selectedEventId}`];
+        if (selectedEventId === 'event1') {
+          allParticipants[currentPId].people = 0;
+          allParticipants[currentPId].songTitle = '';
+          allParticipants[currentPId].songArtist = '';
+          allParticipants[currentPId].song = '';
+          allParticipants[currentPId].karaokeLink = '';
+          allParticipants[currentPId].songConfirmed = false;
+        }
+      }
+    }
     updateUI();
     resetRegisterPage();
   } catch(e) {
@@ -327,6 +451,7 @@ function initFirebase() {
       }
       localState.settings = { ...localState.settings, ...s };
       if (!showRunning) enforceNoShowState();
+      checkAndMigrate();
       updateBonusBanners();
       handleVotingState();
       updateDashboard();
@@ -357,6 +482,7 @@ function setupLocal() {
   }
 
   if (!showRunning) enforceNoShowState();
+  checkAndMigrate();
   updateUI();
   setInterval(updateUI, 8000);
 }
@@ -402,25 +528,202 @@ function findReferrer(referrerText) {
   ) || null;
 }
 
-function getJuryTotalForPart(p, cat) {
-  if (!p) return 0;
-  let scores;
-  if      (cat === 'song')     scores = p.juryScoresSong     || {};
-  else if (cat === 'perf')     scores = p.juryScoresPerf     || {};
-  else if (cat === 'hinchada') scores = p.juryScoresHinchada || {};
-  else return 0;
+// ── MIGRACION & HELPER MULTI-EVENTO ──────────────────────────────────────────
+let selectedEventId = null;
 
-  const vals = Object.values(scores);
-  if (!vals.length) return 0;
-  if (typeof vals[0] === 'object' && vals[0] !== null) {
-    return vals.reduce((total, js) =>
-      total + Object.values(js).reduce((s, v) => s + (parseInt(v) || 0), 0), 0);
+function parseEventDate(dateStr) {
+  if (!dateStr) return 0;
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return 0;
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1; // 0-based
+  const year = parseInt(parts[2], 10);
+  return new Date(year, month, day).getTime();
+}
+
+function getClosestEvent(ev1, ev2) {
+  if (!ev1 && !ev2) return null;
+  if (ev1 && !ev2) return { ...ev1, id: 'event1' };
+  if (!ev1 && ev2) return { ...ev2, id: 'event2' };
+  
+  const now = Date.now();
+  const t1 = parseEventDate(ev1.date);
+  const t2 = parseEventDate(ev2.date);
+  
+  const diff1 = Math.abs(t1 - now);
+  const diff2 = Math.abs(t2 - now);
+  
+  if (diff1 <= diff2) {
+    return { ...ev1, id: 'event1' };
+  } else {
+    return { ...ev2, id: 'event2' };
   }
-  return vals.reduce((s, v) => s + (parseInt(v) || 0), 0);
+}
+
+function getCurrentEventId() {
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+  const closest = getClosestEvent(ev1, ev2);
+  return closest ? closest.id : null;
+}
+
+function getParticipantForEvent(p, eventId) {
+  if (!p) return p;
+  const res = p.reservations?.[eventId] || {};
+  const isMigratedActive = (eventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+  
+  if (isMigratedActive) {
+    return p;
+  }
+  
+  return {
+    ...p,
+    people: res.people ?? 0,
+    songTitle: res.songTitle || '',
+    songArtist: res.songArtist || '',
+    song: res.song || '',
+    karaokeLink: res.karaokeLink || '',
+    songConfirmed: !!res.songConfirmed,
+    voteSong: res.voteSong ?? 0,
+    votePerf: res.votePerf ?? 0,
+    juryScoresSong: res.juryScoresSong || {},
+    juryScoresPerf: res.juryScoresPerf || {},
+    juryScoresHinchada: res.juryScoresHinchada || {},
+    prizeSong: !!res.prizeSong,
+    prizePerf: !!res.prizePerf,
+    prizeHinchada: !!res.prizeHinchada,
+    prizeMesa: !!res.prizeMesa,
+    prizePublicoSong: !!res.prizePublicoSong,
+    prizePublicoPerf: !!res.prizePublicoPerf
+  };
+}
+
+function getEnrichedParticipantsList(eventId) {
+  if (!allParticipants) return [];
+  return Object.entries(allParticipants).map(([id, p]) => {
+    return getParticipantForEvent({ ...p, id }, eventId);
+  });
+}
+
+function getEventSpots(eventId) {
+  const ev = localState.settings?.events?.[eventId];
+  if (!ev) {
+    return { isLimited: false, remaining: 999999, total: 0, reserved: 0 };
+  }
+  
+  const capacity = parseInt(ev.capacity) || 0;
+  const isLimited = capacity > 0;
+  
+  let reserved = 0;
+  Object.values(allParticipants).forEach(p => {
+    const res = p.reservations?.[eventId] || {};
+    const isMigratedActive = (eventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+    const pPpl = isMigratedActive ? (p.people || 0) : (res.people || 0);
+    reserved += parseInt(pPpl) || 0;
+  });
+  
+  const remaining = isLimited ? Math.max(0, capacity - reserved) : 999999;
+  
+  return {
+    isLimited,
+    total: capacity,
+    reserved,
+    remaining
+  };
+}
+
+let migrationChecked = false;
+async function checkAndMigrate() {
+  if (migrationChecked) return;
+  migrationChecked = true;
+  
+  const currentEvent = localState.settings?.currentEvent;
+  const events = localState.settings?.events;
+  
+  if (currentEvent && currentEvent.name && (!events || !events.event1)) {
+    console.log("Starting legacy event migration to event1 slot...");
+    const ev1 = {
+      ...currentEvent,
+      id: 'event1',
+      capacity: parseInt(currentEvent.capacity) || 0
+    };
+    
+    const updates = {};
+    updates['settings/events/event1'] = ev1;
+    
+    Object.keys(allParticipants).forEach(id => {
+      const p = allParticipants[id];
+      if ((p.songConfirmed || (p.people && p.people > 0) || p.prizeSong || p.prizePerf || p.prizeHinchada || p.prizeMesa) && (!p.reservations || !p.reservations.event1)) {
+        const res = {
+          people: p.people || 0,
+          songTitle: p.songTitle || '',
+          songArtist: p.songArtist || '',
+          song: p.song || '',
+          karaokeLink: p.karaokeLink || '',
+          songConfirmed: !!p.songConfirmed,
+          voteSong: p.voteSong || 0,
+          votePerf: p.votePerf || 0,
+          juryScoresSong: p.juryScoresSong || {},
+          juryScoresPerf: p.juryScoresPerf || {},
+          juryScoresHinchada: p.juryScoresHinchada || {},
+          prizeSong: !!p.prizeSong,
+          prizePerf: !!p.prizePerf,
+          prizeHinchada: !!p.prizeHinchada,
+          prizeMesa: !!p.prizeMesa,
+          prizePublicoSong: !!p.prizePublicoSong,
+          prizePublicoPerf: !!p.prizePublicoPerf
+        };
+        updates[`participants/${id}/reservations/event1`] = res;
+      }
+    });
+    
+    if (firebaseOk) {
+      try {
+        await dbUpdate(dbRef(db), updates);
+        console.log("Migration to event1 successfully written to Firebase.");
+      } catch(e) {
+        console.error("Migration failed:", e);
+      }
+    } else {
+      if (!localState.settings) localState.settings = {};
+      localState.settings.events = { event1: ev1 };
+      Object.keys(allParticipants).forEach(id => {
+        const p = allParticipants[id];
+        if ((p.songConfirmed || (p.people && p.people > 0) || p.prizeSong || p.prizePerf || p.prizeHinchada || p.prizeMesa) && (!p.reservations || !p.reservations.event1)) {
+          if (!p.reservations) p.reservations = {};
+          p.reservations.event1 = {
+            people: p.people || 0,
+            songTitle: p.songTitle || '',
+            songArtist: p.songArtist || '',
+            song: p.song || '',
+            karaokeLink: p.karaokeLink || '',
+            songConfirmed: !!p.songConfirmed,
+            voteSong: p.voteSong || 0,
+            votePerf: p.votePerf || 0,
+            juryScoresSong: p.juryScoresSong || {},
+            juryScoresPerf: p.juryScoresPerf || {},
+            juryScoresHinchada: p.juryScoresHinchada || {},
+            prizeSong: !!p.prizeSong,
+            prizePerf: !!p.prizePerf,
+            prizeHinchada: !!p.prizeHinchada,
+            prizeMesa: !!p.prizeMesa,
+            prizePublicoSong: !!p.prizePublicoSong,
+            prizePublicoPerf: !!p.prizePublicoPerf
+          };
+        }
+      });
+      saveLocal();
+      console.log("Local migration to event1 complete.");
+    }
+  }
 }
 
 function getJuryTotal(pid, cat) {
-  return getJuryTotalForPart(allParticipants[pid], cat);
+  const activeEventId = getCurrentEventId();
+  const p = allParticipants[pid];
+  if (!p) return 0;
+  const pEvent = activeEventId ? getParticipantForEvent(p, activeEventId) : p;
+  return getJuryTotalForPart(pEvent, cat);
 }
 
 function getPodiumRanksAndPoints(parts, scoreGetter) {
@@ -506,7 +809,10 @@ function enrichHistorySnapshot(snap) {
 function calcScore(p) {
   const pid = p.id || Object.keys(allParticipants).find(k => allParticipants[k] === p);
   if (!pid) return calcBaseScore(p);
-  const scores = getEventScores(allParticipants);
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) return calcBaseScore(p);
+  const parts = getEnrichedParticipantsList(activeEventId);
+  const scores = getEventScores(parts);
   return scores[pid]?.total ?? calcBaseScore(p);
 }
 
@@ -516,19 +822,22 @@ function calcMicclubScore(p) {
 }
 
 function sorted() {
-  return Object.entries(allParticipants)
-    .map(([id, p]) => {
-      const enriched = { ...p, id };
-      enriched.score = calcScore(enriched);
-      return enriched;
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) return [];
+  return getEnrichedParticipantsList(activeEventId)
+    .map(p => {
+      p.score = calcScore(p);
+      return p;
     })
     .sort((a, b) => b.score - a.score);
 }
 
 function sortedMicclub() {
+  const activeEventId = getCurrentEventId();
   return Object.entries(allParticipants)
     .map(([id, p]) => {
-      const enriched = { ...p, id };
+      const pEvent = activeEventId ? getParticipantForEvent(p, activeEventId) : p;
+      const enriched = { ...pEvent, id };
       enriched.score = calcMicclubScore(enriched);
       return enriched;
     })
@@ -537,10 +846,12 @@ function sortedMicclub() {
 
 
 function getJuryLeader(cat) {
-  const parts = Object.entries(allParticipants);
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) return null;
+  const parts = getEnrichedParticipantsList(activeEventId);
   if (!parts.length) return null;
   return parts
-    .map(([id, p]) => ({ id, name: p.name, score: getJuryTotal(id, cat) }))
+    .map(p => ({ id: p.id, name: p.name, score: getJuryTotal(p.id, cat) }))
     .sort((a, b) => b.score - a.score)[0];
 }
 
@@ -577,91 +888,28 @@ function updateProgramPage() {
   const detailsEl = document.getElementById('program-event-details');
   const voteBtn = document.getElementById('program-vote-btn');
   
-  if (!nameEl || !voteBtn) return;
-  
-  // 1. Event title & details
   const currentEvent = localState.settings?.currentEvent;
-  if (showRunning && currentEvent && currentEvent.name) {
-    nameEl.textContent = currentEvent.name;
-    const det = [currentEvent.date, currentEvent.venue].filter(Boolean).join(' · ');
-    if (det) {
-      detailsEl.textContent = det;
-      detailsEl.style.display = 'block';
-    } else {
-      detailsEl.style.display = 'none';
-    }
-  } else {
-    nameEl.textContent = "MicClub";
-    detailsEl.style.display = 'none';
-  }
-  
-  // 2. Circular Floating Button styles (WhatsApp style in bottom-right)
-  const hasVoted = !!localStorage.getItem('voted_public');
-  voteBtn.innerText = hasVoted ? "Modificar\nvoto" : "VOTAR!";
-  voteBtn.style.fontSize = hasVoted ? '24px' : '32px';
-  
-  if (votingOpen) {
-    voteBtn.disabled = false;
-    voteBtn.style.opacity = '1';
-    voteBtn.style.pointerEvents = 'auto';
-    voteBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-    voteBtn.style.color = '#ffffff';
-    voteBtn.style.cursor = 'pointer';
-  } else {
-    voteBtn.disabled = true;
-    voteBtn.style.opacity = '0.75';
-    voteBtn.style.pointerEvents = 'none';
-    voteBtn.style.background = 'linear-gradient(135deg,#d32f2f,#8b0000)';
-    voteBtn.style.color = '#ffffff';
-    voteBtn.style.cursor = 'default';
-  }
-
-  // 3. Render Sponsors grids (Top & Bottom)
-  const sponsors = localState.settings?.sponsors || [];
-  const sponsorsGridHtml = sponsors.map(sp => {
-    const content = `<img src="${sp.img}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">`;
-    if (sp.link) {
-      return `<a href="${esc(sp.link)}" target="_blank" style="display:block;flex:0 0 calc(25% - 9px);max-width:calc(25% - 9px);box-sizing:border-box">${content}</a>`;
-    }
-    return `<div style="display:block;flex:0 0 calc(25% - 9px);max-width:calc(25% - 9px);box-sizing:border-box">${content}</div>`;
-  }).join('');
-  
-  const elTop = document.getElementById('program-sponsors-top');
-  const elBot = document.getElementById('program-sponsors-bottom');
-  if (elTop) elTop.innerHTML = sponsorsGridHtml || '<div style="width:100%;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
-  if (elBot) elBot.innerHTML = sponsorsGridHtml || '<div style="width:100%;text-align:center;font-size:11px;color:var(--text2);padding:10px;border:1px dashed var(--border);border-radius:8px">¡Próximamente auspiciantes!</div>';
-
-  // 4. Render Guest Artists
-  const artists = localState.settings?.guestArtists || [];
-  const artistsHtml = artists.map((art, index) => {
-    const isLast = index === artists.length - 1;
-    const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
-    const name = typeof art === 'object' ? art.name : art;
-    const song = typeof art === 'object' ? art.song : '';
-    const songDisplay = song ? ` (${esc(song)})` : '';
-    return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-weight:600;color:var(--text)">🎙️ ${esc(name)}${songDisplay}</span>
-      <span style="color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.5px;text-transform:uppercase">Artista Invitado</span>
-    </div>`;
-  }).join('');
-  const elArtists = document.getElementById('program-guest-artists');
-  if (elArtists) elArtists.innerHTML = artistsHtml || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;font-style:italic">Próximamente se anunciarán los artistas invitados de la fecha.</div>';
-
-  // 5. Render Active Participants
   const eventDate = currentEvent?.date || '';
-  const regBtn = document.getElementById('program-participants-reg-btn');
-  const dateEl = document.getElementById('program-participants-date');
-  const listWrap = document.getElementById('program-participants-list-wrap');
-  const countEl = document.getElementById('program-participants-count');
-
+  if (nameEl) nameEl.textContent = showRunning && currentEvent?.name ? currentEvent.name : 'Próximo Evento';
+  if (detailsEl) {
+    detailsEl.textContent = showRunning && currentEvent
+      ? [eventDate, currentEvent.time, currentEvent.venue].filter(Boolean).join(' · ')
+      : 'No hay show activo en curso';
+  }
+  
+  const listWrap = document.getElementById('program-participants-wrap');
+  const countEl  = document.getElementById('program-participants-count');
+  const regBtn   = document.getElementById('program-register-btn');
+  
   if (showRunning) {
     if (regBtn) regBtn.style.display = 'flex';
+    const dateEl = document.getElementById('program-reg-event-date');
     if (dateEl) dateEl.textContent = eventDate ? `(${eventDate})` : '';
   } else {
     if (regBtn) regBtn.style.display = 'none';
   }
 
-  const parts = Object.values(allParticipants)
+  const parts = getEnrichedParticipantsList(getCurrentEventId())
     .filter(p => p.songConfirmed)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
@@ -680,7 +928,6 @@ function updateProgramPage() {
   const elParts = document.getElementById('program-participants-list');
   if (elParts) elParts.innerHTML = partsHtml || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px">Esperando confirmación de participantes...</div>';
 
-  // 6. Admin Panel
   renderProgramAdminPanel();
 }
 
@@ -924,36 +1171,133 @@ window.deleteNextEventImage = deleteNextEventImage;
 function updateDashboard() {
   if (!document.getElementById('home-dashboard')) return;
 
-  // Stats
-  const parts    = Object.values(allParticipants);
-  const withSong = parts.filter(p => p.songConfirmed).length;
-  const reservas = parts.reduce((s, p) => s + (parseInt(p.people) || 0), 0);
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+  const closest = getClosestEvent(ev1, ev2);
+
+  // Calcular estadísticas Evento 1
+  let ev1Reserved = 0;
+  let ev1WithSong = 0;
+  if (ev1) {
+    Object.values(allParticipants).forEach(p => {
+      const res = p.reservations?.event1 || {};
+      const isMigratedActive = (closest?.id === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+      const pPpl = isMigratedActive ? (p.people || 0) : (res.people || 0);
+      const pSong = isMigratedActive ? p.songConfirmed : res.songConfirmed;
+      ev1Reserved += parseInt(pPpl) || 0;
+      if (pSong) ev1WithSong++;
+    });
+    const spots1 = document.getElementById('event1-spots');
+    if (spots1) spots1.textContent = `${ev1Reserved} / ${ev1.capacity || '∞'} reservados`;
+    
+    const name1 = document.getElementById('event1-name');
+    if (name1) name1.textContent = ev1.name;
+    
+    const det1 = document.getElementById('event1-details');
+    if (det1) det1.textContent = [ev1.date, ev1.time, ev1.venue].filter(Boolean).join(' · ');
+    
+    const info1 = document.getElementById('event1-info');
+    if (info1) info1.style.display = 'block';
+    
+    const badge1 = document.getElementById('event1-badge');
+    if (badge1) badge1.style.display = (closest?.id === 'event1') ? 'inline-block' : 'none';
+    
+    const btn1 = document.getElementById('event1-action-btn');
+    if (btn1) {
+      btn1.innerHTML = '🎬 TERMINAR EVENTO 1';
+      btn1.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+      btn1.style.color = '#fff';
+      btn1.style.borderColor = '#aa3d50';
+    }
+  } else {
+    const spots1 = document.getElementById('event1-spots');
+    if (spots1) spots1.textContent = 'Inactivo';
+    
+    const info1 = document.getElementById('event1-info');
+    if (info1) info1.style.display = 'none';
+    
+    const badge1 = document.getElementById('event1-badge');
+    if (badge1) badge1.style.display = 'none';
+    
+    const btn1 = document.getElementById('event1-action-btn');
+    if (btn1) {
+      btn1.innerHTML = '▶️ INICIAR EVENTO 1';
+      btn1.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+      btn1.style.color = '#0a0a0f';
+      btn1.style.borderColor = '#4d9e6a';
+    }
+  }
+
+  // Calcular estadísticas Evento 2
+  let ev2Reserved = 0;
+  let ev2WithSong = 0;
+  if (ev2) {
+    Object.values(allParticipants).forEach(p => {
+      const res = p.reservations?.event2 || {};
+      const isMigratedActive = (closest?.id === 'event2' && (!p.reservations || !p.reservations.event2) && (p.songConfirmed || (p.people && p.people > 0)));
+      const pPpl = isMigratedActive ? (p.people || 0) : (res.people || 0);
+      const pSong = isMigratedActive ? p.songConfirmed : res.songConfirmed;
+      ev2Reserved += parseInt(pPpl) || 0;
+      if (pSong) ev2WithSong++;
+    });
+    const spots2 = document.getElementById('event2-spots');
+    if (spots2) spots2.textContent = `${ev2Reserved} / ${ev2.capacity || '∞'} reservados`;
+    
+    const name2 = document.getElementById('event2-name');
+    if (name2) name2.textContent = ev2.name;
+    
+    const det2 = document.getElementById('event2-details');
+    if (det2) det2.textContent = [ev2.date, ev2.time, ev2.venue].filter(Boolean).join(' · ');
+    
+    const info2 = document.getElementById('event2-info');
+    if (info2) info2.style.display = 'block';
+    
+    const badge2 = document.getElementById('event2-badge');
+    if (badge2) badge2.style.display = (closest?.id === 'event2') ? 'inline-block' : 'none';
+    
+    const btn2 = document.getElementById('event2-action-btn');
+    if (btn2) {
+      btn2.innerHTML = '🎬 TERMINAR EVENTO 2';
+      btn2.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+      btn2.style.color = '#fff';
+      btn2.style.borderColor = '#aa3d50';
+    }
+  } else {
+    const spots2 = document.getElementById('event2-spots');
+    if (spots2) spots2.textContent = 'Inactivo';
+    
+    const info2 = document.getElementById('event2-info');
+    if (info2) info2.style.display = 'none';
+    
+    const badge2 = document.getElementById('event2-badge');
+    if (badge2) badge2.style.display = 'none';
+    
+    const btn2 = document.getElementById('event2-action-btn');
+    if (btn2) {
+      btn2.innerHTML = '▶️ INICIAR EVENTO 2';
+      btn2.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+      btn2.style.color = '#0a0a0f';
+      btn2.style.borderColor = '#4d9e6a';
+    }
+  }
+
+  // Actualizar estadísticas globales para el evento vivo
   const elP = document.getElementById('dash-parts');
   const elR = document.getElementById('dash-reservas');
-  if (elP) elP.textContent = withSong;
-  if (elR) elR.textContent = reservas;
+  if (closest) {
+    const activeReserved = (closest.id === 'event1') ? ev1Reserved : ev2Reserved;
+    const activeWithSong = (closest.id === 'event1') ? ev1WithSong : ev2WithSong;
+    if (elP) elP.textContent = activeWithSong;
+    if (elR) elR.textContent = activeReserved;
+  } else {
+    if (elP) elP.textContent = '0';
+    if (elR) elR.textContent = '0';
+  }
 
   // Resultados label: nombre del evento si hay show activo
   const lbl = document.getElementById('dash-ranking-label');
   if (lbl) {
-    const ce = localState.settings?.currentEvent;
-    lbl.textContent = showRunning && ce?.name ? `Resultados · ${ce.name}` : 'Resultados';
-  }
-
-  // Botón INICIAR/TERMINAR EVENTO
-  const showBtn = document.getElementById('dash-show-btn');
-  if (showBtn) {
-    if (showRunning) {
-      showBtn.innerHTML         = 'TERMINAR<br>EVENTO';
-      showBtn.style.background  = 'linear-gradient(135deg,#aa3d50,#7a2535)';
-      showBtn.style.color       = '#fff';
-      showBtn.style.borderColor = '#aa3d50';
-    } else {
-      showBtn.innerHTML         = 'INICIAR<br>EVENTO';
-      showBtn.style.background  = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-      showBtn.style.color       = '#0a0a0f';
-      showBtn.style.borderColor = '#4d9e6a';
-    }
+    lbl.textContent = showRunning && closest?.name ? `Resultados · ${closest.name}` : 'Resultados';
   }
 
   // Botón KARAOKE LIBRE (Amarillo/Gold)
@@ -986,23 +1330,6 @@ function updateDashboard() {
       partsBtn.style.opacity       = '0.55';
       partsBtn.style.pointerEvents = 'none';
     }
-  }
-
-  // Título dinámico: sin evento vs con evento activo
-  const ce      = localState.settings?.currentEvent;
-  const noEvt   = document.getElementById('dash-no-event');
-  const hasEvt  = document.getElementById('dash-has-event');
-  const evtName = document.getElementById('dash-event-name');
-  const evtDet  = document.getElementById('dash-event-details');
-  if (ce && ce.name && showRunning) {
-    if (noEvt)  noEvt.style.display  = 'none';
-    if (hasEvt) hasEvt.style.display = 'block';
-    if (evtName) evtName.textContent = ce.name;
-    const det = [ce.date, ce.time, ce.venue].filter(Boolean).join(' · ');
-    if (evtDet) evtDet.textContent = det;
-  } else {
-    if (noEvt)  noEvt.style.display  = 'block';
-    if (hasEvt) hasEvt.style.display = 'none';
   }
 
   // Sección de votación: siempre visible, dim/lit según estado
@@ -1290,12 +1617,17 @@ function delParticipantWithPass(id) {
 }
 
 function nuevoEvento() {
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) {
+    mcAlert('No hay evento activo para finalizar.');
+    return;
+  }
   mcConfirm('¿Cerrar este evento e iniciar uno nuevo?<br><br>Se guardará el historial del evento actual y se limpiarán las canciones y reservas. Los participantes y sus puntos MicClub se conservan.', () => {
     mcPrompt('Ingresá la contraseña para confirmar:', async (pass) => {
       if (!pass) return;
       const adminPass = localState.settings?.adminPassword || ADMIN_PASS_DEFAULT;
       if (pass !== adminPass) { mcAlert('Contraseña incorrecta'); return; }
-      await endShow();
+      await endShow(activeEventId);
       navBack();
     }, 'password', 'Contraseña');
   });
@@ -1509,20 +1841,25 @@ function showHistoryDetail(key) {
   navPush('history-detail');
 }
 
-function dashToggleShow() {
-  if (showRunning) {
-    mcPrompt('Ingresá la contraseña para terminar el evento:', async (pass) => {
+function dashToggleShow(slot) {
+  if (!slot) {
+    // Hidden button fallback
+    return;
+  }
+  const ev = localState.settings?.events?.[slot];
+  if (ev) {
+    mcPrompt(`Ingresá la contraseña para terminar el ${slot === 'event1' ? 'Evento 1' : 'Evento 2'}:`, async (pass) => {
       if (!pass) return;
       const adminPass = localState.settings?.adminPassword || ADMIN_PASS_DEFAULT;
       if (pass !== adminPass) { mcAlert('Contraseña incorrecta'); return; }
-      await endShow();
+      await endShow(slot);
     }, 'password', 'Contraseña');
   } else {
-    showEventStartForm();
+    showEventStartForm(slot);
   }
 }
 
-function showEventStartForm() {
+function showEventStartForm(slot) {
   const formHtml = `
     <div style="margin-bottom:12px">
       <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Nombre del evento</label>
@@ -1532,7 +1869,7 @@ function showEventStartForm() {
       <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Fecha</label>
       <input id="ev-date" type="text" placeholder="Ej: 20/04/2025" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <div>
         <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Hora</label>
         <input id="ev-time" type="text" placeholder="Ej: 21:00" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
@@ -1541,6 +1878,10 @@ function showEventStartForm() {
         <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Lugar</label>
         <input id="ev-venue" type="text" placeholder="Ej: El Bar" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
       </div>
+    </div>
+    <div style="margin-bottom:4px">
+      <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Capacidad / Cupo de reservas (0 o vacío para ilimitado)</label>
+      <input id="ev-capacity" type="number" placeholder="Ej: 50" min="0" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
     </div>`;
   showCustomModal({
     title: 'INICIAR EVENTO',
@@ -1548,34 +1889,57 @@ function showEventStartForm() {
     okText: '▶️ INICIAR',
     cancelText: 'Cancelar',
     onOk: async () => {
-      const name  = (document.getElementById('ev-name')?.value  || '').trim();
-      const date  = (document.getElementById('ev-date')?.value  || '').trim();
-      const time  = (document.getElementById('ev-time')?.value  || '').trim();
-      const venue = (document.getElementById('ev-venue')?.value || '').trim();
-      await startShow(name, date, time, venue);
+      const name     = (document.getElementById('ev-name')?.value  || '').trim();
+      const date     = (document.getElementById('ev-date')?.value  || '').trim();
+      const time     = (document.getElementById('ev-time')?.value  || '').trim();
+      const venue    = (document.getElementById('ev-venue')?.value || '').trim();
+      const capacity = parseInt(document.getElementById('ev-capacity')?.value) || 0;
+      await startShow(slot, name, date, time, venue, capacity);
     }
   });
 }
 
-async function startShow(name, date, time, venue) {
+async function startShow(slot, name, date, time, venue, capacity) {
   try {
+    const evData = { id: slot, name, date, time, venue, capacity, startedAt: Date.now() };
+    
+    if (!localState.settings) localState.settings = {};
+    if (!localState.settings.events) localState.settings.events = {};
+    localState.settings.events[slot] = evData;
+    
+    const ev1 = localState.settings.events.event1;
+    const ev2 = localState.settings.events.event2;
+    const closest = getClosestEvent(ev1, ev2);
+    
     showRunning = true;
     votingOpen  = false;
-    const evData = { name, date, time, venue, startedAt: Date.now() };
+    
+    const settingsUpdate = {
+      'settings/showRunning': true,
+      'settings/votingOpen': false,
+      'settings/votingCloseAt': null,
+      [`settings/events/${slot}`]: evData,
+      'settings/currentEvent': closest
+    };
+    
     if (firebaseOk) {
-      await dbUpdate(dbRef(db, 'settings'), {
-        votingOpen: false, votingCloseAt: null, showRunning: true, currentEvent: evData
-      });
+      await dbUpdate(dbRef(db), settingsUpdate);
     } else {
-      localState.settings.votingOpen    = false;
-      localState.settings.showRunning   = true;
-      localState.settings.currentEvent  = evData;
+      localState.settings.showRunning = true;
+      localState.settings.votingOpen = false;
+      localState.settings.votingCloseAt = null;
+      localState.settings.currentEvent = closest;
       saveLocal();
     }
+    
     handleVotingState();
     updateRanking();
     updateDashboard();
-  } catch(e) { console.error(e); showRunning = false; updateDashboard(); }
+    mcAlert(`✅ Evento iniciado correctamente en la ranura ${slot === 'event1' ? 'Evento 1' : 'Evento 2'}.`);
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al iniciar el evento: ' + e.message);
+  }
 }
 
 function dashCopyLink(mode) {
@@ -1618,11 +1982,15 @@ function updateStats() {
   const sp = document.getElementById('stat-p');
   const sv = document.getElementById('stat-v');
   if (sp) sp.textContent = parts.length;
+  
   let tv = 0;
-  Object.values(allParticipants).forEach(p => {
-    tv += parseInt(p.voteSong) || 0;
-    tv += parseInt(p.votePerf) || 0;
-  });
+  const activeEventId = getCurrentEventId();
+  if (activeEventId) {
+    getEnrichedParticipantsList(activeEventId).forEach(p => {
+      tv += parseInt(p.voteSong) || 0;
+      tv += parseInt(p.votePerf) || 0;
+    });
+  }
   if (sv) sv.textContent = tv;
 }
 
@@ -1876,7 +2244,7 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
 }
 
 function renderPublicVoteRanking() {
-  const parts = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id })).filter(p => p.songConfirmed);
+  const parts = getEnrichedParticipantsList(getCurrentEventId()).filter(p => p.songConfirmed);
   
   const pubSongPodium = getPodiumRanksAndPoints(parts, p => parseInt(p.voteSong) || 0).filter(x => x.rank <= 3);
   const pubPerfPodium = getPodiumRanksAndPoints(parts, p => parseInt(p.votePerf) || 0).filter(x => x.rank <= 3);
@@ -1889,7 +2257,7 @@ function renderPublicVoteRanking() {
 }
 
 function renderJuryRankingInRanking() {
-  const parts = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id })).filter(p => p.songConfirmed);
+  const parts = getEnrichedParticipantsList(getCurrentEventId()).filter(p => p.songConfirmed);
   
   const jurySongPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'song')).filter(x => x.rank <= 3);
   const juryPerfPodium = getPodiumRanksAndPoints(parts, p => getJuryTotalForPart(p, 'perf')).filter(x => x.rank <= 3);
@@ -2131,19 +2499,44 @@ async function createNewUser() {
   if (!name) { showErr('reg-form-err', 'Escribí tu nombre'); return; }
   if (!wa)   { showErr('reg-form-err', 'El WhatsApp es obligatorio'); return; }
 
+  if (showRunning && selectedEventId) {
+    const spots = getEventSpots(selectedEventId);
+    if (spots.isLimited && ppl > spots.remaining) {
+      showErr('reg-form-err', `Solo quedan ${spots.remaining} lugares disponibles. Modificá tu cantidad de invitados.`);
+      return;
+    }
+  }
+
   const btn = document.getElementById('reg-btn');
   btn.innerHTML = '<span class="spinner"></span> CREANDO...';
   btn.disabled  = true;
 
   const participant = {
-    name, people: ppl, whatsapp: wa, email, referrer: ref,
-    song: '', songTitle: '', songArtist: '', karaokeLink: '', songConfirmed: false,
+    name, whatsapp: wa, email, referrer: ref,
     timestamp: Date.now(),
     updatedAt: Date.now(),
-    prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
-    juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
-    extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
+    extraPts: 0, micclubPts: 0,
+    reservations: {}
   };
+
+  if (selectedEventId) {
+    participant.reservations[selectedEventId] = {
+      people: ppl,
+      song: '', songTitle: '', songArtist: '', karaokeLink: '', songConfirmed: false,
+      voteSong: 0, votePerf: 0,
+      juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
+      prizeSong: false, prizePerf: false, prizeHinchada: false, prizeMesa: false,
+      prizePublicoSong: false, prizePublicoPerf: false
+    };
+    if (selectedEventId === 'event1') {
+      participant.people = 0;
+      participant.songTitle = '';
+      participant.songArtist = '';
+      participant.song = '';
+      participant.karaokeLink = '';
+      participant.songConfirmed = false;
+    }
+  }
 
   try {
     if (firebaseOk) {
@@ -2156,7 +2549,6 @@ async function createNewUser() {
       saveLocal();
     }
     _pendingEmail = null;
-    // Bonus por referido: si el campo referido contiene un email registrado, +10 pts al referidor (una sola vez)
     const referrerEntry = findReferrer(ref);
     if (referrerEntry) {
       const [rId, rp] = referrerEntry;
@@ -2185,17 +2577,25 @@ function submitReservation() { checkEmail(); }
 // ── VISTA DE PERFIL ───────────────────────────────────────────────────────────
 function resetRegisterPage() {
   currentPId = null;
+  selectedEventId = null;
+  
   const gate = document.getElementById('reg-email-gate');
   const form = document.getElementById('reg-main-form');
   const prof = document.getElementById('reg-profile');
-  if (gate) gate.style.display = 'block';
+  const selector = document.getElementById('reg-event-selector');
+  const banner = document.getElementById('reg-cupo-banner');
+  
+  if (gate) gate.style.display = 'none';
   if (form) form.style.display = 'none';
   if (prof) prof.style.display = 'none';
+  if (selector) selector.style.display = 'none';
+  if (banner) banner.style.display = 'none';
+  
   const emailInput   = document.getElementById('r-email');
   const emailConfirm = document.getElementById('reg-email-confirm');
   if (emailInput)   emailInput.value        = '';
   if (emailConfirm) emailConfirm.style.display = 'none';
-  // Limpiar formulario de nuevo usuario y restaurar botón
+  
   const rName   = document.getElementById('r-name');
   const rWa     = document.getElementById('r-wa');
   const rRef    = document.getElementById('r-ref');
@@ -2208,7 +2608,7 @@ function resetRegisterPage() {
   if (regBtn)  { regBtn.innerHTML = '🎙️ CONFIRMAR'; regBtn.disabled = false; }
   const regErr = document.getElementById('reg-form-err');
   if (regErr) regErr.style.display = 'none';
-  // Limpiar campos de evento
+  
   const ppi = document.getElementById('prof-people-input');
   const ti  = document.getElementById('s-title');
   const ai  = document.getElementById('s-artist');
@@ -2221,6 +2621,111 @@ function resetRegisterPage() {
   const songCheck   = document.getElementById('song-saved-check');
   if (peopleCheck) peopleCheck.style.display = 'none';
   if (songCheck)   songCheck.style.display   = 'none';
+
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+  
+  if (ev1 && ev2) {
+    if (selector) selector.style.display = 'block';
+    renderRegistrationEventSelectorList(ev1, ev2);
+  } else if (ev1) {
+    selectRegistrationEvent('event1');
+  } else if (ev2) {
+    selectRegistrationEvent('event2');
+  } else {
+    if (gate) {
+      gate.style.display = 'block';
+      const gateTitle = document.getElementById('register-page-title');
+      if (gateTitle) gateTitle.textContent = 'NO HAY EVENTOS';
+      const gateSub = document.getElementById('register-page-sub');
+      if (gateSub) gateSub.textContent = 'No hay shows activos en curso en este momento';
+      const rEmailBtn = document.getElementById('reg-email-btn');
+      if (rEmailBtn) rEmailBtn.disabled = true;
+    }
+  }
+}
+
+function renderRegistrationEventSelectorList(ev1, ev2) {
+  const listEl = document.getElementById('reg-event-selector-list');
+  if (!listEl) return;
+  
+  const spots1 = getEventSpots('event1');
+  const spots2 = getEventSpots('event2');
+  
+  const desc1 = spots1.isLimited ? `${spots1.remaining} plazas disponibles de ${spots1.total}` : 'Sin límite de cupo';
+  const desc2 = spots2.isLimited ? `${spots2.remaining} plazas disponibles de ${spots2.total}` : 'Sin límite de cupo';
+  
+  listEl.innerHTML = `
+    <div class="p-item" onclick="selectRegistrationEvent('event1')" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)">${esc(ev1.name)}</span>
+        <span style="font-size:12px;color:var(--teal);font-weight:bold">${desc1}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">
+        📅 ${esc(ev1.date)} &middot; 🕒 ${esc(ev1.time)} &middot; 📍 ${esc(ev1.venue)}
+      </div>
+    </div>
+    <div class="p-item" onclick="selectRegistrationEvent('event2')" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)">${esc(ev2.name)}</span>
+        <span style="font-size:12px;color:var(--teal);font-weight:bold">${desc2}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">
+        📅 ${esc(ev2.date)} &middot; 🕒 ${esc(ev2.time)} &middot; 📍 ${esc(ev2.venue)}
+      </div>
+    </div>
+  `;
+}
+
+function selectRegistrationEvent(eventId) {
+  selectedEventId = eventId;
+  
+  const selector = document.getElementById('reg-event-selector');
+  if (selector) selector.style.display = 'none';
+  
+  const gate = document.getElementById('reg-email-gate');
+  if (gate) gate.style.display = 'block';
+  
+  const gateTitle = document.getElementById('register-page-title');
+  if (gateTitle) gateTitle.textContent = 'RESERVA';
+  const gateSub = document.getElementById('register-page-sub');
+  if (gateSub) gateSub.textContent = 'Tu perfil · Canción · Puntos';
+  const rEmailBtn = document.getElementById('reg-email-btn');
+  if (rEmailBtn) rEmailBtn.disabled = false;
+  
+  updateRegistrationCupoBanner();
+}
+
+function updateRegistrationCupoBanner() {
+  const banner = document.getElementById('reg-cupo-banner');
+  if (!banner || !selectedEventId) return;
+  
+  const ev = localState.settings?.events?.[selectedEventId];
+  if (!ev) {
+    banner.style.display = 'none';
+    return;
+  }
+  
+  banner.style.display = 'block';
+  
+  const nameEl = document.getElementById('cupo-banner-event-name');
+  const detEl = document.getElementById('cupo-banner-event-details');
+  const spotsEl = document.getElementById('cupo-banner-spots');
+  const changeBtn = document.getElementById('cupo-banner-change-btn');
+  
+  if (nameEl) nameEl.textContent = ev.name;
+  if (detEl) detEl.textContent = [ev.date, ev.time, ev.venue].filter(Boolean).join(' · ');
+  
+  const spots = getEventSpots(selectedEventId);
+  if (spotsEl) {
+    spotsEl.textContent = spots.isLimited ? `Plazas libres: ${spots.remaining} (de ${spots.total})` : 'Plazas ilimitadas';
+  }
+  
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+  if (changeBtn) {
+    changeBtn.style.display = (ev1 && ev2) ? 'inline-block' : 'none';
+  }
 }
 
 function showProfileView(id, p) {
@@ -2231,12 +2736,12 @@ function showProfileView(id, p) {
   if (!prof) return;
   prof.style.display = 'block';
 
-  // Título dinámico con nombre del evento
-  const ce    = localState.settings?.currentEvent;
+  const pEvent = selectedEventId ? getParticipantForEvent(p, selectedEventId) : p;
+
+  const ce    = selectedEventId ? localState.settings?.events?.[selectedEventId] : localState.settings?.currentEvent;
   const subEl = document.getElementById('register-page-sub');
   if (subEl) subEl.textContent = showRunning && ce?.name ? `Para ${ce.name}` : 'Tu perfil · Canción · Puntos';
 
-  // Perfil — inputs inline siempre visibles
   const emailEl = document.getElementById('prof-email');
   if (emailEl) emailEl.textContent = p.email || '';
   const ni  = document.getElementById('prof-name-input');
@@ -2247,11 +2752,10 @@ function showProfileView(id, p) {
   const peopleRow = document.getElementById('prof-people-display-row');
   if (peopleRow) peopleRow.style.display = showRunning ? '' : 'none';
   if (ppi) {
-    ppi.value    = showRunning && (parseInt(p.people) || 0) > 0 ? String(p.people) : '';
+    ppi.value    = showRunning && (parseInt(pEvent.people) || 0) > 0 ? String(pEvent.people) : '';
     ppi.disabled = !showRunning;
   }
 
-  // Sección evento (personas + canción)
   const eventSection = document.getElementById('prof-event-section');
   if (eventSection) eventSection.style.display = showRunning ? 'block' : 'none';
 
@@ -2260,21 +2764,23 @@ function showProfileView(id, p) {
     const ti  = document.getElementById('s-title');
     const ai  = document.getElementById('s-artist');
     const li  = document.getElementById('s-link');
-    if (ppi) ppi.value = (parseInt(p.people) || 0) > 0 ? String(p.people) : '';
-    if (ti)  ti.value  = p.songTitle   || '';
-    if (ai)  ai.value  = p.songArtist  || '';
-    if (li)  li.value  = p.karaokeLink || '';
+    if (ppi) ppi.value = (parseInt(pEvent.people) || 0) > 0 ? String(pEvent.people) : '';
+    if (ti)  ti.value  = pEvent.songTitle   || '';
+    if (ai)  ai.value  = pEvent.songArtist  || '';
+    if (li)  li.value  = pEvent.karaokeLink || '';
     updatePeopleCheck();
     updateSongCheck();
   }
 
-  // Botón guardar
   const confirmBtn = document.getElementById('confirm-all-btn');
   const errEl      = document.getElementById('confirm-all-err');
   if (confirmBtn) { confirmBtn.innerHTML = '💾 GUARDAR Y SALIR'; confirmBtn.disabled = false; }
   if (errEl)      errEl.style.display = 'none';
 
   window.scrollTo(0, 0);
+  
+  // Update banner spots in real-time
+  updateRegistrationCupoBanner();
 }
 
 // Guarda nombre, WhatsApp y personas al perder el foco de cualquier campo de perfil
@@ -2284,18 +2790,55 @@ async function saveProfileField() {
   const phone = document.getElementById('prof-phone-input')?.value.trim() || '';
   if (!name) return;
   const updates = { name, whatsapp: phone, updatedAt: Date.now() };
-  if (showRunning) {
+  if (showRunning && selectedEventId) {
     const ppl = parseInt(document.getElementById('prof-people-input')?.value) || 0;
-    if (ppl > 0) updates.people = ppl;
+    
+    // Validar capacidad
+    const spots = getEventSpots(selectedEventId);
+    const currentRes = allParticipants[currentPId]?.reservations?.[selectedEventId] || {};
+    const isMigratedActive = (selectedEventId === 'event1' && (!allParticipants[currentPId]?.reservations || !allParticipants[currentPId]?.reservations.event1) && (allParticipants[currentPId]?.songConfirmed || (allParticipants[currentPId]?.people && allParticipants[currentPId]?.people > 0)));
+    const currentPpl = isMigratedActive ? (allParticipants[currentPId]?.people || 0) : (currentRes.people || 0);
+    const capacityLimit = spots.isLimited ? (spots.remaining + currentPpl) : 999999;
+    
+    if (spots.isLimited && ppl > capacityLimit) {
+      return;
+    }
+    
+    updates[`reservations/${selectedEventId}/people`] = ppl;
+    if (selectedEventId === 'event1') {
+      updates.people = 0;
+    }
   }
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, `participants/${currentPId}`), updates);
     } else {
-      Object.assign(allParticipants[currentPId], updates);
+      const p = allParticipants[currentPId];
+      p.name = name;
+      p.whatsapp = phone;
+      p.updatedAt = Date.now();
+      if (showRunning && selectedEventId) {
+        if (!p.reservations) p.reservations = {};
+        if (!p.reservations[selectedEventId]) p.reservations[selectedEventId] = {};
+        p.reservations[selectedEventId].people = updates[`reservations/${selectedEventId}/people`];
+        if (selectedEventId === 'event1') {
+          p.people = 0;
+        }
+      }
       saveLocal();
     }
-    if (allParticipants[currentPId]) Object.assign(allParticipants[currentPId], updates);
+    if (allParticipants[currentPId]) {
+      allParticipants[currentPId].name = name;
+      allParticipants[currentPId].whatsapp = phone;
+      if (showRunning && selectedEventId) {
+        if (!allParticipants[currentPId].reservations) allParticipants[currentPId].reservations = {};
+        if (!allParticipants[currentPId].reservations[selectedEventId]) allParticipants[currentPId].reservations[selectedEventId] = {};
+        allParticipants[currentPId].reservations[selectedEventId].people = parseInt(document.getElementById('prof-people-input')?.value) || 0;
+        if (selectedEventId === 'event1') {
+          allParticipants[currentPId].people = 0;
+        }
+      }
+    }
   } catch(e) { console.error('saveProfileField:', e); }
 }
 
@@ -2388,59 +2931,96 @@ function toggleVoteBtn(type, pid) {
 }
 
 async function submitPublicVote() {
-  if (!votingOpen) { mcAlert('La votación está cerrada.'); return; }
+  const songCheckboxes = document.querySelectorAll('input[name="vote-song"]:checked');
+  const perfCheckboxes = document.querySelectorAll('input[name="vote-perf"]:checked');
+  const songVotes = Array.from(songCheckboxes).map(cb => cb.value);
+  const perfVotes = Array.from(perfCheckboxes).map(cb => cb.value);
 
-  const songVotes = [...document.querySelectorAll('.vote-pill.selected[id^="vb-song-"]')].map(b => b.id.replace('vb-song-', ''));
-  const perfVotes = [...document.querySelectorAll('.vote-pill.selected[id^="vb-perf-"]')].map(b => b.id.replace('vb-perf-', ''));
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) { mcAlert('No hay evento activo'); return; }
 
-  if (!songVotes.length && !perfVotes.length) {
-    mcAlert('Seleccioná al menos una opción para votar.');
-    return;
-  }
-
-  const btn = document.getElementById('vote-btn');
-  btn.innerHTML = '<span class="spinner"></span>';
-  btn.disabled  = true;
-
-  // Leer voto anterior para restar
   const prevRaw  = localStorage.getItem('voted_public');
   const prevVote = prevRaw ? JSON.parse(prevRaw) : { song: [], perf: [] };
 
   try {
     if (firebaseOk) {
       const updates = {};
+      const prefix = `reservations/${activeEventId}/`;
+      
       // Restar votos anteriores
       (prevVote.song || []).forEach(pid => {
         if (allParticipants[pid]) {
-          const cur = updates[`participants/${pid}/voteSong`] ?? (parseInt(allParticipants[pid].voteSong) || 0);
-          updates[`participants/${pid}/voteSong`] = Math.max(0, cur - 1);
+          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
+          const cur = updates[`participants/${pid}/${prefix}voteSong`] ?? (parseInt(pEvent.voteSong) || 0);
+          updates[`participants/${pid}/${prefix}voteSong`] = Math.max(0, cur - 1);
+          if (activeEventId === 'event1') updates[`participants/${pid}/voteSong`] = 0;
         }
       });
       (prevVote.perf || []).forEach(pid => {
         if (allParticipants[pid]) {
-          const cur = updates[`participants/${pid}/votePerf`] ?? (parseInt(allParticipants[pid].votePerf) || 0);
-          updates[`participants/${pid}/votePerf`] = Math.max(0, cur - 1);
+          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
+          const cur = updates[`participants/${pid}/${prefix}votePerf`] ?? (parseInt(pEvent.votePerf) || 0);
+          updates[`participants/${pid}/${prefix}votePerf`] = Math.max(0, cur - 1);
+          if (activeEventId === 'event1') updates[`participants/${pid}/votePerf`] = 0;
         }
       });
+      
       // Sumar votos nuevos
       songVotes.forEach(pid => {
         if (allParticipants[pid]) {
-          const cur = updates[`participants/${pid}/voteSong`] ?? (parseInt(allParticipants[pid].voteSong) || 0);
-          updates[`participants/${pid}/voteSong`] = cur + 1;
+          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
+          const cur = updates[`participants/${pid}/${prefix}voteSong`] ?? (parseInt(pEvent.voteSong) || 0);
+          updates[`participants/${pid}/${prefix}voteSong`] = cur + 1;
+          if (activeEventId === 'event1') updates[`participants/${pid}/voteSong`] = 0;
         }
       });
       perfVotes.forEach(pid => {
         if (allParticipants[pid]) {
-          const cur = updates[`participants/${pid}/votePerf`] ?? (parseInt(allParticipants[pid].votePerf) || 0);
-          updates[`participants/${pid}/votePerf`] = cur + 1;
+          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
+          const cur = updates[`participants/${pid}/${prefix}votePerf`] ?? (parseInt(pEvent.votePerf) || 0);
+          updates[`participants/${pid}/${prefix}votePerf`] = cur + 1;
+          if (activeEventId === 'event1') updates[`participants/${pid}/votePerf`] = 0;
         }
       });
+      
       if (Object.keys(updates).length) await dbUpdate(dbRef(db), updates);
     } else {
-      (prevVote.song || []).forEach(pid => { if (allParticipants[pid]) allParticipants[pid].voteSong = Math.max(0, (parseInt(allParticipants[pid].voteSong) || 0) - 1); });
-      (prevVote.perf || []).forEach(pid => { if (allParticipants[pid]) allParticipants[pid].votePerf = Math.max(0, (parseInt(allParticipants[pid].votePerf) || 0) - 1); });
-      songVotes.forEach(pid => { if (allParticipants[pid]) allParticipants[pid].voteSong = (parseInt(allParticipants[pid].voteSong) || 0) + 1; });
-      perfVotes.forEach(pid => { if (allParticipants[pid]) allParticipants[pid].votePerf = (parseInt(allParticipants[pid].votePerf) || 0) + 1; });
+      (prevVote.song || []).forEach(pid => {
+        if (allParticipants[pid]) {
+          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
+          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
+          const res = allParticipants[pid].reservations[activeEventId];
+          res.voteSong = Math.max(0, (parseInt(res.voteSong) || 0) - 1);
+          if (activeEventId === 'event1') allParticipants[pid].voteSong = 0;
+        }
+      });
+      (prevVote.perf || []).forEach(pid => {
+        if (allParticipants[pid]) {
+          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
+          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
+          const res = allParticipants[pid].reservations[activeEventId];
+          res.votePerf = Math.max(0, (parseInt(res.votePerf) || 0) - 1);
+          if (activeEventId === 'event1') allParticipants[pid].votePerf = 0;
+        }
+      });
+      songVotes.forEach(pid => {
+        if (allParticipants[pid]) {
+          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
+          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
+          const res = allParticipants[pid].reservations[activeEventId];
+          res.voteSong = (parseInt(res.voteSong) || 0) + 1;
+          if (activeEventId === 'event1') allParticipants[pid].voteSong = 0;
+        }
+      });
+      perfVotes.forEach(pid => {
+        if (allParticipants[pid]) {
+          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
+          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
+          const res = allParticipants[pid].reservations[activeEventId];
+          res.votePerf = (parseInt(res.votePerf) || 0) + 1;
+          if (activeEventId === 'event1') allParticipants[pid].votePerf = 0;
+        }
+      });
       saveLocal();
     }
     localStorage.setItem('voted_public', JSON.stringify({ song: songVotes, perf: perfVotes }));
@@ -2449,19 +3029,13 @@ async function submitPublicVote() {
     if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Voto registrado! Podés modificarlo mientras la votación esté abierta.'; }
     if (voteBtn2) { voteBtn2.innerHTML = 'ACTUALIZAR VOTO'; voteBtn2.disabled = false; }
     
-    mcAlert('¡Voto enviado con éxito!', () => {
-      nav('program');
-    });
+    updateUI();
   } catch(e) {
     console.error(e);
-    mcAlert('Error al enviar el voto. Intentá de nuevo.');
-    btn.innerHTML = prevRaw ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTOS';
-    btn.disabled  = false;
-    return;
+    mcAlert('Error al registrar voto: ' + e.message);
+    const voteBtn2 = document.getElementById('vote-btn');
+    if (voteBtn2) { voteBtn2.innerHTML = 'REGISTRAR VOTO'; voteBtn2.disabled = false; }
   }
-
-  btn.innerHTML = '✅ ENVIAR VOTOS';
-  btn.disabled  = false;
 }
 
 // ── JURADO ────────────────────────────────────────────────────────────────────
@@ -2650,46 +3224,65 @@ async function submitAllJuryCategories(id) {
   const btn = document.getElementById('jury-modal-confirm-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
 
+  const activeEventId = getCurrentEventId();
+
   try {
     if (firebaseOk) {
       const update = {};
+      const prefix = activeEventId ? `reservations/${activeEventId}/` : '';
+      
       // Canción
       Object.entries(juryCurrentScores.song).forEach(([k, v]) => {
-        update[`juryScoresSong/${JURY_ID}/${k}`] = v;
+        update[`${prefix}juryScoresSong/${JURY_ID}/${k}`] = v;
       });
       // Performance
       Object.entries(juryCurrentScores.perf).forEach(([k, v]) => {
-        update[`juryScoresPerf/${JURY_ID}/${k}`] = v;
+        update[`${prefix}juryScoresPerf/${JURY_ID}/${k}`] = v;
       });
       // Hinchada
       Object.entries(juryCurrentScores.hinchada).forEach(([k, v]) => {
-        update[`juryScoresHinchada/${JURY_ID}/${k}`] = v;
+        update[`${prefix}juryScoresHinchada/${JURY_ID}/${k}`] = v;
       });
+      
+      if (activeEventId === 'event1') {
+        update['juryScoresSong'] = null;
+        update['juryScoresPerf'] = null;
+        update['juryScoresHinchada'] = null;
+      }
+      
       await dbUpdate(dbRef(db, `participants/${id}`), update);
     } else {
       const p = allParticipants[id];
-      if (!p.juryScoresSong)     p.juryScoresSong     = {};
-      if (!p.juryScoresPerf)     p.juryScoresPerf     = {};
-      if (!p.juryScoresHinchada) p.juryScoresHinchada = {};
-      p.juryScoresSong[JURY_ID]     = { ...juryCurrentScores.song };
-      p.juryScoresPerf[JURY_ID]     = { ...juryCurrentScores.perf };
-      p.juryScoresHinchada[JURY_ID] = { ...juryCurrentScores.hinchada };
+      if (activeEventId) {
+        if (!p.reservations) p.reservations = {};
+        if (!p.reservations[activeEventId]) p.reservations[activeEventId] = {};
+        const res = p.reservations[activeEventId];
+        if (!res.juryScoresSong) res.juryScoresSong = {};
+        if (!res.juryScoresPerf) res.juryScoresPerf = {};
+        if (!res.juryScoresHinchada) res.juryScoresHinchada = {};
+        res.juryScoresSong[JURY_ID] = { ...juryCurrentScores.song };
+        res.juryScoresPerf[JURY_ID] = { ...juryCurrentScores.perf };
+        res.juryScoresHinchada[JURY_ID] = { ...juryCurrentScores.hinchada };
+        
+        if (activeEventId === 'event1') {
+          p.juryScoresSong = {};
+          p.juryScoresPerf = {};
+          p.juryScoresHinchada = {};
+        }
+      } else {
+        if (!p.juryScoresSong)     p.juryScoresSong     = {};
+        if (!p.juryScoresPerf)     p.juryScoresPerf     = {};
+        if (!p.juryScoresHinchada) p.juryScoresHinchada = {};
+        p.juryScoresSong[JURY_ID]     = { ...juryCurrentScores.song };
+        p.juryScoresPerf[JURY_ID]     = { ...juryCurrentScores.perf };
+        p.juryScoresHinchada[JURY_ID] = { ...juryCurrentScores.hinchada };
+      }
       saveLocal();
     }
   } catch(e) {
     console.error(e);
     if (btn) { btn.disabled = false; btn.innerHTML = '⭐ CONFIRMAR TODO'; }
-    return;
   }
-
-  // Marcar todos los campos como "votados" para este participante
-  ['song', 'perf', 'hinchada'].forEach(cat => { jurySelectedId[cat] = id; });
-
-
-  if (btn) { btn.innerHTML = 'CONFIRMAR'; btn.disabled = false; }
-  setTimeout(() => closeJuryModal(), 400);
-  renderJurySelectors();
-  updateUI();
 }
 
 // Mantener compatibilidad si algo llama submitJuryCategory
@@ -2919,18 +3512,44 @@ async function adminAddParticipant() {
   const wa   = document.getElementById('a-wa').value.trim();
   if (!name) { mcAlert('El nombre es obligatorio'); return; }
 
+  const activeEventId = getCurrentEventId();
+  if (activeEventId) {
+    const spots = getEventSpots(activeEventId);
+    if (spots.isLimited && ppl > spots.remaining) {
+      mcAlert(`No se puede agregar: supera la capacidad. Quedan ${spots.remaining} lugares.`);
+      return;
+    }
+  }
+
   const code  = makeCode();
   const sLink = buildBaseURL() + `?mode=register&code=${code}`;
   const p = {
-    name, people: ppl, whatsapp: wa, email: '', referrer: '',
+    name, whatsapp: wa, email: '', referrer: '',
     reservationCode: code, songLink: sLink,
-    song: '', songTitle: '', songArtist: '', karaokeLink: '', songConfirmed: false,
     timestamp: Date.now(),
     updatedAt: Date.now(),
-    prizeSong: false, prizePerf: false, prizeHinchada: false, prizePublicoSong: false, prizePublicoPerf: false,
-    juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
-    extraPts: 0, voteSong: 0, votePerf: 0, micclubPts: 0
+    extraPts: 0, micclubPts: 0,
+    reservations: {}
   };
+  
+  if (activeEventId) {
+    p.reservations[activeEventId] = {
+      people: ppl,
+      song: '', songTitle: '', songArtist: '', karaokeLink: '', songConfirmed: false,
+      voteSong: 0, votePerf: 0,
+      juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
+      prizeSong: false, prizePerf: false, prizeHinchada: false, prizeMesa: false,
+      prizePublicoSong: false, prizePublicoPerf: false
+    };
+    if (activeEventId === 'event1') {
+      p.people = 0;
+      p.songTitle = '';
+      p.songArtist = '';
+      p.song = '';
+      p.karaokeLink = '';
+      p.songConfirmed = false;
+    }
+  }
 
   if (firebaseOk) {
     const r = dbPush(dbRef(db, 'participants'));
@@ -2941,8 +3560,6 @@ async function adminAddParticipant() {
   }
   ['a-name', 'a-wa'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('a-ppl').value = '1';
-  renderAdminParticipants();
-  updateUI();
 }
 
 function renderAdminParticipants() {
@@ -3104,20 +3721,41 @@ async function assignPrize(prizeKey, selId, juryCat) {
   const sel = document.getElementById(selId);
   if (!sel) return;
   const targetId = sel.value;
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) { mcAlert('No hay evento activo'); return; }
+  
   try {
     if (firebaseOk) {
-      const batch = Object.entries(allParticipants).map(([id]) =>
-        dbUpdate(dbRef(db, `participants/${id}`), { [prizeKey]: false })
-      );
+      const batch = Object.entries(allParticipants).map(([id]) => {
+        const updates = { [`reservations/${activeEventId}/${prizeKey}`]: false };
+        if (activeEventId === 'event1') {
+          updates[prizeKey] = false;
+        }
+        return dbUpdate(dbRef(db, `participants/${id}`), updates);
+      });
       await Promise.all(batch);
       if (targetId) {
-        const updates = { [prizeKey]: true };
+        const updates = { [`reservations/${activeEventId}/${prizeKey}`]: true };
+        if (activeEventId === 'event1') {
+          updates[prizeKey] = false;
+        }
         await dbUpdate(dbRef(db, `participants/${targetId}`), updates);
       }
     } else {
-      Object.keys(allParticipants).forEach(id => allParticipants[id][prizeKey] = false);
+      Object.keys(allParticipants).forEach(id => {
+        const p = allParticipants[id];
+        if (!p.reservations) p.reservations = {};
+        if (!p.reservations[activeEventId]) p.reservations[activeEventId] = {};
+        p.reservations[activeEventId][prizeKey] = false;
+        if (activeEventId === 'event1') {
+          p[prizeKey] = false;
+        }
+      });
       if (targetId) {
-        allParticipants[targetId][prizeKey] = true;
+        const p = allParticipants[targetId];
+        if (!p.reservations) p.reservations = {};
+        if (!p.reservations[activeEventId]) p.reservations[activeEventId] = {};
+        p.reservations[activeEventId][prizeKey] = true;
       }
       saveLocal();
     }
@@ -3140,18 +3778,20 @@ function openModal(id) {
   if (evtSection) evtSection.style.display = showRunning ? 'block' : 'none';
 
   if (showRunning) {
-    document.getElementById('edit-ppl').value      = p.people      || 0;
-    document.getElementById('edit-song').value     = p.songTitle   || p.song || '';
-    document.getElementById('edit-artist').value   = p.songArtist  || '';
-    document.getElementById('edit-karlink').value  = p.karaokeLink || '';
+    const activeEventId = getCurrentEventId();
+    const pEvent = activeEventId ? getParticipantForEvent(p, activeEventId) : p;
+    document.getElementById('edit-ppl').value      = pEvent.people      || 0;
+    document.getElementById('edit-song').value     = pEvent.songTitle   || pEvent.song || '';
+    document.getElementById('edit-artist').value   = pEvent.songArtist  || '';
+    document.getElementById('edit-karlink').value  = pEvent.karaokeLink || '';
     const epSong = document.getElementById('ep-song');
     const epPerf = document.getElementById('ep-perf');
     const epHinchada = document.getElementById('ep-hinchada');
     const epMesa = document.getElementById('ep-mesa');
-    if (epSong)     epSong.checked     = !!p.prizeSong;
-    if (epPerf)     epPerf.checked     = !!p.prizePerf;
-    if (epHinchada) epHinchada.checked = !!p.prizeHinchada;
-    if (epMesa)     epMesa.checked     = !!p.prizeMesa;
+    if (epSong)     epSong.checked     = !!pEvent.prizeSong;
+    if (epPerf)     epPerf.checked     = !!pEvent.prizePerf;
+    if (epHinchada) epHinchada.checked = !!pEvent.prizeHinchada;
+    if (epMesa)     epMesa.checked     = !!pEvent.prizeMesa;
   }
   document.getElementById('edit-modal').classList.add('open');
   validateAdminForm();
@@ -3228,10 +3868,24 @@ async function saveParticipant() {
     extraPts: parseInt(document.getElementById('edit-extra').value) || 0,
     updatedAt: Date.now(),
   };
-  if (showRunning) {
+  const activeEventId = getCurrentEventId();
+  if (showRunning && activeEventId) {
     const st = document.getElementById('edit-song').value.trim();
     const sa = document.getElementById('edit-artist').value.trim();
     const kl = document.getElementById('edit-karlink').value.trim();
+    const ppl = parseInt(document.getElementById('edit-ppl').value) || 0;
+    
+    // Validar capacidad
+    const spots = getEventSpots(activeEventId);
+    const p = allParticipants[id] || {};
+    const res = p.reservations?.[activeEventId] || {};
+    const isMigratedActive = (activeEventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+    const currentPpl = isMigratedActive ? (p.people || 0) : (res.people || 0);
+    const limit = spots.isLimited ? (spots.remaining + currentPpl) : 999999;
+    if (spots.isLimited && ppl > limit) {
+      mcAlert(`No se puede guardar: supera la capacidad. Quedan ${limit} lugares.`);
+      return;
+    }
     
     let isLinkOk = false;
     if (kl) {
@@ -3243,25 +3897,62 @@ async function saveParticipant() {
       }
     }
 
-    if (st && sa && kl && isLinkOk) {
-      upd.songTitle     = st;
-      upd.songArtist    = sa;
-      upd.karaokeLink   = kl;
-      upd.song          = `${st} — ${sa}`;
-      upd.songConfirmed = true;
-    } else {
+    const oldRes = allParticipants[id]?.reservations?.[activeEventId] || {};
+    const epSong = document.getElementById('ep-song')?.checked || false;
+    const epPerf = document.getElementById('ep-perf')?.checked || false;
+    const epHinchada = document.getElementById('ep-hinchada')?.checked || false;
+    const epMesa = document.getElementById('ep-mesa')?.checked || false;
+
+    const resUpdate = {
+      ...oldRes,
+      people: ppl,
+      songTitle: st || '',
+      songArtist: sa || '',
+      karaokeLink: kl || '',
+      song: (st && sa) ? `${st} — ${sa}` : '',
+      songConfirmed: !!(st && sa && kl && isLinkOk),
+      prizeSong: epSong,
+      prizePerf: epPerf,
+      prizeHinchada: epHinchada,
+      prizeMesa: epMesa
+    };
+    
+    upd[`reservations/${activeEventId}`] = resUpdate;
+    
+    if (activeEventId === 'event1') {
+      upd.people        = 0;
       upd.songTitle     = '';
       upd.songArtist    = '';
       upd.karaokeLink   = '';
       upd.song          = '';
       upd.songConfirmed = false;
+      upd.prizeSong     = false;
+      upd.prizePerf     = false;
+      upd.prizeHinchada = false;
+      upd.prizeMesa     = false;
     }
-    upd.people        = parseInt(document.getElementById('edit-ppl').value) || 0;
   }
   if (firebaseOk) {
     await dbUpdate(dbRef(db, `participants/${id}`), upd);
   } else {
-    allParticipants[id] = { ...allParticipants[id], ...upd };
+    const p = allParticipants[id];
+    Object.assign(p, upd);
+    if (showRunning && activeEventId) {
+      if (!p.reservations) p.reservations = {};
+      p.reservations[activeEventId] = upd[`reservations/${activeEventId}`];
+      if (activeEventId === 'event1') {
+        p.people = 0;
+        p.songTitle = '';
+        p.songArtist = '';
+        p.song = '';
+        p.karaokeLink = '';
+        p.songConfirmed = false;
+        p.prizeSong = false;
+        p.prizePerf = false;
+        p.prizeHinchada = false;
+        p.prizeMesa = false;
+      }
+    }
     saveLocal();
   }
   closeModal();
@@ -3281,100 +3972,163 @@ function delParticipant(id) {
   });
 }
 
-async function endShow() {
+async function endShow(slot) {
   try {
     const closedAt   = Date.now();
     const closedDate = new Date(closedAt).toLocaleDateString('es-AR');
-
-    // Snapshot BEFORE clearing (captured now)
-    const snap = JSON.parse(JSON.stringify(allParticipants));
-    enrichHistorySnapshot(snap);
-    const historyEntry = {
-      closedAt,
-      closedDate,
-      eventInfo: localState.settings?.currentEvent || {},
-      participants: snap
-    };
-
-    // Si quedan votos sin procesar, determinar ganadores antes de resetear
-    const parts = Object.values(allParticipants).map((p, _, arr) => p);
-    const partsArr = Object.entries(allParticipants).map(([id, p]) => ({ ...p, id }));
+    
+    const eventInfo = localState.settings?.events?.[slot] || {};
+    const partsArr = getEnrichedParticipantsList(slot);
+    
     const songLeaderEntry = [...partsArr]
       .filter(p => (parseInt(p.voteSong) || 0) > 0)
       .sort((a, b) => (parseInt(b.voteSong) || 0) - (parseInt(a.voteSong) || 0))[0];
     const perfLeaderEntry = [...partsArr]
       .filter(p => (parseInt(p.votePerf) || 0) > 0)
       .sort((a, b) => (parseInt(b.votePerf) || 0) - (parseInt(a.votePerf) || 0))[0];
-    if (songLeaderEntry) allParticipants[songLeaderEntry.id].prizePublicoSong = true;
-    if (perfLeaderEntry) allParticipants[perfLeaderEntry.id].prizePublicoPerf = true;
-
-    // Build main update (participants + settings only — no nested objects)
-    const updates = {
-      'settings/votingOpen':    false,
-      'settings/votingCloseAt': null,
-      'settings/showRunning':   false,
-      'settings/currentEvent':  null,
-      'freeKaraoke':            null,
-    };
-
-    Object.keys(allParticipants).forEach(id => {
-      const p        = { ...allParticipants[id], id };
-      const eventPts = calcScore(p);
-      updates[`participants/${id}/micclubPts`]          = (parseInt(p.micclubPts) || 0) + eventPts;
-      updates[`participants/${id}/voteSong`]            = 0;
-      updates[`participants/${id}/votePerf`]            = 0;
-      updates[`participants/${id}/prizePublicoSong`]    = false;
-      updates[`participants/${id}/prizePublicoPerf`]    = false;
-      updates[`participants/${id}/juryScoresSong`]      = null;
-      updates[`participants/${id}/juryScoresPerf`]      = null;
-      updates[`participants/${id}/juryScoresHinchada`]  = null;
-      updates[`participants/${id}/juryScoresPublico`]   = null;
-      updates[`participants/${id}/songConfirmed`]       = false;
-      updates[`participants/${id}/songTitle`]           = null;
-      updates[`participants/${id}/songArtist`]          = null;
-      updates[`participants/${id}/song`]                = null;
-      updates[`participants/${id}/karaokeLink`]         = null;
-      updates[`participants/${id}/prizeSong`]           = false;
-      updates[`participants/${id}/prizePerf`]           = false;
-      updates[`participants/${id}/prizeHinchada`]       = false;
-      updates[`participants/${id}/prizeMesa`]           = false;
-      updates[`participants/${id}/people`]              = 0;
+      
+    if (songLeaderEntry) {
+      const pId = songLeaderEntry.id;
+      if (allParticipants[pId]) {
+        if (!allParticipants[pId].reservations) allParticipants[pId].reservations = {};
+        if (!allParticipants[pId].reservations[slot]) allParticipants[pId].reservations[slot] = {};
+        allParticipants[pId].reservations[slot].prizePublicoSong = true;
+        const idx = partsArr.findIndex(x => x.id === pId);
+        if (idx !== -1) partsArr[idx].prizePublicoSong = true;
+      }
+    }
+    if (perfLeaderEntry) {
+      const pId = perfLeaderEntry.id;
+      if (allParticipants[pId]) {
+        if (!allParticipants[pId].reservations) allParticipants[pId].reservations = {};
+        if (!allParticipants[pId].reservations[slot]) allParticipants[pId].reservations[slot] = {};
+        allParticipants[pId].reservations[slot].prizePublicoPerf = true;
+        const idx = partsArr.findIndex(x => x.id === pId);
+        if (idx !== -1) partsArr[idx].prizePublicoPerf = true;
+      }
+    }
+    
+    const snap = {};
+    partsArr.forEach(p => {
+      if (p.songConfirmed || p.people > 0 || p.prizeSong || p.prizePerf || p.prizeHinchada || p.prizeMesa || p.prizePublicoSong || p.prizePublicoPerf) {
+        snap[p.id] = p;
+      }
     });
-
+    
+    enrichHistorySnapshot(snap);
+    
+    const historyEntry = {
+      closedAt,
+      closedDate,
+      eventInfo: eventInfo,
+      participants: snap
+    };
+    
+    const scores = getEventScores(partsArr);
+    const updates = {};
+    
+    updates[`settings/events/${slot}`] = null;
+    updates[`freeKaraoke/${slot}`] = null;
+    
+    Object.keys(allParticipants).forEach(id => {
+      const p = allParticipants[id];
+      const eventPts = scores[id]?.total || 0;
+      updates[`participants/${id}/micclubPts`] = (parseInt(p.micclubPts) || 0) + eventPts;
+      updates[`participants/${id}/reservations/${slot}`] = null;
+      
+      if (slot === 'event1') {
+        updates[`participants/${id}/voteSong`]            = 0;
+        updates[`participants/${id}/votePerf`]            = 0;
+        updates[`participants/${id}/prizePublicoSong`]    = false;
+        updates[`participants/${id}/prizePublicoPerf`]    = false;
+        updates[`participants/${id}/juryScoresSong`]      = null;
+        updates[`participants/${id}/juryScoresPerf`]      = null;
+        updates[`participants/${id}/juryScoresHinchada`]  = null;
+        updates[`participants/${id}/juryScoresPublico`]   = null;
+        updates[`participants/${id}/songConfirmed`]       = false;
+        updates[`participants/${id}/songTitle`]           = null;
+        updates[`participants/${id}/songArtist`]          = null;
+        updates[`participants/${id}/song`]                = null;
+        updates[`participants/${id}/karaokeLink`]         = null;
+        updates[`participants/${id}/prizeSong`]           = false;
+        updates[`participants/${id}/prizePerf`]           = false;
+        updates[`participants/${id}/prizeHinchada`]       = false;
+        updates[`participants/${id}/prizeMesa`]           = false;
+        updates[`participants/${id}/people`]              = 0;
+      }
+    });
+    
+    if (!localState.settings) localState.settings = {};
+    if (!localState.settings.events) localState.settings.events = {};
+    localState.settings.events[slot] = null;
+    
+    const ev1 = localState.settings.events.event1;
+    const ev2 = localState.settings.events.event2;
+    const closest = getClosestEvent(ev1, ev2);
+    
+    if (closest) {
+      updates['settings/currentEvent'] = closest;
+    } else {
+      updates['settings/currentEvent'] = null;
+      updates['settings/showRunning'] = false;
+      updates['settings/votingOpen'] = false;
+      updates['settings/votingCloseAt'] = null;
+    }
+    
     if (firebaseOk) {
-      // Guardar historial por separado (puede fallar sin bloquear el resto)
       try {
         await dbSet(dbRef(db, `history/${closedAt}`), historyEntry);
       } catch(he) {
-        console.warn('Historial no guardado (revisar reglas Firebase):', he.message);
+        console.warn('Historial no guardado:', he.message);
       }
       await dbUpdate(dbRef(db), updates);
     } else {
       Object.keys(allParticipants).forEach(id => {
-        Object.assign(allParticipants[id], {
-          voteSong: 0, votePerf: 0,
-          prizePublicoSong: false, prizePublicoPerf: false,
-          juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
-          songConfirmed: false, songTitle: '', songArtist: '', song: '', karaokeLink: '',
-          prizeSong: false, prizePerf: false, prizeHinchada: false,
-          people: 0,
-        });
+        const p = allParticipants[id];
+        const eventPts = scores[id]?.total || 0;
+        p.micclubPts = (parseInt(p.micclubPts) || 0) + eventPts;
+        
+        if (p.reservations) {
+          delete p.reservations[slot];
+        }
+        if (slot === 'event1') {
+          Object.assign(p, {
+            voteSong: 0, votePerf: 0,
+            prizePublicoSong: false, prizePublicoPerf: false,
+            juryScoresSong: {}, juryScoresPerf: {}, juryScoresHinchada: {}, juryScoresPublico: {},
+            songConfirmed: false, songTitle: '', songArtist: '', song: '', karaokeLink: '',
+            prizeSong: false, prizePerf: false, prizeHinchada: false, prizeMesa: false,
+            people: 0,
+          });
+        }
       });
-      localState.settings.votingOpen    = false;
-      localState.settings.votingCloseAt = null;
-      localState.settings.showRunning   = false;
-      localState.settings.currentEvent  = null;
-      localState.freeKaraoke            = {};
-      freeKaraokeList                   = {};
+      
+      if (closest) {
+        localState.settings.currentEvent = closest;
+      } else {
+        localState.settings.currentEvent = null;
+        localState.settings.showRunning = false;
+        localState.settings.votingOpen = false;
+        localState.settings.votingCloseAt = null;
+        showRunning = false;
+        votingOpen = false;
+      }
+      
       if (!localState.history) localState.history = {};
       localState.history[closedAt] = historyEntry;
+      if (localState.freeKaraoke) {
+        delete localState.freeKaraoke[slot];
+      }
+      freeKaraokeList[slot] = {};
       saveLocal();
     }
-    votingOpen = false; showRunning = false;
-    localStorage.removeItem('voted_public');
-    mcAlert('✅ Evento terminado. Los puntos fueron acumulados al MicClub.');
+    
     updateUI();
-  } catch(e) { console.error(e); mcAlert('Error al terminar el evento: ' + e.message); }
+    mcAlert(`✅ Evento finalizado y puntos guardados.`);
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al finalizar el evento: ' + e.message);
+  }
 }
 
 // Garantiza que no queden canciones ni reservas si no hay evento activo.
@@ -3449,7 +4203,6 @@ function clearAllParticipants() {
   mcConfirm(`⚠️ ¿Borrar TODOS los participantes y el historial de eventos?<br><br>Esto elimina todo de la base de datos. No se puede deshacer.${showMsg}`, async () => {
   try {
     if (firebaseOk) {
-      // Si hay show activo, guardar historial antes de borrar todo
       if (showRunning) {
         const closedAt = Date.now();
         const snap = JSON.parse(JSON.stringify(allParticipants));
@@ -3468,7 +4221,7 @@ function clearAllParticipants() {
       await dbSet(dbRef(db, 'freeKaraoke'), null);
       await dbUpdate(dbRef(db, 'settings'), {
         votingOpen: false, votingCloseAt: null, bonus: false,
-        showRunning: false, currentEvent: null
+        showRunning: false, currentEvent: null, events: null
       });
     } else {
       allParticipants = {};
@@ -3481,15 +4234,14 @@ function clearAllParticipants() {
       localState.settings.bonus         = false;
       localState.settings.showRunning   = false;
       localState.settings.currentEvent  = null;
+      localState.settings.events        = null;
       saveLocal();
     }
     bonusActive = false; votingOpen = false; showRunning = false;
-    allParticipants = {};
-    freeKaraokeList = {};
     localStorage.removeItem('voted_public');
+    mcAlert('✅ Se borró la base de datos completa.');
     updateUI();
-    mcAlert('✅ Base de datos vaciada. El sistema está limpio.');
-  } catch(e) { console.error(e); mcAlert('Error al borrar los datos.'); }
+  } catch(e) { console.error(e); mcAlert('Error al borrar base: ' + e.message); }
   });
 }
 
@@ -3969,7 +4721,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateFreeKaraokePages() {
   const currentEvent = localState.settings?.currentEvent;
   const eventDate = currentEvent?.date || '';
-  const sortedFreeItems = Object.entries(freeKaraokeList)
+  const activeEventId = getCurrentEventId();
+  const currentEventFreeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
+  const sortedFreeItems = Object.entries(currentEventFreeList)
     .map(([id, item]) => ({ id, ...item }))
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   const isFull = sortedFreeItems.length >= 20;
@@ -4059,7 +4813,7 @@ function updateFreeKaraokePages() {
       
       return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:700;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px">${index + 1}. 🎤 ${esc(item.name)}</span>
+          <span style="font-weight:700;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px">&nbsp;${index + 1}. 🎤 ${esc(item.name)}</span>
           <span style="font-size:11px;color:var(--text2)">${new Date(item.createdAt || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
         </div>
         <div style="font-size:13px;color:var(--text)">
@@ -4089,7 +4843,6 @@ async function submitFreeKaraoke() {
     errEl.textContent = '';
   }
 
-  // Validaciones obligatorias
   if (!name || !song || !artist) {
     if (errEl) {
       errEl.textContent = 'Por favor, completá todos los campos obligatorios (*).';
@@ -4098,14 +4851,14 @@ async function submitFreeKaraoke() {
     return;
   }
 
-  // Validar cupo
-  const count = Object.keys(freeKaraokeList).length;
+  const activeEventId = getCurrentEventId();
+  const currentEventFreeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
+  const count = Object.keys(currentEventFreeList).length;
   if (count >= 20) {
     mcAlert('Lo sentimos, el cupo de 20 canciones para el Karaoke Libre de esta fecha ya está completo.');
     return;
   }
 
-  // Validar link de youtube si existe
   if (youtube && !youtube.startsWith('http://') && !youtube.startsWith('https://')) {
     if (errEl) {
       errEl.textContent = 'El enlace de YouTube debe comenzar con http:// o https://';
@@ -4124,23 +4877,28 @@ async function submitFreeKaraoke() {
 
   try {
     if (firebaseOk) {
-      const newRef = dbPush(dbRef(db, 'freeKaraoke'));
+      const parentNode = activeEventId ? `freeKaraoke/${activeEventId}` : 'freeKaraoke';
+      const newRef = dbPush(dbRef(db, parentNode));
       await dbSet(newRef, entry);
     } else {
       const localId = 'fk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-      freeKaraokeList[localId] = entry;
+      if (activeEventId) {
+        if (!freeKaraokeList[activeEventId]) freeKaraokeList[activeEventId] = {};
+        freeKaraokeList[activeEventId][localId] = entry;
+      } else {
+        freeKaraokeList[localId] = entry;
+      }
       saveLocal();
     }
 
-    // Limpiar campos
     const inputName = document.getElementById('fk-name');
     const inputSong = document.getElementById('fk-song');
     const inputArtist = document.getElementById('fk-artist');
     const inputYt = document.getElementById('fk-youtube');
-    if (inputName) inputName.value = '';
-    if (inputSong) inputSong.value = '';
+    if (inputName)  inputName.value = '';
+    if (inputSong)  inputSong.value = '';
     if (inputArtist) inputArtist.value = '';
-    if (inputYt) inputYt.value = '';
+    if (inputYt)     inputYt.value = '';
 
     mcAlert('✅ ¡Te inscribiste correctamente al Karaoke Libre!');
     navBack();
@@ -4154,12 +4912,18 @@ async function submitFreeKaraoke() {
 }
 
 async function deleteFreeKaraokeItem(itemId) {
+  const activeEventId = getCurrentEventId();
   mcConfirm('¿Estás seguro de que querés borrar esta inscripción?', async () => {
     try {
       if (firebaseOk) {
-        await dbRemove(dbRef(db, `freeKaraoke/${itemId}`));
+        const path = activeEventId ? `freeKaraoke/${activeEventId}/${itemId}` : `freeKaraoke/${itemId}`;
+        await dbRemove(dbRef(db, path));
       } else {
-        delete freeKaraokeList[itemId];
+        if (activeEventId && freeKaraokeList[activeEventId]) {
+          delete freeKaraokeList[activeEventId][itemId];
+        } else {
+          delete freeKaraokeList[itemId];
+        }
         saveLocal();
         updateUI();
       }
@@ -4356,21 +5120,147 @@ function renderPantallaContent() {
 }
 
 function updatePantallaContent() {
-  const currentEvent = localState.settings?.currentEvent;
-  const nameEl = document.getElementById('pantalla-event-name');
-  const detailsEl = document.getElementById('pantalla-event-details');
-  if (nameEl && detailsEl) {
-    if (showRunning && currentEvent && currentEvent.name) {
-      nameEl.textContent = currentEvent.name;
-      const det = [currentEvent.date, currentEvent.time, currentEvent.venue].filter(Boolean).join(' · ');
-      detailsEl.textContent = det;
-    } else {
-      nameEl.textContent = "MIC CLUB";
-      detailsEl.textContent = "Show de Talentos · Las Alas de mi Voz";
+  const container = document.getElementById('pantalla-main-content');
+  if (!container) return;
+
+  const sponsors = localState.settings?.sponsors || [];
+  const artists = localState.settings?.guestArtists || [];
+  const nextEventImage = localState.settings?.nextEventImage || null;
+
+  if (pantallaTab === 'artistas') {
+    if (!artists.length) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay artistas invitados cargados...</div>`;
+      return;
     }
+    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">
+${
+      artists.map((art, idx) => {
+        const name = typeof art === 'object' ? art.name : art;
+        const song = typeof art === 'object' ? art.song : '';
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 28px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 20px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
+          </div>
+        `;
+      }).join('')
+    }</div>`;
   }
-  
-  renderPantallaContent();
+  else if (pantallaTab === 'participantes') {
+    const activeEventId = getCurrentEventId();
+    const parts = getEnrichedParticipantsList(activeEventId)
+      .filter(p => p.songConfirmed)
+      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    if (!parts.length) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando confirmación de participantes...</div>`;
+      return;
+    }
+    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+      parts.map((p, index) => {
+        const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+          </div>
+        `;
+      }).join('')
+    }</div>`;
+  }
+  else if (pantallaTab === 'votos') {
+    container.innerHTML = `
+      <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>CANCIÓN</div>
+            <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
+          </div>
+          <div id="pantalla-rank-pub-song"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
+            <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
+          </div>
+          <div id="pantalla-rank-pub-perf"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>CANCIÓN</div>
+            <div class="column-source-tag source-jury">⭐ JURADO</div>
+          </div>
+          <div id="pantalla-rank-jury-song"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
+            <div class="column-source-tag source-jury">⭐ JURADO</div>
+          </div>
+          <div id="pantalla-rank-jury-perf"></div>
+        </div>
+        <div class="result-column-card" style="margin:0">
+          <div class="result-column-header">
+            <div class="column-category-title">MEJOR<br>HINCHADA</div>
+            <div class="column-source-tag source-jury">📣 JURADO</div>
+          </div>
+          <div id="pantalla-rank-jury-hinchada"></div>
+        </div>
+      </div>
+    `;
+    renderPublicVoteRanking();
+    renderJuryRankingInRanking();
+  }
+  else if (pantallaTab === 'ranking') {
+    container.innerHTML = `
+      <div class="show-layout-container" style="display: grid; gap: 20px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
+        <div class="result-column-card" style="margin: 0;">
+          <div class="result-column-header">
+            <div class="column-category-title">🏆 PUNTOS ACUMULADOS</div>
+          </div>
+          <div id="pantalla-show-rows" style="padding:10px 14px"></div>
+        </div>
+        <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
+          <div class="result-column-header">
+            <div class="column-category-title">👑 CONSAGRADOS (>150 pts)</div>
+          </div>
+          <div id="pantalla-consagrados-rows" style="padding:10px 14px"></div>
+        </div>
+      </div>
+    `;
+    updateShowMode();
+  }
+  else if (pantallaTab === 'proximo') {
+    if (!nextEventImage) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay imagen cargada para el próximo evento...</div>`;
+      return;
+    }
+    container.innerHTML = `
+      <div style="width: 100%; display: flex; justify-content: center; align-items: center; min-height: 50vh; animation: zoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;">
+        <img src="${nextEventImage}" style="max-width: 100%; max-height: 70vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 2px solid var(--border-gold);" />
+      </div>
+    `;
+  }
+  else if (pantallaTab === 'karaoke') {
+    const activeEventId = getCurrentEventId();
+    const currentEventFreeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
+    const sortedFreeItems = Object.entries(currentEventFreeList)
+      .map(([id, item]) => ({ id, ...item }))
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    if (!sortedFreeItems.length) {
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando inscripciones al Karaoke Libre...</div>`;
+      return;
+    }
+    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+      sortedFreeItems.map((item, index) => {
+        return `
+          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+          </div>
+        `;
+      }).join('')
+    }</div>`;
+  }
 }
 
 function updatePantallaSponsors() {
