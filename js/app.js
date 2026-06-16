@@ -39,6 +39,8 @@ const JURY_ID = (() => {
 // ── ESTADO GLOBAL ─────────────────────────────────────────────────────────────
 let db, dbRef, dbSet, dbGet, dbOnValue, dbPush, dbUpdate, dbRemove;
 let firebaseOk      = false;
+let firebaseSettingsLoaded = false;
+let firebaseParticipantsLoaded = false;
 let allParticipants = {};
 let freeKaraokeList = {};
 let bonusActive     = false;
@@ -429,6 +431,7 @@ function initFirebase() {
 
     dbOnValue(dbRef(db, 'participants'), snap => {
       allParticipants = snap.val() || {};
+      firebaseParticipantsLoaded = true;
       updateUI();
     });
     dbOnValue(dbRef(db, 'freeKaraoke'), snap => {
@@ -437,6 +440,7 @@ function initFirebase() {
     });
     dbOnValue(dbRef(db, 'settings'), snap => {
       const s = snap.val() || {};
+      firebaseSettingsLoaded = true;
       const ce = s.currentEvent || {};
       const currentEventName = ce.name || '';
       if (currentEventName !== lastEventName) {
@@ -530,6 +534,7 @@ function findReferrer(referrerText) {
 
 // ── MIGRACION & HELPER MULTI-EVENTO ──────────────────────────────────────────
 let selectedEventId = null;
+let eventSelectedManually = false;
 
 function parseEventDate(dateStr) {
   if (!dateStr) return 0;
@@ -867,6 +872,15 @@ function updateRegistrationPageUI() {
   
   const ev1 = localState.settings?.events?.event1;
   const ev2 = localState.settings?.events?.event2;
+
+  // Si Firebase está activo y ya cargó sus settings, y además detectamos que hay
+  // múltiples eventos activos en la base de datos real, pero el selectedEventId
+  // se había auto-seleccionado (no manual), reseteamos para mostrar el selector.
+  if (firebaseOk && firebaseSettingsLoaded && firebaseParticipantsLoaded) {
+    if (ev1 && ev2 && selectedEventId && !eventSelectedManually) {
+      selectedEventId = null;
+    }
+  }
   
   if (selectedEventId) {
     if (selector) selector.style.display = 'none';
@@ -894,9 +908,13 @@ function updateRegistrationPageUI() {
       }
       renderRegistrationEventSelectorList(ev1, ev2);
     } else if (ev1) {
-      selectRegistrationEvent('event1');
+      if (!firebaseOk || (firebaseSettingsLoaded && firebaseParticipantsLoaded)) {
+        selectRegistrationEvent('event1', false);
+      }
     } else if (ev2) {
-      selectRegistrationEvent('event2');
+      if (!firebaseOk || (firebaseSettingsLoaded && firebaseParticipantsLoaded)) {
+        selectRegistrationEvent('event2', false);
+      }
     } else {
       const hasLoadedSettings = (localState.settings && Object.keys(localState.settings).length > 4);
       if (hasLoadedSettings && !ev1 && !ev2) {
@@ -2644,6 +2662,7 @@ function submitReservation() { checkEmail(); }
 function resetRegisterPage() {
   currentPId = null;
   selectedEventId = null;
+  eventSelectedManually = false;
   
   const gate = document.getElementById('reg-email-gate');
   const form = document.getElementById('reg-main-form');
@@ -2702,7 +2721,7 @@ function renderRegistrationEventSelectorList(ev1, ev2) {
   const desc2 = spots2.isLimited ? `${spots2.remaining} plazas disponibles de ${spots2.total}` : 'Sin límite de cupo';
   
   listEl.innerHTML = `
-    <div class="p-item" onclick="selectRegistrationEvent('event1')" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
+    <div class="p-item" onclick="selectRegistrationEvent('event1', true)" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)">${esc(ev1.name)}</span>
         <span style="font-size:12px;color:var(--teal);font-weight:bold">${desc1}</span>
@@ -2711,7 +2730,7 @@ function renderRegistrationEventSelectorList(ev1, ev2) {
         📅 ${esc(ev1.date)} &middot; 🕒 ${esc(ev1.time)} &middot; 📍 ${esc(ev1.venue)}
       </div>
     </div>
-    <div class="p-item" onclick="selectRegistrationEvent('event2')" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
+    <div class="p-item" onclick="selectRegistrationEvent('event2', true)" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)">${esc(ev2.name)}</span>
         <span style="font-size:12px;color:var(--teal);font-weight:bold">${desc2}</span>
@@ -2723,8 +2742,9 @@ function renderRegistrationEventSelectorList(ev1, ev2) {
   `;
 }
 
-function selectRegistrationEvent(eventId) {
+function selectRegistrationEvent(eventId, isManual = false) {
   selectedEventId = eventId;
+  eventSelectedManually = isManual;
   
   const selector = document.getElementById('reg-event-selector');
   if (selector) selector.style.display = 'none';
