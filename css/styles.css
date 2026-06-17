@@ -965,6 +965,10 @@ button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
 
 /* ── RESPONSIVE ADMIN DIVIDIDO (SPLIT-SCREEN) & YOUTUBE PLAYER ── */
 @media (min-width: 992px) {
+  #page-home, #page-admin {
+    max-width: 1000px !important;
+    width: 95% !important;
+  }
   .admin-grid-container {
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;

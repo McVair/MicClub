@@ -64,6 +64,8 @@ if ('serviceWorker' in navigator) {
 
     <!-- Dashboard (visible tras login) -->
     <div id="home-dashboard" style="display:none">
+      <div class="admin-grid-container" id="home-grid-container">
+        <div class="admin-main-column">
 
       <!-- Título -->
       <div style="text-align:center;padding:10px 0 8px">
@@ -161,6 +163,8 @@ if ('serviceWorker' in navigator) {
       <!-- Borrar Todo -->
       <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px;display:none">🗑️ BORRAR TODO</button>
 
+        </div>
+      </div>
     </div>
   </div>
 
@@ -734,7 +738,7 @@ if ('serviceWorker' in navigator) {
         <!-- Renderizado dinámico desde JS -->
       </div>
 
-      <div class="admin-grid-container">
+      <div class="admin-grid-container" id="admin-grid-container">
         <div class="admin-main-column">
           <!-- Control -->
           <div id="atab-ctrl">

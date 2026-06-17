@@ -103,6 +103,24 @@ function nav(page) {
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
   currentPage = page;
+
+  // Move YouTube sidebar to correct grid container based on active page
+  const sidebar = document.getElementById('admin-video-sidebar');
+  if (sidebar) {
+    if (page === 'home') {
+      const homeGrid = document.getElementById('home-grid-container');
+      if (homeGrid) {
+        homeGrid.appendChild(sidebar);
+        sidebar.style.display = ''; // let stylesheet default control visibility
+      }
+    } else if (page === 'admin') {
+      const adminGrid = document.getElementById('admin-grid-container');
+      if (adminGrid) {
+        adminGrid.appendChild(sidebar);
+      }
+    }
+  }
+
   renderNav();
   if (page === 'ranking')        { updateRanking(); startCelebration(); }
   if (page === 'show')           { updateShowMode(); startCelebration(); }
