@@ -1376,35 +1376,44 @@ function updateDashboard() {
         // Activo: nombre del evento - fecha, hora y lugar [TERMINAR EVENTO] n/n reservados
         const name = ev.name || '';
         const details = `${ev.date}, ${ev.time} y ${ev.venue}`;
-        const eventText = `${name} - ${details}`;
         const btnText = '🎬 TERMINAR EVENTO';
         const btnBg = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         const btnColor = '#fff';
         const btnBorder = '#aa3d50';
-        const spotsText = `${item.partsCount} part. / ${item.reserved} lugares`;
         
         const currentActiveId = getCurrentEventId();
         html += `
-          <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-            <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
-              <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);line-height:1;flex-shrink:0">${orderNum}.</span>
-              <span style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500" title="${esc(eventText)}">
-                ${esc(eventText)}
-              </span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+            <!-- 1. Botón / Badge ACTIVO (Izquierda) -->
+            <div style="width:80px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">
               ${slot === currentActiveId ? `
-                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:5px 12px;border-radius:6px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:inline-block;text-align:center">ACTIVO</span>
+                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
               ` : `
-                <button onclick="setActiveEvent('${slot}')" class="btn btn-sm btn-outline" style="min-height:30px;padding:0 12px;font-size:11px;width:auto;border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
+                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVO</button>
               `}
-              <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer;margin:0">
-                ${btnText}
-              </button>
-              <span style="font-size:12px;color:var(--teal);font-weight:bold;min-width:120px;text-align:right">
-                ${spotsText}
-              </span>
             </div>
+
+            <!-- 2. Información del Evento (Centro-Izquierda) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
+              <div style="display:flex;align-items:center;line-height:1">
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;margin-right:6px;line-height:1;background:linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 50%, #8E5B12 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${orderNum}.</span>
+                <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1;background:linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 50%, #8E5B12 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent" title="${esc(name)}">${esc(name)}</span>
+              </div>
+              <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(details)}">
+                ${esc(details)}
+              </div>
+            </div>
+
+            <!-- 3. Estadísticas en 2 renglones (Centro-Derecha) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;line-height:1.2;color:var(--teal);min-width:90px">
+              <div>${item.partsCount} part.</div>
+              <div style="color:var(--text2)">${item.reserved} lugares</div>
+            </div>
+
+            <!-- 4. Botón Terminar Evento (Derecha) -->
+            <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
+              ${btnText}
+            </button>
           </div>
         `;
       } else {
@@ -1415,24 +1424,30 @@ function updateDashboard() {
         const btnBg = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
         const btnColor = '#0a0a0f';
         const btnBorder = '#4d9e6a';
-        const spotsText = 'Inactivo';
         
         html += `
-          <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-            <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
-              <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text2);line-height:1;flex-shrink:0">${orderNum}.</span>
-              <span style="font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500">
-                ${eventText}
-              </span>
+          <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+            <!-- 1. Placeholder ACTIVO (Izquierda) -->
+            <div style="width:80px;height:54px;flex-shrink:0"></div>
+
+            <!-- 2. Información del Evento Inactivo (Centro-Izquierda) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
+              <div style="color:var(--text2);display:flex;align-items:center;line-height:1">
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
+                <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1">${eventText}</span>
+              </div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.2)">Crea un evento para comenzar</div>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
-              <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer">
-                ${btnText}
-              </button>
-              <span style="font-size:12px;color:var(--text2);font-weight:bold;min-width:120px;text-align:right">
-                ${spotsText}
-              </span>
+
+            <!-- 3. Estadísticas Inactivo (Centro-Derecha) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;line-height:1.2;color:var(--text2);min-width:90px">
+              <div>Inactivo</div>
             </div>
+
+            <!-- 4. Botón Iniciar Evento (Derecha) -->
+            <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
+              ${btnText}
+            </button>
           </div>
         `;
       }
