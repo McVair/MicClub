@@ -1388,9 +1388,9 @@ function updateDashboard() {
             <!-- 1. Botón / Badge ACTIVO (Izquierda) -->
             <div style="width:80px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">
               ${slot === currentActiveId ? `
-                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
+                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:#fff;font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
               ` : `
-                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
+                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:#fff;background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
               `}
             </div>
 
@@ -1408,8 +1408,8 @@ function updateDashboard() {
             <!-- 3. Estadísticas en 3 renglones (Centro-Derecha) -->
             <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:10px;font-weight:600;line-height:1.2;min-width:120px">
               <div style="color:var(--teal)">${item.partsCount} participantes</div>
-              <div style="color:var(--text2)">${item.reserved} reservas</div>
-              <div style="color:var(--gold)">${spots.isLimited ? spots.remaining : 'Ilimitados'} lugares</div>
+              <div style="color:#fff">${item.reserved} reservas</div>
+              <div style="color:var(--gold)">${spots.isLimited ? spots.remaining : 'Ilimitados'} lugares disponibles</div>
             </div>
 
             <!-- 4. Botón Terminar Evento (Derecha) -->
@@ -1485,10 +1485,10 @@ function updateDashboard() {
       freeBtn.style.opacity       = '1';
       freeBtn.style.pointerEvents = 'auto';
       freeBtn.style.background    = 'linear-gradient(135deg,var(--gold),#8a640f)';
-      freeBtn.style.color         = '#0a0a0f';
+      freeBtn.style.color         = '#fff';
     } else {
       freeBtn.style.background    = 'linear-gradient(135deg,#16151a,#0d0c10)';
-      freeBtn.style.color         = 'rgba(255,255,255,0.25)';
+      freeBtn.style.color         = '#fff';
       freeBtn.style.opacity       = '0.55';
       freeBtn.style.pointerEvents = 'none';
     }
@@ -1501,10 +1501,10 @@ function updateDashboard() {
       partsBtn.style.opacity       = '1';
       partsBtn.style.pointerEvents = 'auto';
       partsBtn.style.background    = 'linear-gradient(135deg,var(--gold),#8a640f)';
-      partsBtn.style.color         = '#0a0a0f';
+      partsBtn.style.color         = '#fff';
     } else {
       partsBtn.style.background    = 'linear-gradient(135deg,#16151a,#0d0c10)';
-      partsBtn.style.color         = 'rgba(255,255,255,0.25)';
+      partsBtn.style.color         = '#fff';
       partsBtn.style.opacity       = '0.55';
       partsBtn.style.pointerEvents = 'none';
     }
@@ -3619,12 +3619,12 @@ function renderVotingToggleBtn() {
       } else {
         dashBtn.innerHTML        = 'ABRIR<br>VOTACIÓN';
         dashBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-        dashBtn.style.color      = '#0a0a0f';
+        dashBtn.style.color      = '#fff';
       }
     } else {
       dashBtn.innerHTML           = 'ABRIR<br>VOTACIÓN';
       dashBtn.style.background    = 'linear-gradient(135deg,#1a3324,#101e16)';
-      dashBtn.style.color         = '#3a6648';
+      dashBtn.style.color         = '#fff';
       dashBtn.style.opacity       = '0.55';
       dashBtn.style.pointerEvents = 'none';
     }
