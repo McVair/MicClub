@@ -615,6 +615,10 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── PANTALLA PÚBLICA DE PRESENTACIÓN ─────────── -->
   <div id="page-pantalla" class="page" style="padding: 0; max-width: none; margin: 0; width: 100%;">
+    <!-- Reproductor de YouTube para Proyección (Ocupa toda la pantalla cuando está activo) -->
+    <div id="pantalla-yt-container" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999">
+      <div id="pantalla-player"></div>
+    </div>
     <div class="pantalla-layout">
       <!-- Columna Izquierda (Sidebar) -->
       <div class="pantalla-sidebar">
@@ -717,10 +721,13 @@ if ('serviceWorker' in navigator) {
         <button class="toggle-btn"        id="atab-parts-btn" onclick="setAdminTab('parts')">👥 Partic.</button>
         <button class="toggle-btn"        id="atab-jury-btn"  onclick="setAdminTab('jury')">⭐ Jurado</button>
         <button class="toggle-btn"        id="atab-links-btn" onclick="setAdminTab('links')">🔗 Links</button>
+        <button class="toggle-btn"        id="atab-video-btn" onclick="setAdminTab('video')" style="display:none">📺 Video</button>
       </div>
 
-      <!-- Control -->
-      <div id="atab-ctrl">
+      <div class="admin-grid-container">
+        <div class="admin-main-column">
+          <!-- Control -->
+          <div id="atab-ctrl">
         <div class="card">
           <div class="card-title">⚙️ Control del Evento</div>
           <div style="display:grid;gap:10px">
@@ -813,6 +820,85 @@ if ('serviceWorker' in navigator) {
           <div id="links-content"></div>
         </div>
       </div>
+        </div> <!-- .admin-main-column -->
+
+        <!-- Columna de Video y Cola de Reproducción (YouTube) -->
+        <div class="admin-video-column" id="admin-video-sidebar">
+          
+          <!-- 1. Emisión / Proyección -->
+          <div class="card" style="padding:14px;margin-bottom:14px;border:1px solid var(--gold-dark)">
+            <div class="card-title" style="margin-bottom:8px">📺 Control de Emisión (Cast)</div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Elegí qué mostrar en la pantalla secundaria (monitor extendido):</div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Reprod. Video</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking Puntos</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Lista Cantantes</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">📋 Karaoke Libre</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Flyer Próx. Evento</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-blank" onclick="setCastLayout('blank')" style="font-size:11px;padding:8px 0;width:auto">⬛ Pantalla Negra</button>
+            </div>
+          </div>
+
+          <!-- 2. Reproductor Remoto -->
+          <div class="card" style="padding:14px;margin-bottom:14px">
+            <div class="card-title" style="margin-bottom:8px">🎙️ Control de Video YouTube</div>
+            
+            <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)">
+              <div id="yt-remote-thumb" style="width:60px;height:45px;background:#000;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <span style="font-size:16px">📺</span>
+              </div>
+              <div style="min-width:0;flex:1">
+                <div id="yt-remote-title" style="font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ningún video activo</div>
+                <div id="yt-remote-singer" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Cargá una canción para iniciar</div>
+              </div>
+            </div>
+            
+            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px">
+              <button class="btn btn-outline" onclick="ytRemotePrev()" style="min-height:auto;width:44px;height:38px;border-radius:50%;padding:0;font-size:14px">⏮️</button>
+              <button class="btn btn-gold" id="yt-remote-play-btn" onclick="ytRemoteTogglePlay()" style="min-height:auto;width:50px;height:50px;border-radius:50%;padding:0;font-size:18px">▶️</button>
+              <button class="btn btn-outline" onclick="ytRemoteNext()" style="min-height:auto;width:44px;height:38px;border-radius:50%;padding:0;font-size:14px">⏭️</button>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px">
+                <span id="yt-remote-time-current">00:00</span>
+                <span id="yt-remote-time-duration">00:00</span>
+              </div>
+              <input type="range" id="yt-remote-progress" min="0" max="100" value="0" oninput="ytRemoteProgressInput(this.value)" onchange="ytRemoteProgressChange(this.value)" style="width:100%;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:11px;color:var(--text2)">🔈</span>
+              <input type="range" id="yt-remote-volume" min="0" max="100" value="100" oninput="ytRemoteVolumeChange(this.value)" style="flex:1;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
+              <span style="font-size:11px;color:var(--text2)">🔊</span>
+            </div>
+          </div>
+
+          <!-- 3. Cola de Reproducción (Playlist) -->
+          <div class="card" style="padding:14px">
+            <div class="card-title" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+              <span>🎵 Cola de Reproducción</span>
+              <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
+            </div>
+            
+            <div style="background:rgba(255,255,255,.01);border:1px dashed var(--border);border-radius:8px;padding:10px;margin-bottom:12px">
+              <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">➕ Agregar video manual</div>
+              <div style="display:grid;gap:6px;margin-bottom:6px">
+                <input type="text" id="yt-add-singer" placeholder="Nombre de cantante" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+                <input type="text" id="yt-add-song" placeholder="Nombre de canción" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+                <input type="text" id="yt-add-url" placeholder="Enlace de YouTube / ID" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
+              </div>
+              <button class="btn btn-teal btn-sm" onclick="ytAddManualItem()" style="width:100%;min-height:auto;padding:6px 0;font-size:11px">Añadir a la lista</button>
+            </div>
+
+            <div id="yt-playlist-items" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
+              <!-- Renderizado dinámico -->
+            </div>
+          </div>
+
+        </div> <!-- .admin-video-column -->
+      </div> <!-- .admin-grid-container -->
     </div>
   </div>
 

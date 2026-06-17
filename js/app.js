@@ -117,8 +117,7 @@ function nav(page) {
   if (page === 'admin' && adminLoggedIn) {
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
-    renderAdminParticipants();
-    renderAdminJury();
+    setAdminTab('ctrl');
   }
   updateBackBtn();
   window.scrollTo(0, 0);
@@ -971,6 +970,7 @@ function updateUI() {
     renderAdminParticipants(); 
     renderAdminJury(); 
     updateAdminNextEventPreview();
+    renderPlaylistQueue();
   }
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
@@ -3414,17 +3414,13 @@ function doAdminLogin() {
     isSuperAdmin = true;
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display  = 'block';
-    renderAdminParticipants();
-    renderAdminJury();
-    renderLinks();
+    setAdminTab('ctrl');
   } else if (pass === stored) {
     adminLoggedIn = true;
     isSuperAdmin = false;
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display  = 'block';
-    renderAdminParticipants();
-    renderAdminJury();
-    renderLinks();
+    setAdminTab('ctrl');
   } else {
     const e = document.getElementById('admin-err');
     e.style.display = 'block';
@@ -3444,15 +3440,26 @@ function changePass() {
 let adminTab = 'ctrl';
 function setAdminTab(tab) {
   adminTab = tab;
-  ['ctrl', 'parts', 'jury', 'links'].forEach(t => {
+  ['ctrl', 'parts', 'jury', 'links', 'video'].forEach(t => {
     const btn = document.getElementById(`atab-${t}-btn`);
     if (btn) btn.classList.toggle('active', t === tab);
     const el = document.getElementById(`atab-${t}`);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
+
+  const sidebar = document.getElementById('admin-video-sidebar');
+  if (sidebar) {
+    if (window.innerWidth < 992) {
+      sidebar.style.display = (tab === 'video') ? 'block' : 'none';
+    } else {
+      sidebar.style.display = 'block';
+    }
+  }
+
   if (tab === 'parts') renderAdminParticipants();
   if (tab === 'jury')  renderAdminJury();
   if (tab === 'links') renderLinks();
+  if (tab === 'video' || tab === 'ctrl') renderPlaylistQueue();
 }
 
 async function toggleBonus(val) {
@@ -5369,3 +5376,580 @@ function updatePantallaSponsors() {
 }
 
 window.setPantallaTab = setPantallaTab;
+
+// ── SISTEMA DE VIDEO YOUTUBE & EMISIÓN (CAST) ──
+let customQueueItems = [];
+let activeYtVideo = null;
+let isYtPlaying = false;
+let castChannel = null;
+let currentCastLayout = 'blank';
+let projectionPlayer = null;
+let projectionPlayerReady = false;
+let isSeeking = false;
+
+// Extractor robusto de ID de video de YouTube
+function getYouTubeId(url) {
+  if (!url) return '';
+  url = url.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+    return url;
+  }
+  try {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    if (match && match[2].length === 11) {
+      return match[2];
+    }
+  } catch (e) {}
+  return '';
+}
+
+// Consolidar cola de reproducción (automatica + manual)
+function getConsolidatedQueue() {
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) return [];
+
+  const list = [];
+  
+  // 1. Participantes con canción confirmada
+  const mcParts = getEnrichedParticipantsList(activeEventId)
+    .filter(p => p.songConfirmed && p.karaokeLink)
+    .map(p => ({
+      source: 'micclub',
+      id: p.id,
+      name: p.name,
+      song: p.songTitle && p.songArtist ? `${p.songTitle} — ${p.songArtist}` : (p.song || 'Sin título'),
+      url: p.karaokeLink,
+      ytId: getYouTubeId(p.karaokeLink),
+      pObject: p
+    }));
+  list.push(...mcParts);
+
+  // 2. Karaoke Libre
+  const currentEventFreeList = freeKaraokeList[activeEventId] || {};
+  const sortedFreeItems = Object.entries(currentEventFreeList)
+    .map(([id, item]) => ({ id, ...item }))
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+    .filter(item => item.link)
+    .map(item => ({
+      source: 'libre',
+      id: item.id,
+      name: item.name,
+      song: item.song,
+      url: item.link,
+      ytId: getYouTubeId(item.link)
+    }));
+  list.push(...sortedFreeItems);
+
+  // 3. Ítems cargados de forma manual
+  const manualItems = customQueueItems.map((item, idx) => ({
+    source: 'manual',
+    id: `manual-${idx}`,
+    name: item.name,
+    song: item.song,
+    url: item.url,
+    ytId: getYouTubeId(item.url)
+  }));
+  list.push(...manualItems);
+
+  // Filtrar solo los ítems que tengan un ID de YouTube válido
+  return list.filter(item => item.ytId);
+}
+
+// Renderizar cola de reproducción
+function renderPlaylistQueue() {
+  const countEl = document.getElementById('yt-playlist-count');
+  const itemsContainer = document.getElementById('yt-playlist-items');
+  if (!itemsContainer) return;
+
+  const queue = getConsolidatedQueue();
+  if (countEl) countEl.textContent = `${queue.length} temas`;
+
+  if (!queue.length) {
+    itemsContainer.innerHTML = `<div style="color:var(--text2);font-style:italic;font-size:12px;text-align:center;padding:16px">La cola de reproducción está vacía</div>`;
+    return;
+  }
+
+  itemsContainer.innerHTML = queue.map((item, idx) => {
+    const isCurrent = activeYtVideo && activeYtVideo.source === item.source && activeYtVideo.id === item.id;
+    const badgeText = item.source === 'micclub' ? 'MC' : (item.source === 'libre' ? 'LIBRE' : 'MANUAL');
+    const badgeColorClass = item.source === 'micclub' ? 'badge-gold' : (item.source === 'libre' ? 'badge-teal' : 'badge-purple');
+    
+    return `
+      <div style="background:var(--bg3);border:1px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.2s">
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span class="badge ${badgeColorClass}" style="font-size:8px;padding:2px 4px">${badgeText}</span>
+            <span style="font-size:10px;color:var(--text2)">${idx + 1}. ${esc(item.name)}</span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(item.song)}">
+            ${esc(item.song)}
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn btn-sm ${isCurrent ? 'btn-gold' : 'btn-outline'}" onclick="playQueueItem('${item.source}', '${item.id}')" style="min-height:30px;height:30px;padding:0 8px;font-size:10px;width:auto">
+            ${isCurrent ? '⏸️ ACTIVO' : '▶️ TOCAR'}
+          </button>
+          ${item.source === 'manual' ? `
+            <button class="btn btn-sm btn-outline" onclick="removeQueueItem('${item.id}')" style="min-height:30px;height:30px;padding:0 8px;width:auto;color:var(--red) !important">🗑️</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Reproducir ítem específico de la cola
+function playQueueItem(source, id) {
+  const queue = getConsolidatedQueue();
+  const item = queue.find(x => x.source === source && x.id === id);
+  if (!item) return;
+
+  if (activeYtVideo && activeYtVideo.source === source && activeYtVideo.id === id) {
+    // Si ya es el ítem activo, alternar reproducción
+    ytRemoteTogglePlay();
+    return;
+  }
+
+  activeYtVideo = item;
+  isYtPlaying = true;
+  
+  // Actualizar el UI del reproductor remoto
+  const titleEl = document.getElementById('yt-remote-title');
+  const singerEl = document.getElementById('yt-remote-singer');
+  const thumbEl = document.getElementById('yt-remote-thumb');
+  const playBtn = document.getElementById('yt-remote-play-btn');
+
+  if (titleEl) titleEl.textContent = item.song;
+  if (singerEl) singerEl.textContent = item.name;
+  if (thumbEl) {
+    thumbEl.innerHTML = `<img src="https://img.youtube.com/vi/${item.ytId}/default.jpg" style="width:100%;height:100%;object-fit:cover">`;
+  }
+  if (playBtn) playBtn.textContent = '⏸️';
+
+  // Enviar comando de carga a la pantalla de proyección
+  if (castChannel) {
+    castChannel.postMessage({
+      type: 'yt_load',
+      ytId: item.ytId,
+      title: item.name,
+      song: item.song
+    });
+  }
+
+  // Auto-seleccionar y emitir la vista de Video en la proyección
+  setCastLayout('video');
+  
+  renderPlaylistQueue();
+}
+
+// Quitar un ítem manual de la cola
+function removeQueueItem(id) {
+  if (id.startsWith('manual-')) {
+    const idx = parseInt(id.replace('manual-', ''), 10);
+    if (!isNaN(idx)) {
+      customQueueItems.splice(idx, 1);
+      renderPlaylistQueue();
+    }
+  }
+}
+
+// Agregar canción manual
+function ytAddManualItem() {
+  const singerInput = document.getElementById('yt-add-singer');
+  const songInput = document.getElementById('yt-add-song');
+  const urlInput = document.getElementById('yt-add-url');
+  
+  if (!urlInput) return;
+  const url = urlInput.value.trim();
+  if (!url) {
+    mcAlert('⚠️ Por favor, ingresá una URL o ID de YouTube');
+    return;
+  }
+  
+  const ytId = getYouTubeId(url);
+  if (!ytId) {
+    mcAlert('⚠️ Enlace de YouTube inválido');
+    return;
+  }
+
+  const singer = (singerInput?.value || '').trim() || 'Invitado';
+  const song = (songInput?.value || '').trim() || 'Canción Manual';
+
+  customQueueItems.push({ name: singer, song: song, url: url });
+  
+  if (singerInput) singerInput.value = '';
+  if (songInput) songInput.value = '';
+  if (urlInput) urlInput.value = '';
+
+  renderPlaylistQueue();
+}
+
+// Alternar reproducción (Play / Pause)
+function ytRemoteTogglePlay() {
+  if (!activeYtVideo) {
+    // Si no hay video activo, iniciar el primero de la cola
+    const queue = getConsolidatedQueue();
+    if (queue.length > 0) {
+      playQueueItem(queue[0].source, queue[0].id);
+    }
+    return;
+  }
+
+  isYtPlaying = !isYtPlaying;
+  const playBtn = document.getElementById('yt-remote-play-btn');
+  if (playBtn) playBtn.textContent = isYtPlaying ? '⏸️' : '▶️';
+
+  if (castChannel) {
+    castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
+  }
+}
+
+// Siguiente tema
+function ytRemoteNext() {
+  const queue = getConsolidatedQueue();
+  if (!queue.length) return;
+  
+  let nextIdx = 0;
+  if (activeYtVideo) {
+    const currIdx = queue.findIndex(x => x.source === activeYtVideo.source && x.id === activeYtVideo.id);
+    if (currIdx !== -1 && currIdx < queue.length - 1) {
+      nextIdx = currIdx + 1;
+    }
+  }
+  
+  playQueueItem(queue[nextIdx].source, queue[nextIdx].id);
+}
+
+// Tema anterior
+function ytRemotePrev() {
+  const queue = getConsolidatedQueue();
+  if (!queue.length) return;
+
+  let prevIdx = 0;
+  if (activeYtVideo) {
+    const currIdx = queue.findIndex(x => x.source === activeYtVideo.source && x.id === activeYtVideo.id);
+    if (currIdx > 0) {
+      prevIdx = currIdx - 1;
+    }
+  }
+
+  playQueueItem(queue[prevIdx].source, queue[prevIdx].id);
+}
+
+// Controladores de rango de Progreso del Admin
+function ytRemoteProgressInput(val) {
+  isSeeking = true;
+  const timeCurrentEl = document.getElementById('yt-remote-time-current');
+  if (timeCurrentEl) timeCurrentEl.textContent = formatTime(val);
+}
+
+function ytRemoteProgressChange(val) {
+  isSeeking = false;
+  if (castChannel) {
+    castChannel.postMessage({ type: 'yt_seek', time: parseFloat(val) });
+  }
+}
+
+// Control remoto de volumen
+function ytRemoteVolumeChange(val) {
+  if (castChannel) {
+    castChannel.postMessage({ type: 'yt_set_volume', volume: parseInt(val, 10) });
+  }
+}
+
+// Seleccionar diseño de emisión a pantalla secundaria
+function setCastLayout(layout) {
+  currentCastLayout = layout;
+  updateCastButtonsHighlight(layout);
+  if (castChannel) {
+    castChannel.postMessage({ type: 'cast_layout', layout: layout });
+  }
+}
+
+// Destacar el botón del diseño activo en el admin
+function updateCastButtonsHighlight(layout) {
+  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank'];
+  layouts.forEach(l => {
+    const btn = document.getElementById(`cast-btn-${l}`);
+    if (btn) btn.classList.toggle('active', l === layout);
+  });
+}
+
+// Dar formato de mm:ss a un número de segundos
+function formatTime(secs) {
+  if (isNaN(secs) || secs === undefined) return '00:00';
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+// ── LÓGICA DE PROYECCIÓN (PROYECTOR WINDOW) ──
+
+let proyectorStatusInterval = null;
+
+function startProyectorStatusLoop() {
+  if (proyectorStatusInterval) clearInterval(proyectorStatusInterval);
+  proyectorStatusInterval = setInterval(() => {
+    if (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.getCurrentTime === 'function') {
+      const stateMap = {
+        '-1': 'unstarted',
+        '0': 'ended',
+        '1': 'playing',
+        '2': 'paused',
+        '3': 'buffering',
+        '5': 'cued'
+      };
+      const playerState = projectionPlayer.getPlayerState();
+      const status = {
+        type: 'yt_status',
+        state: stateMap[playerState] || 'unknown',
+        currentTime: projectionPlayer.getCurrentTime(),
+        duration: projectionPlayer.getDuration()
+      };
+      if (castChannel) castChannel.postMessage(status);
+    }
+  }, 500);
+}
+
+function stopProyectorStatusLoop() {
+  if (proyectorStatusInterval) {
+    clearInterval(proyectorStatusInterval);
+    proyectorStatusInterval = null;
+  }
+}
+
+function initProjectionPlayer() {
+  projectionPlayer = new YT.Player('pantalla-player', {
+    width: '100%',
+    height: '100%',
+    videoId: '',
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      modestbranding: 1,
+      rel: 0,
+      showinfo: 0
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange
+    }
+  });
+}
+
+function onPlayerReady(event) {
+  projectionPlayerReady = true;
+  if (castChannel) {
+    castChannel.postMessage({ type: 'projection_ready' });
+  }
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === YT.PlayerState.PLAYING) {
+    startProyectorStatusLoop();
+  } else {
+    stopProyectorStatusLoop();
+    if (typeof projectionPlayer.getCurrentTime === 'function') {
+      const stateMap = {
+        '0': 'ended',
+        '2': 'paused',
+        '3': 'buffering'
+      };
+      if (castChannel) {
+        castChannel.postMessage({
+          type: 'yt_status',
+          state: stateMap[event.data] || 'unknown',
+          currentTime: projectionPlayer.getCurrentTime(),
+          duration: projectionPlayer.getDuration()
+        });
+      }
+    }
+  }
+  
+  if (event.data === YT.PlayerState.ENDED) {
+    if (castChannel) {
+      castChannel.postMessage({ type: 'yt_ended' });
+    }
+  }
+}
+
+function applyProyectorLayout(layout) {
+  const ytContainer = document.getElementById('pantalla-yt-container');
+  const layoutContainer = document.querySelector('.pantalla-layout');
+
+  if (layout === 'video') {
+    if (ytContainer) ytContainer.style.display = 'block';
+    if (layoutContainer) layoutContainer.style.display = 'none';
+  } else if (layout === 'blank') {
+    if (ytContainer) ytContainer.style.display = 'none';
+    if (layoutContainer) layoutContainer.style.display = 'none';
+    if (projectionPlayer && projectionPlayerReady) projectionPlayer.pauseVideo();
+  } else {
+    if (ytContainer) ytContainer.style.display = 'none';
+    if (layoutContainer) {
+      layoutContainer.style.display = (window.innerWidth < 768) ? 'block' : 'grid';
+    }
+    if (projectionPlayer && projectionPlayerReady) projectionPlayer.pauseVideo();
+    
+    if (layout === 'ranking') setPantallaTab('ranking');
+    else if (layout === 'parts') setPantallaTab('participantes');
+    else if (layout === 'free') setPantallaTab('karaoke');
+    else if (layout === 'flyer') setPantallaTab('proximo');
+  }
+}
+
+function handleProyectorMessage(data) {
+  if (MODE !== 'pantalla') return;
+
+  if (data.type === 'cast_layout') {
+    currentCastLayout = data.layout;
+    applyProyectorLayout(data.layout);
+  } else if (data.type === 'yt_load') {
+    if (projectionPlayer && projectionPlayerReady) {
+      projectionPlayer.loadVideoById(data.ytId);
+      applyProyectorLayout('video');
+    }
+  } else if (data.type === 'yt_play') {
+    if (projectionPlayer && projectionPlayerReady) {
+      projectionPlayer.playVideo();
+    }
+  } else if (data.type === 'yt_pause') {
+    if (projectionPlayer && projectionPlayerReady) {
+      projectionPlayer.pauseVideo();
+    }
+  } else if (data.type === 'yt_seek') {
+    if (projectionPlayer && projectionPlayerReady) {
+      projectionPlayer.seekTo(data.time, true);
+    }
+  } else if (data.type === 'yt_set_volume') {
+    if (projectionPlayer && projectionPlayerReady) {
+      projectionPlayer.setVolume(data.volume);
+    }
+  } else if (data.type === 'sync_request') {
+    const playerState = (projectionPlayer && projectionPlayerReady) ? projectionPlayer.getPlayerState() : -1;
+    if (castChannel) {
+      castChannel.postMessage({
+        type: 'sync_response',
+        layout: currentCastLayout,
+        currentVideoId: (projectionPlayer && projectionPlayerReady) ? projectionPlayer.getVideoData()?.video_id : null,
+        isPlaying: playerState === 1,
+        currentTime: (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.getCurrentTime === 'function') ? projectionPlayer.getCurrentTime() : 0,
+        volume: (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.getVolume === 'function') ? projectionPlayer.getVolume() : 100
+      });
+    }
+  }
+}
+
+function handleCastMessage(data) {
+  if (data.type === 'yt_status') {
+    const progressEl = document.getElementById('yt-remote-progress');
+    const timeCurrentEl = document.getElementById('yt-remote-time-current');
+    const timeDurationEl = document.getElementById('yt-remote-time-duration');
+    const playBtn = document.getElementById('yt-remote-play-btn');
+
+    if (playBtn) {
+      playBtn.textContent = data.state === 'playing' ? '⏸️' : '▶️';
+    }
+
+    if (!isSeeking && progressEl) {
+      progressEl.max = Math.floor(data.duration || 0);
+      progressEl.value = Math.floor(data.currentTime || 0);
+    }
+    
+    if (timeCurrentEl) timeCurrentEl.textContent = formatTime(data.currentTime);
+    if (timeDurationEl) timeDurationEl.textContent = formatTime(data.duration);
+    
+    isYtPlaying = (data.state === 'playing');
+  } else if (data.type === 'yt_ended') {
+    isYtPlaying = false;
+    const playBtn = document.getElementById('yt-remote-play-btn');
+    if (playBtn) playBtn.textContent = '▶️';
+    ytRemoteNext();
+  } else if (data.type === 'sync_request') {
+    if (MODE === 'pantalla') {
+      const playerState = (projectionPlayer && projectionPlayerReady) ? projectionPlayer.getPlayerState() : -1;
+      if (castChannel) {
+        castChannel.postMessage({
+          type: 'sync_response',
+          layout: currentCastLayout,
+          currentVideoId: (projectionPlayer && projectionPlayerReady) ? projectionPlayer.getVideoData()?.video_id : null,
+          isPlaying: playerState === 1,
+          currentTime: (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.getCurrentTime === 'function') ? projectionPlayer.getCurrentTime() : 0,
+          volume: (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.getVolume === 'function') ? projectionPlayer.getVolume() : 100
+        });
+      }
+    }
+  } else if (data.type === 'sync_response') {
+    if (MODE === 'admin') {
+      currentCastLayout = data.layout;
+      updateCastButtonsHighlight(data.layout);
+      
+      isYtPlaying = data.isPlaying;
+      const playBtn = document.getElementById('yt-remote-play-btn');
+      if (playBtn) playBtn.textContent = isYtPlaying ? '⏸️' : '▶️';
+      
+      const volEl = document.getElementById('yt-remote-volume');
+      if (volEl) volEl.value = data.volume;
+    }
+  } else if (data.type === 'projection_ready') {
+    if (MODE === 'admin') {
+      setCastLayout(currentCastLayout);
+      if (activeYtVideo) {
+        if (castChannel) {
+          castChannel.postMessage({
+            type: 'yt_load',
+            ytId: activeYtVideo.ytId,
+            title: activeYtVideo.name,
+            song: activeYtVideo.song
+          });
+        }
+      }
+    }
+  }
+}
+
+// Inicializar el canal de comunicación
+if (window.BroadcastChannel) {
+  castChannel = new BroadcastChannel('micclub_cast');
+  castChannel.onmessage = (event) => {
+    if (MODE === 'pantalla') {
+      handleProyectorMessage(event.data);
+    } else {
+      handleCastMessage(event.data);
+    }
+  };
+}
+
+// Cargar la API de IFrame de YouTube si estamos en el Monitor
+if (MODE === 'pantalla') {
+  if (window.YT && window.YT.Player) {
+    initProjectionPlayer();
+  } else {
+    window.onYouTubeIframeAPIReady = function() {
+      initProjectionPlayer();
+    };
+  }
+}
+
+// Solicitar sincronización inicial
+if (MODE === 'admin') {
+  setTimeout(() => {
+    if (castChannel) castChannel.postMessage({ type: 'sync_request' });
+  }, 1000);
+}
+
+// Registrar funciones globales para invocarlas desde el HTML
+window.setCastLayout = setCastLayout;
+window.ytRemoteTogglePlay = ytRemoteTogglePlay;
+window.ytRemoteNext = ytRemoteNext;
+window.ytRemotePrev = ytRemotePrev;
+window.ytRemoteProgressInput = ytRemoteProgressInput;
+window.ytRemoteProgressChange = ytRemoteProgressChange;
+window.ytRemoteVolumeChange = ytRemoteVolumeChange;
+window.ytAddManualItem = ytAddManualItem;
+window.playQueueItem = playQueueItem;
+window.removeQueueItem = removeQueueItem;
+
