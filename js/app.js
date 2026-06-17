@@ -1376,7 +1376,7 @@ function updateDashboard() {
         // Activo: nombre del evento - fecha, hora y lugar [TERMINAR EVENTO] n/n reservados
         const name = ev.name || '';
         const details = `${ev.date}, ${ev.time} y ${ev.venue}`;
-        const btnText = '🎬 TERMINAR EVENTO';
+        const btnText = 'TERMINAR EVENTO';
         const btnBg = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         const btnColor = '#fff';
         const btnBorder = '#aa3d50';
@@ -1389,7 +1389,7 @@ function updateDashboard() {
               ${slot === currentActiveId ? `
                 <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
               ` : `
-                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVO</button>
+                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
               `}
             </div>
 
@@ -1406,8 +1406,8 @@ function updateDashboard() {
 
             <!-- 3. Estadísticas en 2 renglones (Centro-Derecha) -->
             <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;line-height:1.2;color:var(--teal);min-width:90px">
-              <div>${item.partsCount} part.</div>
-              <div style="color:var(--text2)">${item.reserved} lugares</div>
+              <div>${item.reserved} reservas</div>
+              <div style="color:var(--text2)">${item.partsCount} partic.</div>
             </div>
 
             <!-- 4. Botón Terminar Evento (Derecha) -->
