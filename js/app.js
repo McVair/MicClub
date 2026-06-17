@@ -1382,6 +1382,7 @@ function updateDashboard() {
         const btnBorder = '#aa3d50';
         
         const currentActiveId = getCurrentEventId();
+        const spots = getEventSpots(slot);
         html += `
           <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
             <!-- 1. Botón / Badge ACTIVO (Izquierda) -->
@@ -1404,10 +1405,11 @@ function updateDashboard() {
               </div>
             </div>
 
-            <!-- 3. Estadísticas en 2 renglones (Centro-Derecha) -->
-            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;line-height:1.2;color:var(--teal);min-width:90px">
-              <div>${item.reserved} reservas</div>
-              <div style="color:var(--text2)">${item.partsCount} partic.</div>
+            <!-- 3. Estadísticas en 3 renglones (Centro-Derecha) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:10px;font-weight:600;line-height:1.2;min-width:120px">
+              <div style="color:var(--teal)">${item.partsCount} participantes</div>
+              <div style="color:var(--text2)">${item.reserved} reservas</div>
+              <div style="color:var(--gold)">${spots.isLimited ? spots.remaining : 'Ilimitados'} lugares</div>
             </div>
 
             <!-- 4. Botón Terminar Evento (Derecha) -->
@@ -2812,8 +2814,8 @@ function renderRegistrationEventSelectorList(ev1, ev2) {
   const spots1 = getEventSpots('event1');
   const spots2 = getEventSpots('event2');
   
-  const desc1 = spots1.isLimited ? `${spots1.remaining} plazas disponibles de ${spots1.total}` : 'Sin límite de cupo';
-  const desc2 = spots2.isLimited ? `${spots2.remaining} plazas disponibles de ${spots2.total}` : 'Sin límite de cupo';
+  const desc1 = spots1.isLimited ? `${spots1.remaining} lugares disponibles de ${spots1.total}` : 'Sin límite de cupo';
+  const desc2 = spots2.isLimited ? `${spots2.remaining} lugares disponibles de ${spots2.total}` : 'Sin límite de cupo';
   
   listEl.innerHTML = `
     <div class="p-item" onclick="selectRegistrationEvent('event1', true)" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
