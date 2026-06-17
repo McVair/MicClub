@@ -4780,14 +4780,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Restore session login globally if token is present
+  const mcSession = sessionStorage.getItem('mc_ok');
+  if (mcSession) {
+    adminLoggedIn = true;
+    isSuperAdmin = mcSession === '1450';
+  }
+
   if (MODE === 'home') {
     // Default mode: no tab menu
     document.body.classList.add('no-tabs');
-    // Restore session login
-    const mcSession = sessionStorage.getItem('mc_ok');
-    if (mcSession) {
-      adminLoggedIn = true;
-      isSuperAdmin = mcSession === '1450';
+    if (adminLoggedIn) {
       document.getElementById('home-login-gate').style.display = 'none';
       document.getElementById('home-dashboard').style.display  = 'block';
     }
@@ -4799,6 +4802,12 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (MODE === 'jury') {
     nav('jury');
   } else if (MODE === 'admin') {
+    if (adminLoggedIn) {
+      const loginGate = document.getElementById('admin-login');
+      if (loginGate) loginGate.style.display = 'none';
+      const panel = document.getElementById('admin-panel');
+      if (panel) panel.style.display = 'block';
+    }
     nav('admin');
   } else if (MODE === 'ranking') {
     nav('ranking');
