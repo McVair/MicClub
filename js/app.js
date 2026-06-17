@@ -117,7 +117,9 @@ function nav(page) {
   if (page === 'admin' && adminLoggedIn) {
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
-    setAdminTab('ctrl');
+    const urlParams = new URLSearchParams(window.location.search);
+    const startTab = urlParams.get('tab') || 'ctrl';
+    setAdminTab(startTab);
   }
   updateBackBtn();
   window.scrollTo(0, 0);
@@ -3763,7 +3765,7 @@ function renderAdminParticipants() {
     const sStatus = p.songConfirmed
       ? `<span style="color:var(--teal);font-size:10px">✅ Canción OK</span>`
       : `<span style="color:var(--red);font-size:10px">⚠️ Sin canción</span>`;
-    const karLink  = p.karaokeLink ? `<div class="p-info">🎬 <a href="${esc(p.karaokeLink)}" target="_blank" style="color:var(--purple-light);font-size:10px">Ver karaoke →</a></div>` : '';
+    const karLink  = p.karaokeLink ? `<div class="p-info">🎬 <a href="${esc(p.karaokeLink)}" target="_blank" onclick="setAdminTab('video')" style="color:var(--purple-light);font-size:10px">Ver karaoke →</a></div>` : '';
     const songLink = p.songLink    ? `<div class="p-info">🔗 <a href="${esc(p.songLink)}"    target="_blank" style="color:var(--teal);font-size:10px">Link canción →</a></div>` : '';
     return `<div class="p-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
@@ -3804,7 +3806,7 @@ function renderAdminMicClubParticipants() {
       : (p.song ? esc(p.song) : '<span style="color:var(--red);font-style:italic">Sin canción registrada</span>');
 
     const ytButton = p.karaokeLink ? `
-      <a href="${esc(p.karaokeLink)}" target="_blank" class="btn btn-sm btn-outline" style="border-color:#ff0000;color:#ff0000;font-size:11px;padding:6px 10px;min-height:auto;display:inline-flex;align-items:center;gap:4px;text-decoration:none">
+      <a href="${esc(p.karaokeLink)}" target="_blank" onclick="setAdminTab('video')" class="btn btn-sm btn-outline" style="border-color:#ff0000;color:#ff0000;font-size:11px;padding:6px 10px;min-height:auto;display:inline-flex;align-items:center;gap:4px;text-decoration:none">
         🎬 YouTube
       </a>
     ` : '';
@@ -5005,7 +5007,7 @@ function updateFreeKaraokePages() {
   if (adminListEl) {
     adminListEl.innerHTML = sortedFreeItems.map((item, index) => {
       const ytButton = item.youtubeLink ? `
-        <a href="${esc(item.youtubeLink)}" target="_blank" class="btn btn-sm btn-outline" style="border-color:#ff0000;color:#ff0000;font-size:11px;padding:6px 10px;min-height:auto;display:inline-flex;align-items:center;gap:4px;text-decoration:none">
+        <a href="${esc(item.youtubeLink)}" target="_blank" onclick="setAdminTab('video')" class="btn btn-sm btn-outline" style="border-color:#ff0000;color:#ff0000;font-size:11px;padding:6px 10px;min-height:auto;display:inline-flex;align-items:center;gap:4px;text-decoration:none">
           🎬 YouTube
         </a>
       ` : '';

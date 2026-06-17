@@ -981,6 +981,9 @@ button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
   .admin-video-column {
     display: none;
   }
+  #atab-video-btn {
+    display: inline-block !important;
+  }
 }
 .cast-btn.active {
   background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
