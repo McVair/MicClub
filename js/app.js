@@ -1294,6 +1294,7 @@ function updateDashboard() {
   // Calcular estadísticas Evento 1
   let ev1Reserved = 0;
   let ev1WithSong = 0;
+  let ev1PartsCount = 0;
   if (ev1) {
     Object.values(allParticipants).forEach(p => {
       const res = p.reservations?.event1 || {};
@@ -1302,12 +1303,16 @@ function updateDashboard() {
       const pSong = isMigratedActive ? p.songConfirmed : res.songConfirmed;
       ev1Reserved += parseInt(pPpl) || 0;
       if (pSong) ev1WithSong++;
+      if (parseInt(pPpl) > 0 || pSong) {
+        ev1PartsCount++;
+      }
     });
   }
 
   // Calcular estadísticas Evento 2
   let ev2Reserved = 0;
   let ev2WithSong = 0;
+  let ev2PartsCount = 0;
   if (ev2) {
     Object.values(allParticipants).forEach(p => {
       const res = p.reservations?.event2 || {};
@@ -1316,6 +1321,9 @@ function updateDashboard() {
       const pSong = isMigratedActive ? p.songConfirmed : res.songConfirmed;
       ev2Reserved += parseInt(pPpl) || 0;
       if (pSong) ev2WithSong++;
+      if (parseInt(pPpl) > 0 || pSong) {
+        ev2PartsCount++;
+      }
     });
   }
 
@@ -1323,8 +1331,8 @@ function updateDashboard() {
   const elPanel = document.getElementById('events-control-panel');
   if (elPanel) {
     const list = [
-      { slot: 'event1', data: ev1, reserved: ev1Reserved, withSong: ev1WithSong },
-      { slot: 'event2', data: ev2, reserved: ev2Reserved, withSong: ev2WithSong }
+      { slot: 'event1', data: ev1, reserved: ev1Reserved, withSong: ev1WithSong, partsCount: ev1PartsCount },
+      { slot: 'event2', data: ev2, reserved: ev2Reserved, withSong: ev2WithSong, partsCount: ev2PartsCount }
     ];
 
     const activeEvents = list.filter(item => item.data);
@@ -1353,7 +1361,7 @@ function updateDashboard() {
         const btnBg = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         const btnColor = '#fff';
         const btnBorder = '#aa3d50';
-        const spotsText = `${item.reserved} / ${ev.capacity || '∞'} reservados`;
+        const spotsText = `${item.partsCount} part. / ${item.reserved} lugares`;
         
         const currentActiveId = getCurrentEventId();
         html += `
@@ -1373,7 +1381,7 @@ function updateDashboard() {
               <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer;margin:0">
                 ${btnText}
               </button>
-              <span style="font-size:12px;color:var(--teal);font-weight:bold;min-width:95px;text-align:right">
+              <span style="font-size:12px;color:var(--teal);font-weight:bold;min-width:120px;text-align:right">
                 ${spotsText}
               </span>
             </div>
@@ -1401,7 +1409,7 @@ function updateDashboard() {
               <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer">
                 ${btnText}
               </button>
-              <span style="font-size:12px;color:var(--text2);font-weight:bold;min-width:95px;text-align:right">
+              <span style="font-size:12px;color:var(--text2);font-weight:bold;min-width:120px;text-align:right">
                 ${spotsText}
               </span>
             </div>
@@ -1418,8 +1426,8 @@ function updateDashboard() {
   const activeEventId = getCurrentEventId();
   if (activeEventId) {
     const activeReserved = (activeEventId === 'event1') ? ev1Reserved : ev2Reserved;
-    const activeWithSong = (activeEventId === 'event1') ? ev1WithSong : ev2WithSong;
-    if (elP) elP.textContent = activeWithSong;
+    const activePartsCount = (activeEventId === 'event1') ? ev1PartsCount : ev2PartsCount;
+    if (elP) elP.textContent = activePartsCount;
     if (elR) elR.textContent = activeReserved;
   } else {
     if (elP) elP.textContent = '0';
@@ -3503,7 +3511,6 @@ function renderAdminEventSelectorBar() {
   container.style.display = 'flex';
 
   const currentActiveId = getCurrentEventId();
-  const selectedSlot = getAdminActiveEventId();
 
   let html = `
     <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;display:flex;align-items:center;gap:6px">
@@ -3517,35 +3524,23 @@ function renderAdminEventSelectorBar() {
   if (ev2) slots.push({ id: 'event2', data: ev2 });
 
   slots.forEach(slotItem => {
-    const isSelected = slotItem.id === selectedSlot;
     const isGlobalActive = slotItem.id === currentActiveId;
     const name = slotItem.data.name || '';
     const dateText = slotItem.data.date ? ` (${slotItem.data.date})` : '';
 
     html += `
-      <button onclick="setAdminSelectedEventSlot('${slotItem.id}')" class="btn btn-sm ${isSelected ? 'btn-gold' : 'btn-outline'}" style="min-height:34px;padding:0 12px;font-size:11px;width:auto;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;margin:0">
-        <span>${esc(name)}${dateText}</span>
-        ${isGlobalActive ? `<span style="background:var(--bg);color:var(--gold);font-size:9px;padding:2px 4px;border-radius:4px;font-weight:bold">⚡ ACTIVO</span>` : ''}
-      </button>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${isGlobalActive ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:6px 12px;box-sizing:border-box;min-height:38px">
+        <span style="font-size:13px;color:var(--text);font-weight:600">${esc(name)}${dateText}</span>
+        ${isGlobalActive ? `
+          <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:4px 10px;border-radius:6px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;text-align:center">ACTIVO</span>
+        ` : `
+          <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
+        `}
+      </div>
     `;
   });
 
   html += `</div>`;
-
-  const isSelectedGlobalActive = selectedSlot === currentActiveId;
-  if (selectedSlot && !isSelectedGlobalActive) {
-    html += `
-      <button onclick="setActiveEvent('${selectedSlot}')" class="btn btn-sm btn-teal" style="min-height:34px;padding:0 12px;font-size:11px;width:auto;border-radius:6px;cursor:pointer;margin:0;flex-shrink:0">
-        ⚡ Hacer Activo Global
-      </button>
-    `;
-  } else if (selectedSlot && isSelectedGlobalActive) {
-    html += `
-      <span style="font-size:11px;color:var(--gold);font-weight:bold;display:flex;align-items:center;gap:4px;flex-shrink:0">
-        ✅ Evento Activo Principal
-      </span>
-    `;
-  }
 
   container.innerHTML = html;
 }
@@ -6072,24 +6067,15 @@ async function setActiveEvent(slot) {
       localState.settings.currentEvent = evData;
       saveLocal();
     }
+    adminSelectedEventSlot = slot;
     updateUI();
-    if (MODE === 'admin') {
-      renderAdminEventSelectorBar();
-    }
   } catch(e) {
     console.error(e);
   }
 }
 
 function setAdminSelectedEventSlot(slot) {
-  adminSelectedEventSlot = slot;
-  renderAdminEventSelectorBar();
-  
-  // Re-render the active admin tab
-  if (adminTab === 'parts') renderAdminParticipants();
-  if (adminTab === 'jury')  renderAdminJury();
-  if (adminTab === 'links') renderLinks();
-  if (adminTab === 'video' || adminTab === 'ctrl') renderPlaylistQueue();
+  setActiveEvent(slot);
 }
 
 window.setActiveEvent = setActiveEvent;
