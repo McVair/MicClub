@@ -1366,9 +1366,9 @@ function updateDashboard() {
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
               ${slot === currentActiveId ? `
-                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:5px 8px;border-radius:6px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:0.5px">⚡ ACTIVO VIVO</span>
+                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:5px 12px;border-radius:6px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:inline-block;text-align:center">ACTIVO</span>
               ` : `
-                <button onclick="setActiveEvent('${slot}')" class="btn btn-sm btn-outline" style="min-height:30px;padding:0 8px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:0.5px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">Habilitar Activo</button>
+                <button onclick="setActiveEvent('${slot}')" class="btn btn-sm btn-outline" style="min-height:30px;padding:0 12px;font-size:11px;width:auto;border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
               `}
               <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer;margin:0">
                 ${btnText}
@@ -1415,9 +1415,10 @@ function updateDashboard() {
   // Actualizar estadísticas globales para el evento vivo
   const elP = document.getElementById('dash-parts');
   const elR = document.getElementById('dash-reservas');
-  if (closest) {
-    const activeReserved = (closest.id === 'event1') ? ev1Reserved : ev2Reserved;
-    const activeWithSong = (closest.id === 'event1') ? ev1WithSong : ev2WithSong;
+  const activeEventId = getCurrentEventId();
+  if (activeEventId) {
+    const activeReserved = (activeEventId === 'event1') ? ev1Reserved : ev2Reserved;
+    const activeWithSong = (activeEventId === 'event1') ? ev1WithSong : ev2WithSong;
     if (elP) elP.textContent = activeWithSong;
     if (elR) elR.textContent = activeReserved;
   } else {
@@ -1428,7 +1429,8 @@ function updateDashboard() {
   // Resultados label: nombre del evento si hay show activo
   const lbl = document.getElementById('dash-ranking-label');
   if (lbl) {
-    lbl.textContent = showRunning && closest?.name ? `Resultados · ${closest.name}` : 'Resultados';
+    const activeEvent = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+    lbl.textContent = showRunning && activeEvent?.name ? `Resultados · ${activeEvent.name}` : 'Resultados';
   }
 
   // Botón KARAOKE LIBRE (Amarillo/Gold)
