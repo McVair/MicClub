@@ -564,7 +564,21 @@ function getClosestEvent(ev1, ev2) {
   }
 }
 
+let adminSelectedEventSlot = null;
+function getAdminActiveEventId() {
+  if (adminSelectedEventSlot === 'event1' || adminSelectedEventSlot === 'event2') {
+    return adminSelectedEventSlot;
+  }
+  return getCurrentEventId();
+}
+
 function getCurrentEventId() {
+  const manualActiveSlot = localState.settings?.activeEventSlot;
+  if (manualActiveSlot === 'event1' || manualActiveSlot === 'event2') {
+    if (localState.settings?.events?.[manualActiveSlot]) {
+      return manualActiveSlot;
+    }
+  }
   const ev1 = localState.settings?.events?.event1;
   const ev2 = localState.settings?.events?.event2;
   const closest = getClosestEvent(ev1, ev2);
@@ -739,8 +753,8 @@ function getJuryTotalForPart(p, cat) {
   return vals.reduce((s, v) => s + (parseInt(v) || 0), 0);
 }
 
-function getJuryTotal(pid, cat) {
-  const activeEventId = getCurrentEventId();
+function getJuryTotal(pid, cat, eventId = null) {
+  const activeEventId = eventId || getCurrentEventId();
   const p = allParticipants[pid];
   if (!p) return 0;
   const pEvent = activeEventId ? getParticipantForEvent(p, activeEventId) : p;
@@ -827,52 +841,52 @@ function enrichHistorySnapshot(snap) {
   return snap;
 }
 
-function calcScore(p) {
+function calcScore(p, eventId = null) {
   const pid = p.id || Object.keys(allParticipants).find(k => allParticipants[k] === p);
   if (!pid) return calcBaseScore(p);
-  const activeEventId = getCurrentEventId();
+  const activeEventId = eventId || getCurrentEventId();
   if (!activeEventId) return calcBaseScore(p);
   const parts = getEnrichedParticipantsList(activeEventId);
   const scores = getEventScores(parts);
   return scores[pid]?.total ?? calcBaseScore(p);
 }
 
-function calcMicclubScore(p) {
-  const eventPts = showRunning ? calcScore(p) : 0;
+function calcMicclubScore(p, eventId = null) {
+  const eventPts = showRunning ? calcScore(p, eventId) : 0;
   return eventPts + (parseInt(p.micclubPts) || 0);
 }
 
-function sorted() {
-  const activeEventId = getCurrentEventId();
+function sorted(eventId = null) {
+  const activeEventId = eventId || getCurrentEventId();
   if (!activeEventId) return [];
   return getEnrichedParticipantsList(activeEventId)
     .map(p => {
-      p.score = calcScore(p);
+      p.score = calcScore(p, activeEventId);
       return p;
     })
     .sort((a, b) => b.score - a.score);
 }
 
-function sortedMicclub() {
-  const activeEventId = getCurrentEventId();
+function sortedMicclub(eventId = null) {
+  const activeEventId = eventId || getCurrentEventId();
   return Object.entries(allParticipants)
     .map(([id, p]) => {
       const pEvent = activeEventId ? getParticipantForEvent(p, activeEventId) : p;
       const enriched = { ...pEvent, id };
-      enriched.score = calcMicclubScore(enriched);
+      enriched.score = calcMicclubScore(enriched, activeEventId);
       return enriched;
     })
     .sort((a, b) => b.score - a.score);
 }
 
 
-function getJuryLeader(cat) {
-  const activeEventId = getCurrentEventId();
+function getJuryLeader(cat, eventId = null) {
+  const activeEventId = eventId || getCurrentEventId();
   if (!activeEventId) return null;
   const parts = getEnrichedParticipantsList(activeEventId);
   if (!parts.length) return null;
   return parts
-    .map(p => ({ id: p.id, name: p.name, score: getJuryTotal(p.id, cat) }))
+    .map(p => ({ id: p.id, name: p.name, score: getJuryTotal(p.id, cat, activeEventId) }))
     .sort((a, b) => b.score - a.score)[0];
 }
 
@@ -971,6 +985,7 @@ function updateUI() {
     renderAdminJury(); 
     updateAdminNextEventPreview();
     renderPlaylistQueue();
+    renderAdminEventSelectorBar();
   }
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
@@ -1340,6 +1355,7 @@ function updateDashboard() {
         const btnBorder = '#aa3d50';
         const spotsText = `${item.reserved} / ${ev.capacity || '∞'} reservados`;
         
+        const currentActiveId = getCurrentEventId();
         html += `
           <div class="dash-event-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
             <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
@@ -1348,8 +1364,13 @@ function updateDashboard() {
                 ${esc(eventText)}
               </span>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
-              <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer">
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              ${slot === currentActiveId ? `
+                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:5px 8px;border-radius:6px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:0.5px">⚡ ACTIVO VIVO</span>
+              ` : `
+                <button onclick="setActiveEvent('${slot}')" class="btn btn-sm btn-outline" style="min-height:30px;padding:0 8px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:0.5px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">Habilitar Activo</button>
+              `}
+              <button onclick="dashToggleShow('${slot}')" class="btn btn-sm" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};min-height:30px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:6px;cursor:pointer;margin:0">
                 ${btnText}
               </button>
               <span style="font-size:12px;color:var(--teal);font-weight:bold;min-width:95px;text-align:right">
@@ -1727,7 +1748,7 @@ function delParticipantWithPass(id) {
 }
 
 function nuevoEvento() {
-  const activeEventId = getCurrentEventId();
+  const activeEventId = getAdminActiveEventId();
   if (!activeEventId) {
     mcAlert('No hay evento activo para finalizar.');
     return;
@@ -2020,6 +2041,7 @@ async function startShow(slot, name, date, time, venue, capacity) {
     const ev1 = localState.settings.events.event1;
     const ev2 = localState.settings.events.event2;
     const closest = getClosestEvent(ev1, ev2);
+    const activeSlot = closest ? closest.id : slot;
     
     showRunning = true;
     votingOpen  = false;
@@ -2029,7 +2051,8 @@ async function startShow(slot, name, date, time, venue, capacity) {
       'settings/votingOpen': false,
       'settings/votingCloseAt': null,
       [`settings/events/${slot}`]: evData,
-      'settings/currentEvent': closest
+      'settings/currentEvent': closest,
+      'settings/activeEventSlot': activeSlot
     };
     
     if (firebaseOk) {
@@ -2039,6 +2062,7 @@ async function startShow(slot, name, date, time, venue, capacity) {
       localState.settings.votingOpen = false;
       localState.settings.votingCloseAt = null;
       localState.settings.currentEvent = closest;
+      localState.settings.activeEventSlot = activeSlot;
       saveLocal();
     }
     
@@ -3440,6 +3464,7 @@ function changePass() {
 let adminTab = 'ctrl';
 function setAdminTab(tab) {
   adminTab = tab;
+  renderAdminEventSelectorBar();
   ['ctrl', 'parts', 'jury', 'links', 'video'].forEach(t => {
     const btn = document.getElementById(`atab-${t}-btn`);
     if (btn) btn.classList.toggle('active', t === tab);
@@ -3460,6 +3485,67 @@ function setAdminTab(tab) {
   if (tab === 'jury')  renderAdminJury();
   if (tab === 'links') renderLinks();
   if (tab === 'video' || tab === 'ctrl') renderPlaylistQueue();
+}
+
+function renderAdminEventSelectorBar() {
+  const container = document.getElementById('admin-event-selector-bar');
+  if (!container) return;
+
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+
+  if (!ev1 && !ev2) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
+
+  const currentActiveId = getCurrentEventId();
+  const selectedSlot = getAdminActiveEventId();
+
+  let html = `
+    <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;display:flex;align-items:center;gap:6px">
+      <span>🛠️ Gestionar:</span>
+    </div>
+    <div style="display:flex;gap:8px;flex:1;min-width:0;justify-content:flex-start;flex-wrap:wrap">
+  `;
+
+  const slots = [];
+  if (ev1) slots.push({ id: 'event1', data: ev1 });
+  if (ev2) slots.push({ id: 'event2', data: ev2 });
+
+  slots.forEach(slotItem => {
+    const isSelected = slotItem.id === selectedSlot;
+    const isGlobalActive = slotItem.id === currentActiveId;
+    const name = slotItem.data.name || '';
+    const dateText = slotItem.data.date ? ` (${slotItem.data.date})` : '';
+
+    html += `
+      <button onclick="setAdminSelectedEventSlot('${slotItem.id}')" class="btn btn-sm ${isSelected ? 'btn-gold' : 'btn-outline'}" style="min-height:34px;padding:0 12px;font-size:11px;width:auto;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;margin:0">
+        <span>${esc(name)}${dateText}</span>
+        ${isGlobalActive ? `<span style="background:var(--bg);color:var(--gold);font-size:9px;padding:2px 4px;border-radius:4px;font-weight:bold">⚡ ACTIVO</span>` : ''}
+      </button>
+    `;
+  });
+
+  html += `</div>`;
+
+  const isSelectedGlobalActive = selectedSlot === currentActiveId;
+  if (selectedSlot && !isSelectedGlobalActive) {
+    html += `
+      <button onclick="setActiveEvent('${selectedSlot}')" class="btn btn-sm btn-teal" style="min-height:34px;padding:0 12px;font-size:11px;width:auto;border-radius:6px;cursor:pointer;margin:0;flex-shrink:0">
+        ⚡ Hacer Activo Global
+      </button>
+    `;
+  } else if (selectedSlot && isSelectedGlobalActive) {
+    html += `
+      <span style="font-size:11px;color:var(--gold);font-weight:bold;display:flex;align-items:center;gap:4px;flex-shrink:0">
+        ✅ Evento Activo Principal
+      </span>
+    `;
+  }
+
+  container.innerHTML = html;
 }
 
 async function toggleBonus(val) {
@@ -3611,7 +3697,7 @@ async function adminAddParticipant() {
   const wa   = document.getElementById('a-wa').value.trim();
   if (!name) { mcAlert('El nombre es obligatorio'); return; }
 
-  const activeEventId = getCurrentEventId();
+  const activeEventId = getAdminActiveEventId();
   if (activeEventId) {
     const spots = getEventSpots(activeEventId);
     if (spots.isLimited && ppl > spots.remaining) {
@@ -3820,7 +3906,7 @@ async function assignPrize(prizeKey, selId, juryCat) {
   const sel = document.getElementById(selId);
   if (!sel) return;
   const targetId = sel.value;
-  const activeEventId = getCurrentEventId();
+  const activeEventId = getAdminActiveEventId();
   if (!activeEventId) { mcAlert('No hay evento activo'); return; }
   
   try {
@@ -3967,7 +4053,7 @@ async function saveParticipant() {
     extraPts: parseInt(document.getElementById('edit-extra').value) || 0,
     updatedAt: Date.now(),
   };
-  const activeEventId = getCurrentEventId();
+  const activeEventId = getAdminActiveEventId();
   if (showRunning && activeEventId) {
     const st = document.getElementById('edit-song').value.trim();
     const sa = document.getElementById('edit-artist').value.trim();
@@ -4165,10 +4251,16 @@ async function endShow(slot) {
     const ev2 = localState.settings.events.event2;
     const closest = getClosestEvent(ev1, ev2);
     
+    if (adminSelectedEventSlot === slot) {
+      adminSelectedEventSlot = null;
+    }
+    
     if (closest) {
       updates['settings/currentEvent'] = closest;
+      updates['settings/activeEventSlot'] = closest.id;
     } else {
       updates['settings/currentEvent'] = null;
+      updates['settings/activeEventSlot'] = null;
       updates['settings/showRunning'] = false;
       updates['settings/votingOpen'] = false;
       updates['settings/votingCloseAt'] = null;
@@ -4204,8 +4296,10 @@ async function endShow(slot) {
       
       if (closest) {
         localState.settings.currentEvent = closest;
+        localState.settings.activeEventSlot = closest.id;
       } else {
         localState.settings.currentEvent = null;
+        localState.settings.activeEventSlot = null;
         localState.settings.showRunning = false;
         localState.settings.votingOpen = false;
         localState.settings.votingCloseAt = null;
@@ -5414,8 +5508,8 @@ function getYouTubeId(url) {
 }
 
 // Consolidar cola de reproducción (automatica + manual)
-function getConsolidatedQueue() {
-  const activeEventId = getCurrentEventId();
+function getConsolidatedQueue(eventId = null) {
+  const activeEventId = eventId || (MODE === 'admin' ? getAdminActiveEventId() : getCurrentEventId());
   if (!activeEventId) return [];
 
   const list = [];
@@ -5961,4 +6055,41 @@ window.ytRemoteVolumeChange = ytRemoteVolumeChange;
 window.ytAddManualItem = ytAddManualItem;
 window.playQueueItem = playQueueItem;
 window.removeQueueItem = removeQueueItem;
+
+async function setActiveEvent(slot) {
+  try {
+    const evData = localState.settings?.events?.[slot] || null;
+    const updates = {
+      'settings/activeEventSlot': slot,
+      'settings/currentEvent': evData
+    };
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db), updates);
+    } else {
+      localState.settings.activeEventSlot = slot;
+      localState.settings.currentEvent = evData;
+      saveLocal();
+    }
+    updateUI();
+    if (MODE === 'admin') {
+      renderAdminEventSelectorBar();
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function setAdminSelectedEventSlot(slot) {
+  adminSelectedEventSlot = slot;
+  renderAdminEventSelectorBar();
+  
+  // Re-render the active admin tab
+  if (adminTab === 'parts') renderAdminParticipants();
+  if (adminTab === 'jury')  renderAdminJury();
+  if (adminTab === 'links') renderLinks();
+  if (adminTab === 'video' || adminTab === 'ctrl') renderPlaylistQueue();
+}
+
+window.setActiveEvent = setActiveEvent;
+window.setAdminSelectedEventSlot = setAdminSelectedEventSlot;
 
