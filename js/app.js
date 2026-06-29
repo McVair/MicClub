@@ -4714,9 +4714,13 @@ function renderLinks() {
       <div style="background:var(--bg4);border-radius:6px;padding:8px;font-size:10px;word-break:break-all;color:var(--teal);margin-bottom:7px">${esc(l.url)}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="copyLink('${esc(l.url)}')">📋 Copiar</button>
-        <a href="${esc(l.url)}" target="_blank" style="text-decoration:none">
-          <button class="btn btn-outline btn-sm">${esc(l.btnText || '↗ Abrir')}</button>
-        </a>
+        ${l.btnText === 'Mostrar' ? `
+          <button class="btn btn-outline btn-sm" onclick="openProjectionWindow()">${esc(l.btnText)}</button>
+        ` : `
+          <a href="${esc(l.url)}" target="_blank" style="text-decoration:none">
+            <button class="btn btn-outline btn-sm">${esc(l.btnText || '↗ Abrir')}</button>
+          </a>
+        `}
       </div>
     </div>`).join('');
 
@@ -6338,4 +6342,23 @@ function activateAutoplay() {
   }
 }
 window.activateAutoplay = activateAutoplay;
+
+function openProjectionWindow() {
+  const url = '?mode=pantalla';
+  const name = 'micclub_projection';
+  const w = window.screen.width || 1920;
+  const h = window.screen.height || 1080;
+  
+  // Abrir como ventana popup limpia (sin barras de URL o pestañas)
+  // E intentar posicionarla en el segundo monitor a la derecha (coordenada left = w)
+  const features = `width=${w},height=${h},left=${w},top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no`;
+  const win = window.open(url, name, features);
+  if (win) {
+    win.focus();
+  } else {
+    // Si el navegador bloquea los popups, usar fallback normal en nueva pestaña
+    window.open(url, '_blank');
+  }
+}
+window.openProjectionWindow = openProjectionWindow;
 

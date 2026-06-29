@@ -914,23 +914,14 @@ button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
 /* 9. Public Presentation Screen Layout */
 .pantalla-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 1fr;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   background: #0A0A0F;
 }
 .pantalla-sidebar {
-  background: #111015;
-  border-right: 1px solid rgba(255,255,255,0.05);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 24px 20px;
-  box-sizing: border-box;
-  justify-content: flex-start;
-  gap: 30px;
-  overflow-y: auto;
+  display: none !important;
 }
 .pantalla-content {
   display: flex;
