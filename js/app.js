@@ -5561,13 +5561,13 @@ ${
       container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">Esperando confirmación de participantes...</div>`;
       return;
     }
-    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+    container.innerHTML = `<div style="max-width: 900px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
       parts.map((p, index) => {
         const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
         return `
-          <div style="padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 21px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 15px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+          <div style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
           </div>
         `;
       }).join('')
@@ -5621,13 +5621,13 @@ ${
       <div class="show-layout-container" style="display: grid; gap: 12px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
         <div class="result-column-card" style="margin: 0;">
           <div class="result-column-header">
-            <div class="column-category-title">🏆 PUNTOS ACUMULADOS</div>
+            <div class="column-category-title">RANKING DE PARTICIPANTES</div>
           </div>
           <div id="pantalla-show-rows" style="padding:8px 12px"></div>
         </div>
         <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
           <div class="result-column-header">
-            <div class="column-category-title">👑 CONSAGRADOS (>150 pts)</div>
+            <div class="column-category-title">ARTISTAS CONSAGRADOS</div>
           </div>
           <div id="pantalla-consagrados-rows" style="padding:8px 12px"></div>
         </div>
@@ -5656,12 +5656,12 @@ ${
       container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">Esperando inscripciones al Karaoke Libre...</div>`;
       return;
     }
-    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
+    container.innerHTML = `<div style="max-width: 900px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
       sortedFreeItems.map((item, index) => {
         return `
-          <div style="padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 21px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 15px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+          <div style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
           </div>
         `;
       }).join('')

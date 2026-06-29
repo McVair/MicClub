@@ -921,6 +921,63 @@ body.mode-pantalla *::-webkit-scrollbar {
   display: none !important;
 }
 
+/* Compresión extrema para pantalla de proyector */
+body.mode-pantalla .pantalla-content {
+  padding: 12px 16px !important;
+}
+body.mode-pantalla .result-column-card {
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+}
+body.mode-pantalla .result-column-header {
+  margin-bottom: 8px !important;
+  padding-bottom: 4px !important;
+}
+body.mode-pantalla .column-category-title {
+  font-size: 14px !important;
+}
+body.mode-pantalla .column-source-tag {
+  font-size: 8px !important;
+  padding: 1px 5px !important;
+}
+
+/* Filas de Ranking Activos */
+body.mode-pantalla #pantalla-show-rows > div {
+  padding: 4px 0 !important;
+}
+body.mode-pantalla #pantalla-show-rows > div > div {
+  margin-bottom: 2px !important;
+  gap: 6px !important;
+}
+body.mode-pantalla #pantalla-consagrados-rows > div {
+  padding: 4px 0 !important;
+}
+body.mode-pantalla #pantalla-show-rows > div > div > div:nth-child(2),
+body.mode-pantalla #pantalla-show-rows > div > div > div:nth-child(3),
+body.mode-pantalla #pantalla-consagrados-rows > div > div:nth-child(2),
+body.mode-pantalla #pantalla-consagrados-rows > div > div:nth-child(3) {
+  font-size: 14px !important;
+}
+
+/* Filas de Podio de Votación */
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div {
+  padding: 4px 0 !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(1) {
+  gap: 6px !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(1) > div:nth-child(2),
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(1) > div:nth-child(3) {
+  font-size: 13px !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(2) {
+  margin-top: 1px !important;
+  font-size: 10px !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(2) > span {
+  font-size: 10px !important;
+}
+
 .pantalla-layout {
   display: grid;
   grid-template-columns: 1fr;
