@@ -6185,8 +6185,11 @@ function handleCastMessage(data) {
     const timeDurationEl = document.getElementById('yt-remote-time-duration');
     const playBtn = document.getElementById('yt-remote-play-btn');
 
+    const activeStates = ['playing', 'buffering'];
+    const isActive = activeStates.includes(data.state);
+
     if (playBtn) {
-      playBtn.textContent = data.state === 'playing' ? '⏸️' : '▶️';
+      playBtn.textContent = isActive ? '⏸️' : '▶️';
     }
 
     if (!isSeeking && progressEl) {
@@ -6197,7 +6200,7 @@ function handleCastMessage(data) {
     if (timeCurrentEl) timeCurrentEl.textContent = formatTime(data.currentTime);
     if (timeDurationEl) timeDurationEl.textContent = formatTime(data.duration);
     
-    isYtPlaying = (data.state === 'playing');
+    isYtPlaying = isActive;
   } else if (data.type === 'yt_ended') {
     isYtPlaying = false;
     const playBtn = document.getElementById('yt-remote-play-btn');
@@ -6326,4 +6329,13 @@ function setAdminSelectedEventSlot(slot) {
 
 window.setActiveEvent = setActiveEvent;
 window.setAdminSelectedEventSlot = setAdminSelectedEventSlot;
+
+function activateAutoplay() {
+  const el = document.getElementById('pantalla-autoplay-overlay');
+  if (el) el.style.display = 'none';
+  if (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.playVideo === 'function') {
+    projectionPlayer.playVideo();
+  }
+}
+window.activateAutoplay = activateAutoplay;
 
