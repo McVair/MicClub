@@ -5552,6 +5552,24 @@ function updatePantallaContent() {
   const activeEventId = getCurrentEventId();
   const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
 
+  // Actualizar cabecera con el título de la vista activa en el proyector
+  const layoutTitles = {
+    artistas: 'ARTISTAS INVITADOS',
+    participantes: 'PARTICIPANTES',
+    votos: 'VOTACIÓN',
+    ranking: 'RANKING DE PARTICIPANTES',
+    proximo: 'PRÓXIMO EVENTO',
+    karaoke: 'KARAOKE'
+  };
+  const elName = document.getElementById('pantalla-event-name');
+  const elDetails = document.getElementById('pantalla-event-details');
+  if (elName) {
+    elName.textContent = layoutTitles[pantallaTab] || 'MIC CLUB';
+  }
+  if (elDetails) {
+    elDetails.textContent = ev ? `${ev.name} · ${ev.date || ''}` : '';
+  }
+
   const sponsors = localState.settings?.sponsors || [];
   const artists = ev?.guestArtists || [];
   const nextEventImage = localState.settings?.nextEventImage || null;
@@ -5695,13 +5713,13 @@ ${
 function updatePantallaSponsors() {
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsHtml = sponsors.map(sp => `
-    <div style="width: 70px; height: 70px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center;">
-      <img src="${sp.img}" style="width: 100%; height: 100%; object-fit: cover;">
-    </div>
+    <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
+      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+    </a>
   `).join('');
-  const elSponsors = document.getElementById('pantalla-sponsors');
+  const elSponsors = document.getElementById('pantalla-sponsors-list');
   if (elSponsors) {
-    elSponsors.innerHTML = sponsorsHtml || '<div style="font-size: 10px; color: var(--text2); text-align: center; width: 100%;">Sin auspiciantes cargados</div>';
+    elSponsors.innerHTML = sponsorsHtml || '<div style="font-size: 11px; color: var(--text2); text-align: center; width: 100%;">Sin auspiciantes cargados</div>';
   }
 }
 
@@ -5864,6 +5882,7 @@ function renderPlaylistQueue() {
     const isCurrent = activeYtVideo && activeYtVideo.source === item.source && activeYtVideo.id === item.id;
     const badgeText = item.source === 'micclub' ? 'MC' : (item.source === 'libre' ? 'LIBRE' : 'MANUAL');
     const badgeColorClass = item.source === 'micclub' ? 'badge-gold' : (item.source === 'libre' ? 'badge-teal' : 'badge-purple');
+    const badgeHtml = item.source === 'micclub' ? '' : `<span class="badge ${badgeColorClass}" style="font-size:8px;padding:2px 4px">${badgeText}</span>`;
     
     return `
       <div class="draggable-queue-item" draggable="true" ondragstart="drag(event, ${idx})" ondragover="allowDrop(event)" ondrop="drop(event, ${idx})" style="background:var(--bg3);border:1px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.2s">
@@ -5873,7 +5892,7 @@ function renderPlaylistQueue() {
           
           <div style="min-width:0;flex:1">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-              <span class="badge ${badgeColorClass}" style="font-size:8px;padding:2px 4px">${badgeText}</span>
+              ${badgeHtml}
               <span style="font-size:10px;color:var(--text2)">${idx + 1}. ${esc(item.name)}</span>
             </div>
             <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(item.song)}">
