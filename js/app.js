@@ -3211,11 +3211,6 @@ function loadPublicVoteOpts() {
 function toggleVoteBtn(type, pid) {
   const btn = document.getElementById(`vb-${type}-${pid}`);
   if (!btn) return;
-  const isSelected = btn.classList.contains('selected');
-  if (!isSelected) {
-    const others = document.querySelectorAll(`.vote-pill[id^="vb-${type}-"].selected`);
-    others.forEach(o => o.classList.remove('selected'));
-  }
   btn.classList.toggle('selected');
 }
 
@@ -6048,10 +6043,11 @@ function stopProyectorStatusLoop() {
 }
 
 function initProjectionPlayer() {
+  const startVideoId = localState.settings?.castYtVideo?.ytId || 'M7lc1UVf-VE';
   projectionPlayer = new YT.Player('pantalla-player', {
     width: '100%',
     height: '100%',
-    videoId: '',
+    videoId: startVideoId,
     playerVars: {
       autoplay: 1,
       controls: 0,
@@ -6072,6 +6068,17 @@ function onPlayerReady(event) {
   projectionPlayerReady = true;
   if (castChannel) {
     castChannel.postMessage({ type: 'projection_ready' });
+  }
+  // Auto-sincronizar al estar listo leyendo de Firebase
+  const s = localState.settings || {};
+  if (s.castLayout) {
+    applyProyectorLayout(s.castLayout);
+  }
+  if (s.castYtVolume !== undefined) {
+    projectionPlayer.setVolume(s.castYtVolume);
+  }
+  if (s.castYtCommand && s.castYtCommand.type === 'yt_play') {
+    projectionPlayer.playVideo();
   }
 }
 
@@ -6253,6 +6260,11 @@ if (window.BroadcastChannel) {
 
 // Cargar la API de IFrame de YouTube si estamos en el Monitor
 if (MODE === 'pantalla') {
+  // Definir el callback antes de inyectar el script para evitar race conditions
+  window.onYouTubeIframeAPIReady = function() {
+    initProjectionPlayer();
+  };
+
   const tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -6262,12 +6274,9 @@ if (MODE === 'pantalla') {
     document.head.appendChild(tag);
   }
 
+  // Si por alguna razón ya estuviera cargado previamente
   if (window.YT && window.YT.Player) {
     initProjectionPlayer();
-  } else {
-    window.onYouTubeIframeAPIReady = function() {
-      initProjectionPlayer();
-    };
   }
 }
 
