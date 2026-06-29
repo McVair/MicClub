@@ -858,16 +858,15 @@ if ('serviceWorker' in navigator) {
           
           <!-- 1. Emisión / Proyección -->
           <div class="card" style="padding:14px;margin-bottom:14px;border:1px solid var(--gold-dark)">
-            <div class="card-title" style="margin-bottom:8px">📺 Control de Emisión (Cast)</div>
-            <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Elegí qué mostrar en la pantalla secundaria (monitor extendido):</div>
+            <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;min-height:42px">📺 EMITIR</button>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Reprod. Video</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking Puntos</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Lista Cantantes</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">📋 Karaoke Libre</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Flyer Próx. Evento</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-blank" onclick="setCastLayout('blank')" style="font-size:11px;padding:8px 0;width:auto">⬛ Pantalla Negra</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
+              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
             </div>
           </div>
 
@@ -921,6 +920,13 @@ if ('serviceWorker' in navigator) {
                 <input type="text" id="yt-add-url" placeholder="Enlace de YouTube / ID" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
               </div>
               <button class="btn btn-teal btn-sm" onclick="ytAddManualItem()" style="width:100%;min-height:auto;padding:6px 0;font-size:11px">Añadir a la lista</button>
+            </div>
+
+            <!-- Selector de filtro de lista (Participantes vs Karaoke) -->
+            <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)">
+              <button class="btn btn-sm btn-outline active" id="pl-filter-all" onclick="setPlaylistFilter('all')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">📋 Todos</button>
+              <button class="btn btn-sm btn-outline" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">👥 Participantes</button>
+              <button class="btn btn-sm btn-outline" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">🎤 Karaoke</button>
             </div>
 
             <div id="yt-playlist-items" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">

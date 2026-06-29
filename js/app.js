@@ -5723,16 +5723,21 @@ function getConsolidatedQueue(eventId = null) {
   
   // 1. Participantes con canción confirmada
   const mcParts = getEnrichedParticipantsList(activeEventId)
-    .filter(p => p.songConfirmed && p.karaokeLink)
-    .map(p => ({
-      source: 'micclub',
-      id: p.id,
-      name: p.name,
-      song: p.songTitle && p.songArtist ? `${p.songTitle} — ${p.songArtist}` : (p.song || 'Sin título'),
-      url: p.karaokeLink,
-      ytId: getYouTubeId(p.karaokeLink),
-      pObject: p
-    }));
+    .filter(p => {
+      const pe = getParticipantForEvent(p, activeEventId);
+      return pe.songConfirmed && pe.karaokeLink;
+    })
+    .map(p => {
+      const pe = getParticipantForEvent(p, activeEventId);
+      return {
+        source: 'micclub',
+        id: p.id,
+        name: p.name,
+        song: pe.songTitle && pe.songArtist ? `${pe.songTitle} — ${pe.songArtist}` : (pe.song || 'Sin título'),
+        url: pe.karaokeLink,
+        ytId: getYouTubeId(pe.karaokeLink)
+      };
+    });
   list.push(...mcParts);
 
   // 2. Karaoke Libre
@@ -5763,7 +5768,34 @@ function getConsolidatedQueue(eventId = null) {
   list.push(...manualItems);
 
   // Filtrar solo los ítems que tengan un ID de YouTube válido
-  return list.filter(item => item.ytId);
+  const validItems = list.filter(item => item.ytId);
+
+  // Aplicar orden personalizado si existe en settings
+  const customOrder = localState.settings?.queueOrder || [];
+  if (customOrder.length > 0) {
+    validItems.sort((a, b) => {
+      const keyA = `${a.source}-${a.id}`;
+      const keyB = `${b.source}-${b.id}`;
+      let idxA = customOrder.indexOf(keyA);
+      let idxB = customOrder.indexOf(keyB);
+      if (idxA === -1) idxA = 9999;
+      if (idxB === -1) idxB = 9999;
+      return idxA - idxB;
+    });
+  }
+
+  return validItems;
+}
+
+let currentPlaylistFilter = 'all';
+function setPlaylistFilter(filter) {
+  currentPlaylistFilter = filter;
+  // Actualizar clases activas de los botones de filtro
+  ['all', 'micclub', 'libre'].forEach(f => {
+    const btn = document.getElementById(`pl-filter-${f}`);
+    if (btn) btn.classList.toggle('active', f === filter);
+  });
+  renderPlaylistQueue();
 }
 
 // Renderizar cola de reproducción
@@ -5772,7 +5804,15 @@ function renderPlaylistQueue() {
   const itemsContainer = document.getElementById('yt-playlist-items');
   if (!itemsContainer) return;
 
-  const queue = getConsolidatedQueue();
+  let queue = getConsolidatedQueue();
+  
+  // Aplicar filtro si no es 'all'
+  if (currentPlaylistFilter === 'micclub') {
+    queue = queue.filter(item => item.source === 'micclub' || item.source === 'manual');
+  } else if (currentPlaylistFilter === 'libre') {
+    queue = queue.filter(item => item.source === 'libre' || item.source === 'manual');
+  }
+
   if (countEl) countEl.textContent = `${queue.length} temas`;
 
   if (!queue.length) {
@@ -5784,6 +5824,8 @@ function renderPlaylistQueue() {
     const isCurrent = activeYtVideo && activeYtVideo.source === item.source && activeYtVideo.id === item.id;
     const badgeText = item.source === 'micclub' ? 'MC' : (item.source === 'libre' ? 'LIBRE' : 'MANUAL');
     const badgeColorClass = item.source === 'micclub' ? 'badge-gold' : (item.source === 'libre' ? 'badge-teal' : 'badge-purple');
+    const isFirst = idx === 0;
+    const isLast = idx === queue.length - 1;
     
     return `
       <div style="background:var(--bg3);border:1px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.2s">
@@ -5796,17 +5838,97 @@ function renderPlaylistQueue() {
             ${esc(item.song)}
           </div>
         </div>
-        <div style="display:flex;gap:4px;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <!-- Reordenar -->
+          <button class="btn btn-sm btn-outline" onclick="moveQueueItem(${idx}, -1)" ${isFirst ? 'disabled' : ''} style="min-height:30px;height:30px;padding:0 6px;font-size:10px;width:auto;opacity:${isFirst ? 0.3 : 1}">▲</button>
+          <button class="btn btn-sm btn-outline" onclick="moveQueueItem(${idx}, 1)" ${isLast ? 'disabled' : ''} style="min-height:30px;height:30px;padding:0 6px;font-size:10px;width:auto;opacity:${isLast ? 0.3 : 1}">▼</button>
+          
+          <!-- Tocar -->
           <button class="btn btn-sm ${isCurrent ? 'btn-gold' : 'btn-outline'}" onclick="playQueueItem('${item.source}', '${item.id}')" style="min-height:30px;height:30px;padding:0 8px;font-size:10px;width:auto">
-            ${isCurrent ? '⏸️ ACTIVO' : '▶️ TOCAR'}
+            ${isCurrent ? '⏸️' : '▶️'}
           </button>
-          ${item.source === 'manual' ? `
-            <button class="btn btn-sm btn-outline" onclick="removeQueueItem('${item.id}')" style="min-height:30px;height:30px;padding:0 8px;width:auto;color:var(--red) !important">🗑️</button>
-          ` : ''}
+          
+          <!-- Borrar -->
+          <button class="btn btn-sm btn-outline" onclick="deleteQueueItem('${item.source}', '${item.id}')" style="min-height:30px;height:30px;padding:0 8px;width:auto;color:var(--red) !important">🗑️</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+async function deleteQueueItem(source, id) {
+  if (!confirm('¿Estás seguro de que querés borrar este tema de la cola?')) return;
+  const activeEventId = getAdminActiveEventId();
+  if (!activeEventId) return;
+
+  if (source === 'manual') {
+    removeQueueItem(id);
+  } else if (source === 'libre') {
+    if (firebaseOk) {
+      await dbRemove(dbRef(db, `freeKaraoke/${activeEventId}/${id}`));
+    } else {
+      if (freeKaraokeList[activeEventId]) {
+        delete freeKaraokeList[activeEventId][id];
+        saveLocal();
+      }
+    }
+  } else if (source === 'micclub') {
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db), {
+        [`participants/${id}/songConfirmed`]: false,
+        [`participants/${id}/reservations/${activeEventId}/songConfirmed`]: false
+      });
+    } else {
+      const p = allParticipants[id];
+      if (p) {
+        p.songConfirmed = false;
+        if (p.reservations && p.reservations[activeEventId]) {
+          p.reservations[activeEventId].songConfirmed = false;
+        }
+        saveLocal();
+      }
+    }
+  }
+  updateUI();
+}
+
+async function moveQueueItem(index, direction) {
+  let queue = getConsolidatedQueue();
+  
+  if (currentPlaylistFilter === 'micclub') {
+    queue = queue.filter(item => item.source === 'micclub' || item.source === 'manual');
+  } else if (currentPlaylistFilter === 'libre') {
+    queue = queue.filter(item => item.source === 'libre' || item.source === 'manual');
+  }
+
+  if (index < 0 || index >= queue.length) return;
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= queue.length) return;
+
+  // Intercambiar en la cola filtrada
+  const temp = queue[index];
+  queue[index] = queue[targetIndex];
+  queue[targetIndex] = temp;
+
+  // Generar lista completa ordenada combinada con los ítems filtrados
+  const newOrder = queue.map(item => `${item.source}-${item.id}`);
+
+  // Agregar los ítems que no estaban en la vista actual (si los hay)
+  const fullQueue = getConsolidatedQueue();
+  fullQueue.forEach(item => {
+    const key = `${item.source}-${item.id}`;
+    if (!newOrder.includes(key)) {
+      newOrder.push(key);
+    }
+  });
+
+  if (firebaseOk) {
+    await dbUpdate(dbRef(db, 'settings'), { queueOrder: newOrder });
+  } else {
+    localState.settings.queueOrder = newOrder;
+    saveLocal();
+    updateUI();
+  }
 }
 
 // Reproducir ítem específico de la cola
@@ -6008,7 +6130,7 @@ function setCastLayout(layout) {
 
 // Destacar el botón del diseño activo en el admin
 function updateCastButtonsHighlight(layout) {
-  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank'];
+  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote'];
   layouts.forEach(l => {
     const btn = document.getElementById(`cast-btn-${l}`);
     if (btn) btn.classList.toggle('active', l === layout);
@@ -6149,6 +6271,7 @@ function applyProyectorLayout(layout) {
     else if (layout === 'parts') setPantallaTab('participantes');
     else if (layout === 'free') setPantallaTab('karaoke');
     else if (layout === 'flyer') setPantallaTab('proximo');
+    else if (layout === 'vote') setPantallaTab('votos');
   }
 }
 
@@ -6317,6 +6440,9 @@ window.ytRemoteVolumeChange = ytRemoteVolumeChange;
 window.ytAddManualItem = ytAddManualItem;
 window.playQueueItem = playQueueItem;
 window.removeQueueItem = removeQueueItem;
+window.deleteQueueItem = deleteQueueItem;
+window.moveQueueItem = moveQueueItem;
+window.setPlaylistFilter = setPlaylistFilter;
 
 async function setActiveEvent(slot) {
   try {
