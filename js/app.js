@@ -1021,6 +1021,18 @@ function updateRegistrationPageUI() {
       }
     }
   }
+
+  // Renderizar auspiciantes en la página de reserva
+  const sponsors = localState.settings?.sponsors || [];
+  const sponsorsHtml = sponsors.map(sp => `
+    <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
+      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+    </a>
+  `).join('');
+  const elSponsorsReg = document.getElementById('register-sponsors');
+  if (elSponsorsReg) {
+    elSponsorsReg.innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;width:100%;padding:10px">Sin auspiciantes cargados</div>';
+  }
 }
 
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
