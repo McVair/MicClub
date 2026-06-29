@@ -2368,7 +2368,12 @@ function updateRanking() {
 }
 
 function startCelebration() {
-  const canvasId = currentPage === 'ranking' ? 'ranking-celebration-canvas' : 'show-celebration-canvas';
+  let canvasId = 'show-celebration-canvas';
+  if (MODE === 'pantalla') {
+    canvasId = 'pantalla-celebration-canvas';
+  } else if (currentPage === 'ranking') {
+    canvasId = 'ranking-celebration-canvas';
+  }
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -2452,11 +2457,20 @@ function startCelebration() {
   }
   
   function loop() {
-    if (currentPage !== 'ranking' && currentPage !== 'show') {
-      window.removeEventListener('resize', resize);
-      celebrationAnimationId = null;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      return;
+    if (MODE === 'pantalla') {
+      if (pantallaTab !== 'votos' && pantallaTab !== 'ranking') {
+        window.removeEventListener('resize', resize);
+        celebrationAnimationId = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+    } else {
+      if (currentPage !== 'ranking' && currentPage !== 'show') {
+        window.removeEventListener('resize', resize);
+        celebrationAnimationId = null;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
     }
     
     celebrationAnimationId = requestAnimationFrame(loop);
@@ -5553,21 +5567,29 @@ function updatePantallaContent() {
   const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
 
   // Actualizar cabecera con el título de la vista activa en el proyector
-  const layoutTitles = {
-    artistas: 'ARTISTAS INVITADOS',
-    participantes: 'PARTICIPANTES',
-    votos: 'VOTACIÓN',
-    ranking: 'RANKING DE PARTICIPANTES',
-    proximo: 'PRÓXIMO EVENTO',
-    karaoke: 'KARAOKE'
-  };
   const elName = document.getElementById('pantalla-event-name');
   const elDetails = document.getElementById('pantalla-event-details');
-  if (elName) {
-    elName.textContent = layoutTitles[pantallaTab] || 'MIC CLUB';
+  if (pantallaTab === 'ranking') {
+    if (elName) elName.textContent = 'Mic Club';
+    if (elDetails) elDetails.textContent = 'Puntos Acumulados';
+  } else if (pantallaTab === 'votos') {
+    if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
+    if (elDetails) elDetails.textContent = 'resultados de la votacion';
+  } else {
+    const layoutTitles = {
+      artistas: 'ARTISTAS INVITADOS',
+      participantes: 'PARTICIPANTES',
+      proximo: 'PRÓXIMO EVENTO',
+      karaoke: 'KARAOKE'
+    };
+    if (elName) elName.textContent = layoutTitles[pantallaTab] || 'MIC CLUB';
+    if (elDetails) elDetails.textContent = ev ? `${ev.name} · ${ev.date || ''}` : '';
   }
-  if (elDetails) {
-    elDetails.textContent = ev ? `${ev.name} · ${ev.date || ''}` : '';
+
+  // Ocultar auspiciantes en pie de página si es ranking (se muestran a la derecha en columna)
+  const sponsorsFooter = document.getElementById('pantalla-sponsors-footer');
+  if (sponsorsFooter) {
+    sponsorsFooter.style.display = (pantallaTab === 'ranking') ? 'none' : 'block';
   }
 
   const sponsors = localState.settings?.sponsors || [];
@@ -5659,22 +5681,30 @@ ${
   }
   else if (pantallaTab === 'ranking') {
     container.innerHTML = `
-      <div class="show-layout-container" style="display: grid; gap: 12px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
-        <div class="result-column-card" style="margin: 0;">
-          <div class="result-column-header">
-            <div class="column-category-title">RANKING DE PARTICIPANTES</div>
+      <div class="show-layout-container" style="display: grid; grid-template-columns: 1fr auto; gap: 16px; animation: fadeUp 0.5s ease-out forwards; width: 100%; height: 100%;">
+        <div style="display: grid; gap: 12px; grid-template-columns: 1fr;" id="pantalla-ranking-lists-wrapper">
+          <div class="result-column-card" style="margin: 0;">
+            <div class="result-column-header">
+              <div class="column-category-title">RANKING DE PARTICIPANTES</div>
+            </div>
+            <div id="pantalla-show-rows" style="padding:8px 12px"></div>
           </div>
-          <div id="pantalla-show-rows" style="padding:8px 12px"></div>
+          <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
+            <div class="result-column-header">
+              <div class="column-category-title">ARTISTAS CONSAGRADOS</div>
+            </div>
+            <div id="pantalla-consagrados-rows" style="padding:8px 12px"></div>
+          </div>
         </div>
-        <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
-          <div class="result-column-header">
-            <div class="column-category-title">ARTISTAS CONSAGRADOS</div>
-          </div>
-          <div id="pantalla-consagrados-rows" style="padding:8px 12px"></div>
+        <!-- Columna de auspiciantes en la derecha -->
+        <div id="pantalla-ranking-sponsors-col" style="display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; align-items: center; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 14px;">
+          <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 4px; opacity: 0.8;">Auspiciantes</div>
+          <div id="pantalla-ranking-sponsors-list" style="display: flex; flex-direction: column; gap: 8px; align-items: center;"></div>
         </div>
       </div>
     `;
     updateShowMode();
+    updatePantallaSponsors();
   }
   else if (pantallaTab === 'proximo') {
     if (!nextEventImage) {
@@ -5717,9 +5747,20 @@ function updatePantallaSponsors() {
       <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
     </a>
   `).join('');
+  
   const elSponsors = document.getElementById('pantalla-sponsors-list');
   if (elSponsors) {
     elSponsors.innerHTML = sponsorsHtml || '<div style="font-size: 11px; color: var(--text2); text-align: center; width: 100%;">Sin auspiciantes cargados</div>';
+  }
+
+  const elSponsorsRanking = document.getElementById('pantalla-ranking-sponsors-list');
+  if (elSponsorsRanking) {
+    const rankingSponsorsHtml = sponsors.map(sp => `
+      <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block;margin-bottom:2px">
+        <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+      </a>
+    `).join('');
+    elSponsorsRanking.innerHTML = rankingSponsorsHtml || '';
   }
 }
 
