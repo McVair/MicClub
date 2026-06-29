@@ -168,6 +168,13 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── RESERVA ─────────── -->
   <div id="page-register" class="page">
+    <!-- Auspiciantes y Botón Ranking Siempre Visibles Arriba -->
+    <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 14px; text-align: center;">
+      <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; opacity: 0.8;">Auspiciantes Oficiales</div>
+      <div class="sponsors-grid" id="register-sponsors" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;"></div>
+      <button class="btn btn-gold btn-outline" id="btn-register-to-ranking" onclick="nav('show')" style="width: 100%; font-size: 12px; padding: 8px 0; min-height: 36px;">🏆 Ranking Mic Club</button>
+    </div>
+
     <div class="hero" style="padding-bottom:6px">
       <div class="hero-title" id="register-page-title">RESERVA</div>
       <div class="hero-sub" id="register-page-sub">Tu perfil · Canción · Puntos</div>
@@ -286,14 +293,6 @@ if ('serviceWorker' in navigator) {
       <button class="btn btn-gold" id="confirm-all-btn" onclick="saveAndExit()" style="width:100%;min-height:52px;font-size:16px;margin-top:4px">💾 GUARDAR Y SALIR</button>
 
     </div>
-      </div>
-
-    <!-- Auspiciantes / Sponsors en Reserva -->
-    <div style="margin-top:28px;border-top:1px solid rgba(255,255,255,.05);padding-top:18px;text-align:center">
-      <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:3px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;opacity:0.8">Auspiciantes Oficiales</div>
-      <div class="sponsors-grid" id="register-sponsors" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px"></div>
-    </div>
-
   </div>
 
   <!-- ─────────── PROGRAMA (PORTAL PÚBLICO) ─────────── -->
@@ -679,10 +678,14 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 
-  <!-- ─────────── MICCLUB (ex-SHOW) ─────────── -->
   <div id="page-show" class="page">
     <!-- Lienzo de Fuegos Artificiales para Celebración -->
     <canvas id="show-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.75"></canvas>
+
+    <!-- Botón Volver a Reservas (solo visible en flujo de reservas) -->
+    <div id="show-back-to-register-container" style="display:none;margin-bottom:12px">
+      <button class="btn btn-outline" onclick="nav('register')" style="width:100%;font-size:12px;padding:8px 0;min-height:36px">🔙 Volver a Reservas</button>
+    </div>
 
     <div class="hero" style="padding-bottom:4px">
       <div class="hero-title">MIC CLUB</div>
@@ -815,7 +818,10 @@ if ('serviceWorker' in navigator) {
 
       <!-- Participantes -->
       <div id="atab-parts" style="display:none">
-        <div id="admin-parts-list"><div style="text-align:center;color:var(--text2);padding:20px">Cargando...</div></div>
+        <div class="card">
+          <div class="card-title">👥 Listado de Participantes</div>
+          <div id="admin-parts-list"><div style="text-align:center;color:var(--text2);padding:20px">Cargando...</div></div>
+        </div>
       </div>
 
       <!-- Jurado -->
@@ -902,8 +908,19 @@ if ('serviceWorker' in navigator) {
               <button class="btn btn-sm btn-outline" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">🎤 Karaoke</button>
             </div>
 
+            <!-- Título dinámico del listado de cola -->
+            <div id="yt-playlist-list-name" style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Cola de Participantes Mic Club</div>
+
             <div id="yt-playlist-items" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
               <!-- Renderizado dinámico -->
+            </div>
+          </div>
+
+          <!-- Auspiciantes en Columna Derecha (Emisión) -->
+          <div class="card" style="padding:14px;margin-top:14px;text-align:center">
+            <div class="card-title" style="margin-bottom:12px;text-align:left">🎨 Auspiciantes</div>
+            <div id="admin-page-sponsors" style="display:flex;flex-direction:column;align-items:center;gap:10px">
+              <!-- Renderizado vertical -->
             </div>
           </div>
 
