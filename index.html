@@ -864,26 +864,27 @@ if ('serviceWorker' in navigator) {
             </div>
           </div>
 
-          <!-- 2. Reproductor Remoto -->
-          <div class="card" style="padding:14px;margin-bottom:14px">
-            <div class="card-title" style="margin-bottom:8px">🎙️ Control de Video YouTube</div>
-            
-            <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)">
-              <div id="yt-remote-thumb" style="width:60px;height:45px;background:#000;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <span style="font-size:16px">📺</span>
-              </div>
-              <div style="min-width:0;flex:1">
-                <div id="yt-remote-title" style="font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ningún video activo</div>
-                <div id="yt-remote-singer" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Cargá una canción para iniciar</div>
-              </div>
-            </div>
-            
-            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px">
-              <button class="btn btn-outline" onclick="ytRemotePrev()" style="min-height:auto;width:44px;height:38px;border-radius:50%;padding:0;font-size:14px">⏮️</button>
-              <button class="btn btn-gold" id="yt-remote-play-btn" onclick="ytRemoteTogglePlay()" style="min-height:auto;width:50px;height:50px;border-radius:50%;padding:0;font-size:18px">▶️</button>
-              <button class="btn btn-outline" onclick="ytRemoteNext()" style="min-height:auto;width:44px;height:38px;border-radius:50%;padding:0;font-size:14px">⏭️</button>
+          <!-- Unificado: Reproducción -->
+          <div class="card" style="padding:14px">
+            <div class="card-title" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+              <span>🎵 Reproducción</span>
+              <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
             </div>
 
+            <!-- Fila de Canción Activa + Controles de Reproducción -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:10px;border:1px solid var(--border)">
+              <div style="min-width:0;flex:1">
+                <div id="yt-remote-title" style="font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">Ningún video activo</div>
+                <div id="yt-remote-singer" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">Cargá una canción para iniciar</div>
+              </div>
+              <div style="display:flex;gap:4px;flex-shrink:0">
+                <button class="btn btn-sm btn-outline" onclick="ytRemotePrev()" style="min-height:32px;height:32px;width:32px;padding:0">⏮️</button>
+                <button class="btn btn-sm btn-outline" id="yt-remote-play-btn" onclick="ytRemoteTogglePlay()" style="min-height:32px;height:32px;width:32px;padding:0">▶️</button>
+                <button class="btn btn-sm btn-outline" onclick="ytRemoteNext()" style="min-height:32px;height:32px;width:32px;padding:0">⏭️</button>
+              </div>
+            </div>
+
+            <!-- Barra de Progreso y Tiempo -->
             <div style="margin-bottom:12px">
               <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px">
                 <span id="yt-remote-time-current">00:00</span>
@@ -892,34 +893,12 @@ if ('serviceWorker' in navigator) {
               <input type="range" id="yt-remote-progress" min="0" max="100" value="0" oninput="ytRemoteProgressInput(this.value)" onchange="ytRemoteProgressChange(this.value)" style="width:100%;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
             </div>
 
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:11px;color:var(--text2)">🔈</span>
-              <input type="range" id="yt-remote-volume" min="0" max="100" value="100" oninput="ytRemoteVolumeChange(this.value)" style="flex:1;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
-              <span style="font-size:11px;color:var(--text2)">🔊</span>
-            </div>
-          </div>
-
-          <!-- 3. Cola de Reproducción (Playlist) -->
-          <div class="card" style="padding:14px">
-            <div class="card-title" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-              <span>🎵 Cola de Reproducción</span>
-              <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
-            </div>
-            
-            <div style="background:rgba(255,255,255,.01);border:1px dashed var(--border);border-radius:8px;padding:10px;margin-bottom:12px">
-              <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">➕ Agregar video manual</div>
-              <div style="display:grid;gap:6px;margin-bottom:6px">
-                <input type="text" id="yt-add-singer" placeholder="Nombre de cantante" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
-                <input type="text" id="yt-add-song" placeholder="Nombre de canción" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
-                <input type="text" id="yt-add-url" placeholder="Enlace de YouTube / ID" style="font-size:12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)">
-              </div>
-              <button class="btn btn-teal btn-sm" onclick="ytAddManualItem()" style="width:100%;min-height:auto;padding:6px 0;font-size:11px">Añadir a la lista</button>
-            </div>
+            <!-- Botón Agregar Canción -->
+            <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin-bottom:12px;font-size:11px;padding:8px 0;min-height:34px">➕ Agregar Canción</button>
 
             <!-- Selector de filtro de lista (Participantes vs Karaoke) -->
             <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)">
-              <button class="btn btn-sm btn-outline active" id="pl-filter-all" onclick="setPlaylistFilter('all')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">📋 Todos</button>
-              <button class="btn btn-sm btn-outline" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">👥 Participantes</button>
+              <button class="btn btn-sm btn-outline active" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">👥 Participantes</button>
               <button class="btn btn-sm btn-outline" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">🎤 Karaoke</button>
             </div>
 
@@ -1013,6 +992,23 @@ if ('serviceWorker' in navigator) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
       <button class="btn btn-outline" onclick="closeJuryModal()">Cancelar</button>
       <button class="btn btn-gold" id="jury-modal-confirm-btn" onclick="confirmJuryModal()" disabled style="opacity:.4">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Agregar Canción Manual -->
+<div class="modal-overlay" id="modal-add-song" style="display:none">
+  <div class="modal" style="max-width:400px">
+    <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:16px;color:var(--gold);margin-bottom:12px">Agregar Canción</div>
+    <div id="add-song-err" class="alert alert-error" style="display:none;margin-bottom:12px"></div>
+    <div class="modal-field-group">
+      <div class="modal-row"><label style="width:90px">Cantante *</label><input type="text" id="add-song-singer" placeholder="Nombre del cantante" maxlength="50" style="flex:1"></div>
+      <div class="modal-row"><label style="width:90px">Canción *</label><input type="text" id="add-song-title" placeholder="Nombre del tema" maxlength="80" style="flex:1"></div>
+      <div class="modal-row"><label style="width:90px">Enlace/ID *</label><input type="text" id="add-song-url" placeholder="Enlace de YouTube o ID de 11 caracteres" style="flex:1"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeAddSongModal()">Cancelar</button>
+      <button class="btn btn-gold" onclick="submitAddSongModal()">Confirmar</button>
     </div>
   </div>
 </div>

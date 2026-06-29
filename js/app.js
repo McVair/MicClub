@@ -5535,7 +5535,7 @@ function updatePantallaContent() {
 
   if (pantallaTab === 'artistas') {
     if (!artists.length) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay artistas invitados cargados...</div>`;
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">No hay artistas invitados cargados...</div>`;
       return;
     }
     container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">
@@ -5544,9 +5544,9 @@ ${
         const name = typeof art === 'object' ? art.name : art;
         const song = typeof art === 'object' ? art.song : '';
         return `
-          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 28px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 20px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
+          <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 17px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
           </div>
         `;
       }).join('')
@@ -5558,16 +5558,16 @@ ${
       .filter(p => p.songConfirmed)
       .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     if (!parts.length) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando confirmación de participantes...</div>`;
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">Esperando confirmación de participantes...</div>`;
       return;
     }
     container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
       parts.map((p, index) => {
         const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
         return `
-          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+          <div style="padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 21px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 15px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
           </div>
         `;
       }).join('')
@@ -5575,7 +5575,7 @@ ${
   }
   else if (pantallaTab === 'votos') {
     container.innerHTML = `
-      <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
+      <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; width: 100%; margin: 0; animation: fadeUp 0.5s ease-out forwards;">
         <div class="result-column-card" style="margin:0">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>CANCIÓN</div>
@@ -5618,18 +5618,18 @@ ${
   }
   else if (pantallaTab === 'ranking') {
     container.innerHTML = `
-      <div class="show-layout-container" style="display: grid; gap: 20px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
+      <div class="show-layout-container" style="display: grid; gap: 12px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
         <div class="result-column-card" style="margin: 0;">
           <div class="result-column-header">
             <div class="column-category-title">🏆 PUNTOS ACUMULADOS</div>
           </div>
-          <div id="pantalla-show-rows" style="padding:10px 14px"></div>
+          <div id="pantalla-show-rows" style="padding:8px 12px"></div>
         </div>
         <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
           <div class="result-column-header">
             <div class="column-category-title">👑 CONSAGRADOS (>150 pts)</div>
           </div>
-          <div id="pantalla-consagrados-rows" style="padding:10px 14px"></div>
+          <div id="pantalla-consagrados-rows" style="padding:8px 12px"></div>
         </div>
       </div>
     `;
@@ -5637,12 +5637,12 @@ ${
   }
   else if (pantallaTab === 'proximo') {
     if (!nextEventImage) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay imagen cargada para el próximo evento...</div>`;
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">No hay imagen cargada para el próximo evento...</div>`;
       return;
     }
     container.innerHTML = `
       <div style="width: 100%; display: flex; justify-content: center; align-items: center; min-height: 50vh; animation: zoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;">
-        <img src="${nextEventImage}" style="max-width: 100%; max-height: 70vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 2px solid var(--border-gold);" />
+        <img src="${nextEventImage}" style="max-width: 100%; max-height: 80vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 2px solid var(--border-gold);" />
       </div>
     `;
   }
@@ -5653,15 +5653,15 @@ ${
       .map(([id, item]) => ({ id, ...item }))
       .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     if (!sortedFreeItems.length) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando inscripciones al Karaoke Libre...</div>`;
+      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">Esperando inscripciones al Karaoke Libre...</div>`;
       return;
     }
     container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
       sortedFreeItems.map((item, index) => {
         return `
-          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+          <div style="padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family:'Bebas Neue',sans-serif; font-size: 21px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Oswald',sans-serif; font-size: 15px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
           </div>
         `;
       }).join('')
@@ -5763,7 +5763,8 @@ function getConsolidatedQueue(eventId = null) {
     name: item.name,
     song: item.song,
     url: item.url,
-    ytId: getYouTubeId(item.url)
+    ytId: getYouTubeId(item.url),
+    targetList: item.targetList || 'micclub'
   }));
   list.push(...manualItems);
 
@@ -5787,15 +5788,31 @@ function getConsolidatedQueue(eventId = null) {
   return validItems;
 }
 
-let currentPlaylistFilter = 'all';
+let currentPlaylistFilter = 'micclub';
 function setPlaylistFilter(filter) {
   currentPlaylistFilter = filter;
   // Actualizar clases activas de los botones de filtro
-  ['all', 'micclub', 'libre'].forEach(f => {
+  ['micclub', 'libre'].forEach(f => {
     const btn = document.getElementById(`pl-filter-${f}`);
     if (btn) btn.classList.toggle('active', f === filter);
   });
   renderPlaylistQueue();
+}
+
+// Variables de drag and drop nativo
+let dragSourceIndex = null;
+function drag(ev, index) {
+  dragSourceIndex = index;
+  ev.dataTransfer.effectAllowed = "move";
+}
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+function drop(ev, targetIndex) {
+  ev.preventDefault();
+  if (dragSourceIndex === null || dragSourceIndex === targetIndex) return;
+  moveQueueItemDirect(dragSourceIndex, targetIndex);
+  dragSourceIndex = null;
 }
 
 // Renderizar cola de reproducción
@@ -5806,11 +5823,11 @@ function renderPlaylistQueue() {
 
   let queue = getConsolidatedQueue();
   
-  // Aplicar filtro si no es 'all'
+  // Aplicar filtro de visualización según pestaña activa
   if (currentPlaylistFilter === 'micclub') {
-    queue = queue.filter(item => item.source === 'micclub' || item.source === 'manual');
+    queue = queue.filter(item => item.source === 'micclub' || (item.source === 'manual' && item.targetList === 'micclub'));
   } else if (currentPlaylistFilter === 'libre') {
-    queue = queue.filter(item => item.source === 'libre' || item.source === 'manual');
+    queue = queue.filter(item => item.source === 'libre' || (item.source === 'manual' && item.targetList === 'libre'));
   }
 
   if (countEl) countEl.textContent = `${queue.length} temas`;
@@ -5824,25 +5841,24 @@ function renderPlaylistQueue() {
     const isCurrent = activeYtVideo && activeYtVideo.source === item.source && activeYtVideo.id === item.id;
     const badgeText = item.source === 'micclub' ? 'MC' : (item.source === 'libre' ? 'LIBRE' : 'MANUAL');
     const badgeColorClass = item.source === 'micclub' ? 'badge-gold' : (item.source === 'libre' ? 'badge-teal' : 'badge-purple');
-    const isFirst = idx === 0;
-    const isLast = idx === queue.length - 1;
     
     return `
-      <div style="background:var(--bg3);border:1px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.2s">
-        <div style="min-width:0;flex:1">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-            <span class="badge ${badgeColorClass}" style="font-size:8px;padding:2px 4px">${badgeText}</span>
-            <span style="font-size:10px;color:var(--text2)">${idx + 1}. ${esc(item.name)}</span>
-          </div>
-          <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(item.song)}">
-            ${esc(item.song)}
+      <div class="draggable-queue-item" draggable="true" ondragstart="drag(event, ${idx})" ondragover="allowDrop(event)" ondrop="drop(event, ${idx})" style="background:var(--bg3);border:1px solid ${isCurrent ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color 0.2s">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1">
+          <!-- Drag Handle -->
+          <div style="cursor:grab;color:var(--text2);font-size:14px;padding-right:4px;user-select:none" title="Arrastrar para reordenar">☰</div>
+          
+          <div style="min-width:0;flex:1">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+              <span class="badge ${badgeColorClass}" style="font-size:8px;padding:2px 4px">${badgeText}</span>
+              <span style="font-size:10px;color:var(--text2)">${idx + 1}. ${esc(item.name)}</span>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(item.song)}">
+              ${esc(item.song)}
+            </div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <!-- Reordenar -->
-          <button class="btn btn-sm btn-outline" onclick="moveQueueItem(${idx}, -1)" ${isFirst ? 'disabled' : ''} style="min-height:30px;height:30px;padding:0 6px;font-size:10px;width:auto;opacity:${isFirst ? 0.3 : 1}">▲</button>
-          <button class="btn btn-sm btn-outline" onclick="moveQueueItem(${idx}, 1)" ${isLast ? 'disabled' : ''} style="min-height:30px;height:30px;padding:0 6px;font-size:10px;width:auto;opacity:${isLast ? 0.3 : 1}">▼</button>
-          
           <!-- Tocar -->
           <button class="btn btn-sm ${isCurrent ? 'btn-gold' : 'btn-outline'}" onclick="playQueueItem('${item.source}', '${item.id}')" style="min-height:30px;height:30px;padding:0 8px;font-size:10px;width:auto">
             ${isCurrent ? '⏸️' : '▶️'}
@@ -5862,7 +5878,12 @@ async function deleteQueueItem(source, id) {
   if (!activeEventId) return;
 
   if (source === 'manual') {
-    removeQueueItem(id);
+    // Buscar el índice del ítem manual en customQueueItems
+    const idx = parseInt(id.replace('manual-', ''), 10);
+    if (!isNaN(idx)) {
+      customQueueItems.splice(idx, 1);
+      renderPlaylistQueue();
+    }
   } else if (source === 'libre') {
     if (firebaseOk) {
       await dbRemove(dbRef(db, `freeKaraoke/${activeEventId}/${id}`));
@@ -5892,23 +5913,20 @@ async function deleteQueueItem(source, id) {
   updateUI();
 }
 
-async function moveQueueItem(index, direction) {
+async function moveQueueItemDirect(fromIndex, toIndex) {
   let queue = getConsolidatedQueue();
   
   if (currentPlaylistFilter === 'micclub') {
-    queue = queue.filter(item => item.source === 'micclub' || item.source === 'manual');
+    queue = queue.filter(item => item.source === 'micclub' || (item.source === 'manual' && item.targetList === 'micclub'));
   } else if (currentPlaylistFilter === 'libre') {
-    queue = queue.filter(item => item.source === 'libre' || item.source === 'manual');
+    queue = queue.filter(item => item.source === 'libre' || (item.source === 'manual' && item.targetList === 'libre'));
   }
 
-  if (index < 0 || index >= queue.length) return;
-  const targetIndex = index + direction;
-  if (targetIndex < 0 || targetIndex >= queue.length) return;
+  if (fromIndex < 0 || fromIndex >= queue.length || toIndex < 0 || toIndex >= queue.length) return;
 
-  // Intercambiar en la cola filtrada
-  const temp = queue[index];
-  queue[index] = queue[targetIndex];
-  queue[targetIndex] = temp;
+  // Mover el elemento de fromIndex a toIndex
+  const [movedItem] = queue.splice(fromIndex, 1);
+  queue.splice(toIndex, 0, movedItem);
 
   // Generar lista completa ordenada combinada con los ítems filtrados
   const newOrder = queue.map(item => `${item.source}-${item.id}`);
@@ -5929,6 +5947,62 @@ async function moveQueueItem(index, direction) {
     saveLocal();
     updateUI();
   }
+}
+
+// Modal para agregar canciones manuales
+function openAddSongModal() {
+  const modal = document.getElementById('modal-add-song');
+  const err = document.getElementById('add-song-err');
+  if (err) err.style.display = 'none';
+  
+  const singer = document.getElementById('add-song-singer');
+  const title = document.getElementById('add-song-title');
+  const url = document.getElementById('add-song-url');
+  if (singer) singer.value = '';
+  if (title) title.value = '';
+  if (url) url.value = '';
+  
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeAddSongModal() {
+  const modal = document.getElementById('modal-add-song');
+  if (modal) modal.style.display = 'none';
+}
+
+async function submitAddSongModal() {
+  const singer = document.getElementById('add-song-singer')?.value.trim();
+  const title = document.getElementById('add-song-title')?.value.trim();
+  const url = document.getElementById('add-song-url')?.value.trim();
+  const err = document.getElementById('add-song-err');
+
+  if (!singer || !title || !url) {
+    if (err) {
+      err.textContent = 'Por favor, completá todos los campos';
+      err.style.display = 'block';
+    }
+    return;
+  }
+
+  const ytId = getYouTubeId(url);
+  if (!ytId) {
+    if (err) {
+      err.textContent = 'Enlace de YouTube o ID no válido';
+      err.style.display = 'block';
+    }
+    return;
+  }
+
+  const activeFilter = currentPlaylistFilter || 'micclub';
+  customQueueItems.push({
+    name: singer,
+    song: title,
+    url: url,
+    targetList: activeFilter
+  });
+
+  closeAddSongModal();
+  updateUI();
 }
 
 // Reproducir ítem específico de la cola
@@ -6444,8 +6518,14 @@ window.ytAddManualItem = ytAddManualItem;
 window.playQueueItem = playQueueItem;
 window.removeQueueItem = removeQueueItem;
 window.deleteQueueItem = deleteQueueItem;
-window.moveQueueItem = moveQueueItem;
+window.moveQueueItemDirect = moveQueueItemDirect;
 window.setPlaylistFilter = setPlaylistFilter;
+window.openAddSongModal = openAddSongModal;
+window.closeAddSongModal = closeAddSongModal;
+window.submitAddSongModal = submitAddSongModal;
+window.drag = drag;
+window.allowDrop = allowDrop;
+window.drop = drop;
 
 async function setActiveEvent(slot) {
   try {
