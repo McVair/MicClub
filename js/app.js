@@ -473,6 +473,41 @@ function initFirebase() {
         showRunning = false;
       }
       localState.settings = { ...localState.settings, ...s };
+
+      // Fallback de Sincronización para Monitor Extendido (Pantalla)
+      if (MODE === 'pantalla') {
+        if (s.castLayout && s.castLayout !== currentCastLayout) {
+          currentCastLayout = s.castLayout;
+          applyProyectorLayout(s.castLayout);
+        }
+        if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
+          lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
+          if (projectionPlayer && projectionPlayerReady) {
+            projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+            applyProyectorLayout('video');
+          }
+        }
+        if (s.castYtCommand && s.castYtCommand.timestamp !== lastCastYtCommandTimestamp) {
+          lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
+          const cmd = s.castYtCommand;
+          if (projectionPlayer && projectionPlayerReady) {
+            if (cmd.type === 'yt_play') {
+              projectionPlayer.playVideo();
+            } else if (cmd.type === 'yt_pause') {
+              projectionPlayer.pauseVideo();
+            } else if (cmd.type === 'yt_seek') {
+              projectionPlayer.seekTo(cmd.time, true);
+            }
+          }
+        }
+        if (s.castYtVolume !== undefined && s.castYtVolume !== lastCastYtVolume) {
+          lastCastYtVolume = s.castYtVolume;
+          if (projectionPlayer && projectionPlayerReady) {
+            projectionPlayer.setVolume(s.castYtVolume);
+          }
+        }
+      }
+
       if (!showRunning) enforceNoShowState();
       checkAndMigrate();
       updateBonusBanners();
@@ -1019,17 +1054,56 @@ function updateUI() {
   updateFreeKaraokePages();
 }
 
+let programSelectedEventId = null;
+function setProgramEventTab(slot) {
+  programSelectedEventId = slot;
+  updateProgramPage();
+}
+window.setProgramEventTab = setProgramEventTab;
+
 function updateProgramPage() {
   const nameEl = document.getElementById('program-event-name');
   const detailsEl = document.getElementById('program-event-details');
   const voteBtn = document.getElementById('program-vote-btn');
   
-  const currentEvent = localState.settings?.currentEvent;
-  const eventDate = currentEvent?.date || '';
-  if (nameEl) nameEl.textContent = showRunning && currentEvent?.name ? currentEvent.name : 'Próximo Evento';
+  const ev1 = localState.settings?.events?.event1;
+  const ev2 = localState.settings?.events?.event2;
+  
+  // Mostrar u ocultar el selector según si hay 2 eventos activos
+  const toggleWrap = document.getElementById('program-event-toggle-wrap');
+  if (toggleWrap) {
+    if (ev1 && ev2) {
+      toggleWrap.style.display = 'flex';
+    } else {
+      toggleWrap.style.display = 'none';
+    }
+  }
+
+  // Inicializar el slot seleccionado si está vacío o inactivo
+  const currentActiveId = getCurrentEventId();
+  if (!programSelectedEventId || !localState.settings?.events?.[programSelectedEventId]) {
+    programSelectedEventId = currentActiveId;
+  }
+  
+  // Actualizar estados visuales de los botones de pestañas del selector de programa
+  const btn1 = document.getElementById('program-tab-ev1');
+  const btn2 = document.getElementById('program-tab-ev2');
+  if (btn1) {
+    btn1.classList.toggle('active', programSelectedEventId === 'event1');
+    btn1.textContent = ev1 ? (ev1.name || 'Evento 1') : 'Evento 1';
+  }
+  if (btn2) {
+    btn2.classList.toggle('active', programSelectedEventId === 'event2');
+    btn2.textContent = ev2 ? (ev2.name || 'Evento 2') : 'Evento 2';
+  }
+
+  const ev = programSelectedEventId ? (localState.settings?.events?.[programSelectedEventId] || null) : null;
+  const eventDate = ev?.date || '';
+  if (nameEl) nameEl.textContent = ev?.name ? ev.name : 'Próximo Evento';
   if (detailsEl) {
-    detailsEl.textContent = showRunning && currentEvent
-      ? [eventDate, currentEvent.time, currentEvent.venue].filter(Boolean).join(' · ')
+    detailsEl.style.display = 'block';
+    detailsEl.textContent = ev
+      ? [eventDate, ev.time, ev.venue].filter(Boolean).join(' · ')
       : 'No hay show activo en curso';
   }
   
@@ -1037,7 +1111,7 @@ function updateProgramPage() {
   const countEl  = document.getElementById('program-participants-count');
   const regBtn   = document.getElementById('program-register-btn');
   
-  if (showRunning) {
+  if (showRunning && programSelectedEventId === currentActiveId) {
     if (regBtn) regBtn.style.display = 'flex';
     const dateEl = document.getElementById('program-reg-event-date');
     if (dateEl) dateEl.textContent = eventDate ? `(${eventDate})` : '';
@@ -1045,11 +1119,11 @@ function updateProgramPage() {
     if (regBtn) regBtn.style.display = 'none';
   }
 
-  const parts = getEnrichedParticipantsList(getCurrentEventId())
+  const parts = getEnrichedParticipantsList(programSelectedEventId)
     .filter(p => p.songConfirmed)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-  if (listWrap) listWrap.style.display = (showRunning && parts.length > 0) ? 'block' : 'none';
+  if (listWrap) listWrap.style.display = (parts.length > 0) ? 'block' : 'none';
   if (countEl) countEl.textContent = parts.length;
 
   const partsHtml = parts.map((p, index) => {
@@ -1064,6 +1138,39 @@ function updateProgramPage() {
   const elParts = document.getElementById('program-participants-list');
   if (elParts) elParts.innerHTML = partsHtml || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px">Esperando confirmación de participantes...</div>';
 
+  // Renderizar Auspiciantes (sponsors) en el portal público del programa (grilla superior e inferior)
+  const sponsors = localState.settings?.sponsors || [];
+  const sponsorsHtml = sponsors.map(sp => `
+    <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
+      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+    </a>
+  `).join('');
+  const elSponsors = document.getElementById('program-sponsors-top');
+  if (elSponsors) elSponsors.innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;width:100%;padding:10px">Sin auspiciantes cargados</div>';
+  const elSponsorsBottom = document.getElementById('program-sponsors-bottom');
+  if (elSponsorsBottom) elSponsorsBottom.innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;width:100%;padding:10px">Sin auspiciantes cargados</div>';
+
+  // Renderizar Artistas Invitados en el portal público del programa
+  const artists = ev?.guestArtists || [];
+  const elArtists = document.getElementById('program-guest-artists');
+  if (elArtists) {
+    if (artists.length > 0) {
+      elArtists.innerHTML = artists.map(art => {
+        const name = typeof art === 'object' ? art.name : art;
+        const song = typeof art === 'object' ? art.song : '';
+        return `
+          <div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span style="font-weight: 600; color: var(--text)">🎙️ ${esc(name)}</span>
+            <span style="color: var(--gold); font-size: 11px; font-weight: 500">${esc(song || 'Repertorio Especial')}</span>
+          </div>
+        `;
+      }).join('');
+    } else {
+      elArtists.innerHTML = '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px">No hay artistas invitados cargados aún...</div>';
+    }
+  }
+
+  updateFreeKaraokePages();
   renderProgramAdminPanel();
 }
 
@@ -1076,8 +1183,11 @@ function renderProgramAdminPanel() {
   }
   panel.style.display = 'block';
   
+  const eventId = programSelectedEventId || getCurrentEventId();
+  const ev = eventId ? (localState.settings?.events?.[eventId] || null) : null;
+  
   const sponsors = localState.settings?.sponsors || [];
-  const artists = localState.settings?.guestArtists || [];
+  const artists = ev?.guestArtists || [];
   
   const sponsorsHtml = sponsors.map((sp, idx) => `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;background:var(--bg3);padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.02)">
@@ -1179,13 +1289,19 @@ async function addGuestArtistAdmin() {
   const name = (nameInp?.value || '').trim();
   const song = (songInp?.value || '').trim();
   if (!name) return;
-  const artists = localState.settings?.guestArtists || [];
+  
+  const eventId = programSelectedEventId || getCurrentEventId();
+  if (!eventId) return;
+  const ev = localState.settings?.events?.[eventId];
+  if (!ev) return;
+  
+  const artists = ev.guestArtists || [];
   artists.push({ name, song });
   try {
     if (firebaseOk) {
-      await dbUpdate(dbRef(db, 'settings'), { guestArtists: artists });
+      await dbUpdate(dbRef(db, `settings/events/${eventId}`), { guestArtists: artists });
     } else {
-      localState.settings.guestArtists = artists;
+      ev.guestArtists = artists;
       saveLocal();
     }
     nameInp.value = '';
@@ -1198,13 +1314,18 @@ async function addGuestArtistAdmin() {
 }
 
 async function deleteGuestArtistAdmin(idx) {
-  const artists = localState.settings?.guestArtists || [];
+  const eventId = programSelectedEventId || getCurrentEventId();
+  if (!eventId) return;
+  const ev = localState.settings?.events?.[eventId];
+  if (!ev) return;
+  
+  const artists = ev.guestArtists || [];
   artists.splice(idx, 1);
   try {
     if (firebaseOk) {
-      await dbUpdate(dbRef(db, 'settings'), { guestArtists: artists });
+      await dbUpdate(dbRef(db, `settings/events/${eventId}`), { guestArtists: artists });
     } else {
-      localState.settings.guestArtists = artists;
+      ev.guestArtists = artists;
       saveLocal();
     }
     updateProgramPage();
@@ -3090,14 +3211,19 @@ function loadPublicVoteOpts() {
 function toggleVoteBtn(type, pid) {
   const btn = document.getElementById(`vb-${type}-${pid}`);
   if (!btn) return;
+  const isSelected = btn.classList.contains('selected');
+  if (!isSelected) {
+    const others = document.querySelectorAll(`.vote-pill[id^="vb-${type}-"].selected`);
+    others.forEach(o => o.classList.remove('selected'));
+  }
   btn.classList.toggle('selected');
 }
 
 async function submitPublicVote() {
-  const songCheckboxes = document.querySelectorAll('input[name="vote-song"]:checked');
-  const perfCheckboxes = document.querySelectorAll('input[name="vote-perf"]:checked');
-  const songVotes = Array.from(songCheckboxes).map(cb => cb.value);
-  const perfVotes = Array.from(perfCheckboxes).map(cb => cb.value);
+  const songButtons = document.querySelectorAll('.vote-pill.selected[id^="vb-song-"]');
+  const perfButtons = document.querySelectorAll('.vote-pill.selected[id^="vb-perf-"]');
+  const songVotes = Array.from(songButtons).map(btn => btn.id.replace('vb-song-', ''));
+  const perfVotes = Array.from(perfButtons).map(btn => btn.id.replace('vb-perf-', ''));
 
   const activeEventId = getCurrentEventId();
   if (!activeEventId) { mcAlert('No hay evento activo'); return; }
@@ -3277,16 +3403,19 @@ function openJuryModal(id) {
   if (!p) return;
   modalParticipantId = id;
 
+  const activeEventId = getCurrentEventId();
+  const pEvent = activeEventId ? getParticipantForEvent(p, activeEventId) : p;
+
   // Cargar puntajes previos de este jurado (si ya votó) o resetear
-  const prevSong     = (p.juryScoresSong     || {})[JURY_ID] || {};
-  const prevPerf     = (p.juryScoresPerf     || {})[JURY_ID] || {};
-  const prevHinchada = (p.juryScoresHinchada || {})[JURY_ID] || {};
+  const prevSong     = (pEvent.juryScoresSong     || {})[JURY_ID] || {};
+  const prevPerf     = (pEvent.juryScoresPerf     || {})[JURY_ID] || {};
+  const prevHinchada = (pEvent.juryScoresHinchada || {})[JURY_ID] || {};
   SONG_CRITERIA.forEach(c => { juryCurrentScores.song[c.key]     = parseInt(prevSong[c.key])     || 0; });
   PERF_CRITERIA.forEach(c => { juryCurrentScores.perf[c.key]     = parseInt(prevPerf[c.key])     || 0; });
   HINCHADA_CRITERIA.forEach(c => { juryCurrentScores.hinchada[c.key] = parseInt(prevHinchada[c.key]) || 0; });
 
   const nameEl = document.getElementById('jury-modal-participant-name');
-  if (nameEl) nameEl.innerHTML = `<span style="font-weight:700">${esc(p.name)}</span><span style="font-size:12px;color:var(--text2);margin-left:8px;font-weight:400">${esc(p.songTitle || p.song || '')}</span>`;
+  if (nameEl) nameEl.innerHTML = `<span style="font-weight:700">${esc(pEvent.name)}</span><span style="font-size:12px;color:var(--text2);margin-left:8px;font-weight:400">${esc(pEvent.songTitle || pEvent.song || '')}</span>`;
 
   const okEl = document.getElementById('jury-modal-ok');
   if (okEl) { okEl.style.display = 'none'; okEl.textContent = ''; }
@@ -3782,7 +3911,8 @@ async function adminAddParticipant() {
 }
 
 function renderAdminParticipants() {
-  const parts = sorted();
+  const activeEventId = getAdminActiveEventId();
+  const parts = sorted(activeEventId);
   const el    = document.getElementById('admin-parts-list');
   if (!el) return;
   if (!parts.length) {
@@ -3824,7 +3954,8 @@ function renderAdminParticipants() {
 }
 
 function renderAdminMicClubParticipants() {
-  const parts = sorted().filter(p => p.songConfirmed || p.songTitle || p.song);
+  const activeEventId = getAdminActiveEventId();
+  const parts = sorted(activeEventId).filter(p => p.songConfirmed || p.songTitle || p.song);
   const countEl = document.getElementById('admin-micclub-participants-count');
   if (countEl) countEl.textContent = parts.length;
 
@@ -3868,14 +3999,15 @@ function renderAdminMicClubParticipants() {
 }
 
 function renderAdminJury() {
-  const parts = sorted().filter(p => p.karaokeLink || p.songConfirmed);
+  const activeEventId = getAdminActiveEventId();
+  const parts = sorted(activeEventId).filter(p => p.karaokeLink || p.songConfirmed);
 
   const renderCriteriaTable = (cat, elId) => {
     const el = document.getElementById(elId);
     if (!el) return;
     const rows = parts.map(p => ({
       name: p.name, id: p.id,
-      total:  getJuryTotal(p.id, cat),
+      total:  getJuryTotal(p.id, cat, activeEventId),
       scores: cat === 'song' ? (p.juryScoresSong || {}) : (cat === 'perf' ? (p.juryScoresPerf || {}) : (p.juryScoresHinchada || {}))
     })).sort((a, b) => b.total - a.total);
     if (!rows.length) { el.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:8px">Sin datos</div>'; return; }
@@ -3916,9 +4048,9 @@ function renderAdminJury() {
       { key: 'prizeHinchada', label: '📣 Mejor Hinchada (Jurado) +8 pts',    cat: 'hinchada' },
       { key: 'prizeMesa',     label: '🪑 Mejor Mesa (Jurado) +8 pts',        cat: null       },
     ];
-    const partsList = sorted();
+    const partsList = sorted(activeEventId);
     prizesEl.innerHTML = prizeItems.map(pr => {
-      const juryLeader = pr.cat ? getJuryLeader(pr.cat) : null;
+      const juryLeader = pr.cat ? getJuryLeader(pr.cat, activeEventId) : null;
       const opts = partsList.map(p =>
         `<option value="${p.id}" ${p[pr.key] ? 'selected' : ''}>${esc(p.name)}${p[pr.key] ? ' ✅' : ''}</option>`
       ).join('');
@@ -4254,6 +4386,8 @@ async function endShow(slot) {
       const eventPts = scores[id]?.total || 0;
       updates[`participants/${id}/micclubPts`] = (parseInt(p.micclubPts) || 0) + eventPts;
       updates[`participants/${id}/reservations/${slot}`] = null;
+      updates[`participants/${id}/extraPts`] = 0;
+      p.extraPts = 0;
       
       if (slot === 'event1') {
         updates[`participants/${id}/voteSong`]            = 0;
@@ -4969,16 +5103,33 @@ function updateFreeKaraokePages() {
   if (progSection) {
     if (showRunning) {
       progSection.style.display = 'block';
+      
+      // Para el programa público, mostramos la lista según el evento seleccionado en el programa
+      const viewEventId = programSelectedEventId || activeEventId;
+      const viewEventFreeList = viewEventId ? (freeKaraokeList[viewEventId] || {}) : {};
+      const viewSortedFreeItems = Object.entries(viewEventFreeList)
+        .map(([id, item]) => ({ id, ...item }))
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      const viewIsFull = viewSortedFreeItems.length >= 20;
+      const viewEventDate = viewEventId ? (localState.settings?.events?.[viewEventId]?.date || '') : '';
+
       const dateEl = document.getElementById('program-free-karaoke-date');
-      if (dateEl) dateEl.textContent = eventDate ? `(${eventDate})` : '';
+      if (dateEl) dateEl.textContent = viewEventDate ? `(${viewEventDate})` : '';
 
       const regBtn = document.getElementById('program-free-karaoke-reg-btn');
       const fullBanner = document.getElementById('program-free-karaoke-full-banner');
-      if (isFull) {
-        if (regBtn) regBtn.style.display = 'none';
-        if (fullBanner) fullBanner.style.display = 'block';
+      
+      // Permitir inscripción solo si es el evento activo corriendo
+      if (viewEventId === activeEventId) {
+        if (viewIsFull) {
+          if (regBtn) regBtn.style.display = 'none';
+          if (fullBanner) fullBanner.style.display = 'block';
+        } else {
+          if (regBtn) regBtn.style.display = 'flex';
+          if (fullBanner) fullBanner.style.display = 'none';
+        }
       } else {
-        if (regBtn) regBtn.style.display = 'flex';
+        if (regBtn) regBtn.style.display = 'none';
         if (fullBanner) fullBanner.style.display = 'none';
       }
 
@@ -4986,11 +5137,11 @@ function updateFreeKaraokePages() {
       const countEl = document.getElementById('program-free-karaoke-count');
       const listEl = document.getElementById('program-free-karaoke-list');
       
-      if (listWrap) listWrap.style.display = sortedFreeItems.length > 0 ? 'block' : 'none';
-      if (countEl) countEl.textContent = `${sortedFreeItems.length}/20`;
+      if (listWrap) listWrap.style.display = viewSortedFreeItems.length > 0 ? 'block' : 'none';
+      if (countEl) countEl.textContent = `${viewSortedFreeItems.length}/20`;
       if (listEl) {
-        listEl.innerHTML = sortedFreeItems.map((item, index) => {
-          const isLast = index === sortedFreeItems.length - 1;
+        listEl.innerHTML = viewSortedFreeItems.map((item, index) => {
+          const isLast = index === viewSortedFreeItems.length - 1;
           const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
           return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(item.name)}</span>
@@ -5219,7 +5370,9 @@ function renderPantallaContent() {
   if (!container) return;
   
   if (pantallaTab === 'artistas') {
-    const artists = localState.settings?.guestArtists || [];
+    const activeEventId = getCurrentEventId();
+    const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+    const artists = ev?.guestArtists || [];
     if (!artists.length) {
       container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay artistas invitados cargados aún para este evento.</div>`;
       return;
@@ -5238,7 +5391,8 @@ function renderPantallaContent() {
     }</div>`;
   }
   else if (pantallaTab === 'participantes') {
-    const parts = Object.values(allParticipants)
+    const activeEventId = getCurrentEventId();
+    const parts = getEnrichedParticipantsList(activeEventId)
       .filter(p => p.songConfirmed)
       .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     if (!parts.length) {
@@ -5335,7 +5489,9 @@ function renderPantallaContent() {
     </div>`;
   }
   else if (pantallaTab === 'karaoke') {
-    const sortedFreeItems = Object.entries(freeKaraokeList)
+    const activeEventId = getCurrentEventId();
+    const currentEventFreeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
+    const sortedFreeItems = Object.entries(currentEventFreeList)
       .map(([id, p]) => ({ ...p, id }))
       .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     if (!sortedFreeItems.length) {
@@ -5359,8 +5515,11 @@ function updatePantallaContent() {
   const container = document.getElementById('pantalla-main-content');
   if (!container) return;
 
+  const activeEventId = getCurrentEventId();
+  const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+
   const sponsors = localState.settings?.sponsors || [];
-  const artists = localState.settings?.guestArtists || [];
+  const artists = ev?.guestArtists || [];
   const nextEventImage = localState.settings?.nextEventImage || null;
 
   if (pantallaTab === 'artistas') {
@@ -5523,6 +5682,9 @@ let currentCastLayout = 'blank';
 let projectionPlayer = null;
 let projectionPlayerReady = false;
 let isSeeking = false;
+let lastCastYtVideoTimestamp = 0;
+let lastCastYtCommandTimestamp = 0;
+let lastCastYtVolume = 100;
 
 // Extractor robusto de ID de video de YouTube
 function getYouTubeId(url) {
@@ -5567,14 +5729,14 @@ function getConsolidatedQueue(eventId = null) {
   const sortedFreeItems = Object.entries(currentEventFreeList)
     .map(([id, item]) => ({ id, ...item }))
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
-    .filter(item => item.link)
+    .filter(item => item.youtubeLink || item.link)
     .map(item => ({
       source: 'libre',
       id: item.id,
       name: item.name,
-      song: item.song,
-      url: item.link,
-      ytId: getYouTubeId(item.link)
+      song: item.songTitle && item.songArtist ? `${item.songTitle} — ${item.songArtist}` : (item.song || 'Sin título'),
+      url: item.youtubeLink || item.link,
+      ytId: getYouTubeId(item.youtubeLink || item.link)
     }));
   list.push(...sortedFreeItems);
 
@@ -5673,6 +5835,14 @@ function playQueueItem(source, id) {
       song: item.song
     });
   }
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings/castYtVideo'), {
+      ytId: item.ytId,
+      title: item.name,
+      song: item.song,
+      timestamp: Date.now()
+    });
+  }
 
   // Auto-seleccionar y emitir la vista de Video en la proyección
   setCastLayout('video');
@@ -5740,6 +5910,12 @@ function ytRemoteTogglePlay() {
   if (castChannel) {
     castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
   }
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings/castYtCommand'), {
+      type: isYtPlaying ? 'yt_play' : 'yt_pause',
+      timestamp: Date.now()
+    });
+  }
 }
 
 // Siguiente tema
@@ -5786,12 +5962,24 @@ function ytRemoteProgressChange(val) {
   if (castChannel) {
     castChannel.postMessage({ type: 'yt_seek', time: parseFloat(val) });
   }
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings/castYtCommand'), {
+      type: 'yt_seek',
+      time: parseFloat(val),
+      timestamp: Date.now()
+    });
+  }
 }
 
 // Control remoto de volumen
 function ytRemoteVolumeChange(val) {
   if (castChannel) {
     castChannel.postMessage({ type: 'yt_set_volume', volume: parseInt(val, 10) });
+  }
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings'), {
+      castYtVolume: parseInt(val, 10)
+    });
   }
 }
 
@@ -5801,6 +5989,9 @@ function setCastLayout(layout) {
   updateCastButtonsHighlight(layout);
   if (castChannel) {
     castChannel.postMessage({ type: 'cast_layout', layout: layout });
+  }
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings'), { castLayout: layout });
   }
 }
 
@@ -6062,6 +6253,15 @@ if (window.BroadcastChannel) {
 
 // Cargar la API de IFrame de YouTube si estamos en el Monitor
 if (MODE === 'pantalla') {
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  const firstScriptTag = document.getElementsByTagName('script')[0];
+  if (firstScriptTag) {
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  } else {
+    document.head.appendChild(tag);
+  }
+
   if (window.YT && window.YT.Player) {
     initProjectionPlayer();
   } else {

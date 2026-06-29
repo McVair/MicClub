@@ -298,6 +298,13 @@ if ('serviceWorker' in navigator) {
       <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">Las alas de mi voz Presenta:</div>
       <div id="program-event-name" class="hero-title" style="font-size:clamp(30px,7vw,46px);line-height:1.1;margin-bottom:8px">MicClub</div>
       <div id="program-event-details" style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text2);margin-top:6px;letter-spacing:1px;text-transform:uppercase;display:none"></div>
+      <!-- Selector de evento para programa (visible si hay dos eventos activos) -->
+      <div id="program-event-toggle-wrap" style="display:none;margin-top:14px;justify-content:center">
+        <div class="toggle-wrap" style="display:inline-flex;margin-bottom:0">
+          <button class="toggle-btn active" id="program-tab-ev1" onclick="setProgramEventTab('event1')">Evento 1</button>
+          <button class="toggle-btn" id="program-tab-ev2" onclick="setProgramEventTab('event2')">Evento 2</button>
+        </div>
+      </div>
     </div>
 
     <!-- Auspiciantes (Grilla Superior) -->
