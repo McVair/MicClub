@@ -6402,6 +6402,9 @@ if (window.BroadcastChannel) {
 
 // Cargar la API de IFrame de YouTube si estamos en el Monitor
 if (MODE === 'pantalla') {
+  // Añadir clase para ocultar scrollbars en el monitor
+  document.body.classList.add('mode-pantalla');
+
   // Definir el callback antes de inyectar el script para evitar race conditions
   window.onYouTubeIframeAPIReady = function() {
     initProjectionPlayer();

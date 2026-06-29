@@ -912,6 +912,15 @@ button[onclick*="navBack"]:hover, button[onclick*="navBack"]:active {
 }
 
 /* 9. Public Presentation Screen Layout */
+body.mode-pantalla,
+body.mode-pantalla * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+body.mode-pantalla *::-webkit-scrollbar {
+  display: none !important;
+}
+
 .pantalla-layout {
   display: grid;
   grid-template-columns: 1fr;
