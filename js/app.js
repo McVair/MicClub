@@ -1613,18 +1613,12 @@ function updateDashboard() {
     elPanel.innerHTML = html;
   }
 
-  // Actualizar estadísticas globales para el evento vivo
-  const elP = document.getElementById('dash-parts');
-  const elR = document.getElementById('dash-reservas');
+  // Actualizar nombre de evento activo en el header del dashboard
   const activeEventId = getCurrentEventId();
-  if (activeEventId) {
-    const activeReserved = (activeEventId === 'event1') ? ev1Reserved : ev2Reserved;
-    const activePartsCount = (activeEventId === 'event1') ? ev1PartsCount : ev2PartsCount;
-    if (elP) elP.textContent = activePartsCount;
-    if (elR) elR.textContent = activeReserved;
-  } else {
-    if (elP) elP.textContent = '0';
-    if (elR) elR.textContent = '0';
+  const activeEvent = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+  const elActiveName = document.getElementById('dash-active-event-name');
+  if (elActiveName) {
+    elActiveName.textContent = activeEvent ? activeEvent.name.toUpperCase() : 'SIN EVENTO ACTIVO';
   }
 
   // Resultados label: nombre del evento si hay show activo
@@ -1813,22 +1807,54 @@ function mcPrompt(msg, onOk, inputType = 'password', placeholder = 'Contraseña'
 }
 
 // ── DESCARGA LISTA DE CANCIONES ──────────────────────────────────────────────
-function downloadSongLinks() {
+function downloadCombinedSongLinks() {
+  const activeEventId = getCurrentEventId();
+  
+  // 1. Canciones Mic Club (Participantes)
   const parts = Object.values(allParticipants)
     .filter(p => p.karaokeLink || p.songTitle)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  if (!parts.length) { mcAlert('No hay canciones cargadas aún.'); return; }
-  const lines = ['CANCIONES MIC CLUB\n' + new Date().toLocaleDateString('es-AR'), ''];
-  parts.forEach(p => {
-    lines.push(`${p.name || '(sin nombre)'}`);
-    if (p.songTitle)  lines.push(`  Canción: ${p.songTitle}${p.songArtist ? ' — ' + p.songArtist : ''}`);
-    if (p.karaokeLink) lines.push(`  Link: ${p.karaokeLink}`);
-    lines.push('');
-  });
+    
+  // 2. Karaoke Libre
+  const currentEventFreeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
+  const freeItems = Object.values(currentEventFreeList)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  if (!parts.length && !freeItems.length) {
+    mcAlert('No hay canciones cargadas aún.');
+    return;
+  }
+  
+  const lines = ['CANCIONES Y KARAOKE MIC CLUB\n' + new Date().toLocaleDateString('es-AR'), ''];
+  
+  if (parts.length) {
+    lines.push('========================================');
+    lines.push('🎤 CANCIONES DE PARTICIPANTES MIC CLUB');
+    lines.push('========================================');
+    parts.forEach(p => {
+      lines.push(`${p.name || '(sin nombre)'}`);
+      if (p.songTitle) lines.push(`  Canción: ${p.songTitle}${p.songArtist ? ' — ' + p.songArtist : ''}`);
+      if (p.karaokeLink) lines.push(`  Link: ${p.karaokeLink}`);
+      lines.push('');
+    });
+  }
+  
+  if (freeItems.length) {
+    lines.push('========================================');
+    lines.push('🎵 TEMAS DE KARAOKE LIBRE');
+    lines.push('========================================');
+    freeItems.forEach(item => {
+      lines.push(`${item.name || '(sin nombre)'}`);
+      if (item.songTitle) lines.push(`  Canción: ${item.songTitle}${item.songArtist ? ' — ' + item.songArtist : ''}`);
+      if (item.link) lines.push(`  Link: ${item.link}`);
+      lines.push('');
+    });
+  }
+  
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `canciones-micclub-${new Date().toISOString().slice(0,10)}.txt`;
+  a.download = `lista-completa-canciones-${new Date().toISOString().slice(0,10)}.txt`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -3786,16 +3812,16 @@ function renderVotingToggleBtn() {
       dashBtn.style.opacity       = '1';
       dashBtn.style.pointerEvents = 'auto';
       if (votingOpen) {
-        dashBtn.innerHTML        = 'CERRAR<br>VOTACIÓN';
+        dashBtn.textContent      = 'CERRAR VOTACIÓN';
         dashBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         dashBtn.style.color      = '#fff';
       } else {
-        dashBtn.innerHTML        = 'ABRIR<br>VOTACIÓN';
+        dashBtn.textContent      = 'ABRIR VOTACIÓN';
         dashBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
         dashBtn.style.color      = '#fff';
       }
     } else {
-      dashBtn.innerHTML           = 'ABRIR<br>VOTACIÓN';
+      dashBtn.textContent         = 'ABRIR VOTACIÓN';
       dashBtn.style.background    = 'linear-gradient(135deg,#1a3324,#101e16)';
       dashBtn.style.color         = '#fff';
       dashBtn.style.opacity       = '0.55';

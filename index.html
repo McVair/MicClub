@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.21">
+<link rel="stylesheet" href="css/styles.css?v=1.22">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -67,41 +67,48 @@ if ('serviceWorker' in navigator) {
       <div class="admin-grid-container" id="home-grid-container">
         <div class="admin-main-column">
 
-      <!-- Título -->
-      <div style="text-align:center;padding:10px 0 8px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
-        <div style="font-size:10px;letter-spacing:4px;color:var(--text2);text-transform:uppercase;margin-top:4px">LAS ALAS DE MI VOZ</div>
+      <!-- Título Admin Simplificado -->
+      <div style="text-align:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:12px">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">MIC CLUB</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--text2);display:inline-block;margin-left:4px">— LAS ALAS DE MI VOZ</span>
+      </div>
+
+      <!-- Sub-cabecera con Evento Activo y Botón de Votación -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 14px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;flex:1;min-width:0" id="dash-active-event-name">
+          CARGANDO EVENTO...
+        </div>
+        <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:32px;height:32px;font-size:11px;padding:0 12px;width:auto;font-family:'Oswald',sans-serif;letter-spacing:1px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
+          ABRIR VOTACIÓN
+        </button>
+        <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
       </div>
 
       <!-- Control de Eventos en Paralelo -->
       <div id="events-control-panel" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px">
       </div>
 
-      <!-- Acciones del Evento Activo Principal -->
-      <div style="display:flex;gap:6px;margin-bottom:8px">
-        <button id="dash-vote-toggle-btn" onclick="toggleVoting()"
-          style="width:100%;background:linear-gradient(135deg,#1a3324,#101e16);color:#fff;border:none;border-radius:10px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.5px;padding:8px 4px;cursor:pointer;min-height:54px;opacity:.55;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center">ABRIR VOTACIÓN</button>
-        <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
+      <!-- Fila 1: Copiar Links -->
+      <div style="font-family:'Oswald',sans-serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">🔗 Copiar Links</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+        <button class="btn-dash" onclick="dashCopyLink('jury')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">⭐ Jurado</button>
+        <button class="btn-dash" onclick="dashCopyLink('register')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">🎤 Reservas</button>
+        <button class="btn-dash" onclick="dashCopyLink('vote')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">📋 Programa</button>
       </div>
 
-      <!-- Fila de 4 Botones en una línea -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
-        <button class="btn-dash" onclick="dashCopyLink('jury')" style="font-size:10px;padding:8px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:48px;width:100%" title="Copiar link Jurado">⭐<br>Jurado</button>
-        <button class="btn-dash" onclick="dashCopyLink('register')" style="font-size:10px;padding:8px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:48px;width:100%" title="Copiar link Reservas">🎤<br>Reservas</button>
-        <button class="btn-dash" onclick="dashCopyLink('vote')" style="font-size:10px;padding:8px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:48px;width:100%" title="Copiar link Programa">📋<br>Programa</button>
-        <button class="btn-dash" onclick="navPush('program')" style="font-size:10px;padding:8px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:48px;width:100%;border-color:var(--gold);color:var(--gold)" title="Administrar Programa">🛠️<br>Adm Prog</button>
+      <!-- Fila 2: Administrar Secciones -->
+      <div style="font-family:'Oswald',sans-serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">🛠️ Administrar</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
+        <button class="btn-dash" onclick="navPush('program')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📋 Adm Prog</button>
+        <button class="btn-dash" onclick="navToConfig()" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">👥 Adm Part</button>
+        <button class="btn-dash" onclick="navPush('history')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📚 Adm Historial</button>
       </div>
 
-      <!-- Navegación y Descargas -->
-      <div style="display:grid;gap:6px;margin-bottom:8px">
-        <div style="display:flex;gap:6px">
-          <button class="btn-dash" onclick="navToConfig()" style="flex:1;text-align:left;padding-left:10px">⚙️ Participantes</button>
-          <button class="btn-dash" onclick="downloadSongLinks()" style="flex:1;text-align:left;padding-left:10px">⬇️ Lista de canciones</button>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-dash" onclick="downloadReservations()" style="flex:1;text-align:left;padding-left:10px">📥 Reservas</button>
-          <button class="btn-dash" onclick="navPush('history')" style="flex:1;text-align:left;padding-left:10px">📚 Historial</button>
-        </div>
+      <!-- Descargas de Datos -->
+      <div style="font-family:'Oswald',sans-serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">📥 Descargas</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <button class="btn-dash" onclick="downloadCombinedSongLinks()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">🎵</span> Descargar Canciones</button>
+        <button class="btn-dash" onclick="downloadReservations()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">📥</span> Descargar Reservas</button>
       </div>
 
       <!-- Pruebas / Simulación -->
@@ -995,6 +1002,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.21" defer></script>
+<script src="js/app.js?v=1.22" defer></script>
 </body>
 </html>
