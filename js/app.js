@@ -3727,17 +3727,17 @@ function switchMobileSection(section) {
   const btnEmision = document.getElementById('mob-nav-emision');
   
   if (btnAdmin) btnAdmin.classList.toggle('active', section === 'admin');
-  if (btnEmision) btnEmision.classList.toggle('active', section === 'emision');
+  if (btnEmision) btnEmision.classList.toggle('active', section === 'reproduccion' || section === 'emision');
   
   adminCols.forEach(col => {
     col.style.display = (section === 'admin') ? 'block' : 'none';
   });
   
   videoCols.forEach(col => {
-    col.style.display = (section === 'emision') ? 'block' : 'none';
+    col.style.display = (section === 'reproduccion' || section === 'emision') ? 'block' : 'none';
   });
   
-  if (section === 'emision') {
+  if (section === 'reproduccion' || section === 'emision') {
     renderPlaylistQueue();
   }
 }

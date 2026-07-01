@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.25">
+<link rel="stylesheet" href="css/styles.css?v=1.27">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -107,9 +107,8 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Descargas de Datos -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-        <button class="btn-dash" onclick="downloadCombinedSongLinks()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">🎵</span> Descargar Canciones</button>
-        <button class="btn-dash" onclick="downloadReservations()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">📥</span> Descargar Reservas</button>
+      <div style="margin-bottom:8px">
+        <button class="btn-dash" onclick="downloadReservations()" style="width:100%;font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">📥</span> Descargar Reservas</button>
       </div>
 
       <!-- Pruebas / Simulación -->
@@ -124,6 +123,21 @@ if ('serviceWorker' in navigator) {
 
       <!-- Borrar Todo -->
       <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px;display:none">🗑️ BORRAR TODO</button>
+
+      <!-- Panel de Emisión / Proyección (Debajo de Administración) -->
+      <div class="card no-gold-border" style="padding:14px;margin-top:14px">
+        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;font-weight:700">📺 Emisión en Pantalla</div>
+        <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;min-height:42px">📺 EMITIR</button>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
+        </div>
+      </div>
 
         </div>
       </div>
@@ -831,20 +845,6 @@ if ('serviceWorker' in navigator) {
         <!-- Columna de Video y Cola de Reproducción (YouTube) -->
         <div class="admin-video-column" id="admin-video-sidebar">
           
-          <!-- 1. Emisión / Proyección -->
-          <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
-            <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;min-height:42px">📺 EMITIR</button>
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
-              <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
-            </div>
-          </div>
-
           <!-- Unificado: Reproducción -->
           <div class="card no-gold-border" style="padding:14px">
             <div class="card-title" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
@@ -874,8 +874,11 @@ if ('serviceWorker' in navigator) {
               <input type="range" id="yt-remote-progress" min="0" max="100" value="0" oninput="ytRemoteProgressInput(this.value)" onchange="ytRemoteProgressChange(this.value)" style="width:100%;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
             </div>
 
-            <!-- Botón Agregar Canción -->
-            <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin-bottom:12px;font-size:11px;padding:8px 0;min-height:34px">➕ Agregar Canción</button>
+            <!-- Botones Agregar Canción y Descargar -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+              <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="font-size:11px;padding:8px 0;min-height:34px;width:100%">➕ Agregar Canción</button>
+              <button class="btn btn-sm btn-outline" onclick="downloadCombinedSongLinks()" style="font-size:11px;padding:8px 0;min-height:34px;width:100%;display:flex;align-items:center;justify-content:center;gap:4px">💾 Descargar</button>
+            </div>
 
             <!-- Selector de filtro de lista (Participantes vs Karaoke) -->
             <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)">
@@ -1003,15 +1006,15 @@ if ('serviceWorker' in navigator) {
     <span style="font-size:18px">🛠️</span>
     <span style="font-size:10px;font-weight:600;margin-top:2px">Administración</span>
   </button>
-  <button class="mobile-nav-item" id="mob-nav-emision" onclick="switchMobileSection('emision')">
-    <span style="font-size:18px">📺</span>
-    <span style="font-size:10px;font-weight:600;margin-top:2px">Emisión</span>
+  <button class="mobile-nav-item" id="mob-nav-emision" onclick="switchMobileSection('reproduccion')">
+    <span style="font-size:18px">🎵</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Reproducción</span>
   </button>
 </div>
 
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.25" defer></script>
+<script src="js/app.js?v=1.27" defer></script>
 </body>
 </html>
