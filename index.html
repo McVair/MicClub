@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.22">
+<link rel="stylesheet" href="css/styles.css?v=1.23">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -89,7 +89,6 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Fila 1: Copiar Links -->
-      <div style="font-family:'Oswald',sans-serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">🔗 Copiar Links</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
         <button class="btn-dash" onclick="dashCopyLink('jury')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">⭐ Jurado</button>
         <button class="btn-dash" onclick="dashCopyLink('register')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">🎤 Reservas</button>
@@ -97,7 +96,6 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Fila 2: Administrar Secciones -->
-      <div style="font-family:'Oswald',sans-serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">🛠️ Administrar</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
         <button class="btn-dash" onclick="navPush('program')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📋 Adm Prog</button>
         <button class="btn-dash" onclick="navToConfig()" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">👥 Adm Part</button>
@@ -105,7 +103,6 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Descargas de Datos -->
-      <div style="font-family:'Oswald',sans-serif;font-size:10px;color:var(--text2);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">📥 Descargas</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
         <button class="btn-dash" onclick="downloadCombinedSongLinks()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">🎵</span> Descargar Canciones</button>
         <button class="btn-dash" onclick="downloadReservations()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">📥</span> Descargar Reservas</button>
@@ -131,11 +128,10 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── RESERVA ─────────── -->
   <div id="page-register" class="page">
-    <!-- Auspiciantes y Botón Ranking Siempre Visibles Arriba -->
+    <!-- Auspiciantes Siempre Visibles Arriba -->
     <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 14px; text-align: center;">
       <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; opacity: 0.8;">Auspiciantes Oficiales</div>
       <div class="sponsors-grid" id="register-sponsors" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;"></div>
-      <button class="btn btn-gold btn-outline" id="btn-register-to-ranking" onclick="nav('show')" style="width: 100%; font-size: 12px; padding: 8px 0; min-height: 36px;">🏆 Ranking Mic Club</button>
     </div>
 
     <div class="hero" style="padding-bottom:6px">
@@ -256,6 +252,12 @@ if ('serviceWorker' in navigator) {
       <button class="btn btn-gold" id="confirm-all-btn" onclick="saveAndExit()" style="width:100%;min-height:52px;font-size:16px;margin-top:4px">💾 GUARDAR Y SALIR</button>
 
     </div>
+
+    <!-- Botón de Ranking Mic Club al final de la pantalla de Reservas -->
+    <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; text-align: center; width: 100%;">
+      <button class="btn btn-gold btn-outline" id="btn-register-to-ranking" onclick="nav('show')" style="width: 100%; font-size: 12px; padding: 8px 0; min-height: 36px;">🏆 Ranking Mic Club</button>
+    </div>
+
   </div>
 
   <!-- ─────────── PROGRAMA (PORTAL PÚBLICO) ─────────── -->
@@ -651,9 +653,9 @@ if ('serviceWorker' in navigator) {
     <!-- Lienzo de Fuegos Artificiales para Celebración -->
     <canvas id="show-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.75"></canvas>
 
-    <!-- Botón Volver a Reservas (solo visible en flujo de reservas) -->
+    <!-- Botón Volver a la reserva (solo visible en flujo de reservas) -->
     <div id="show-back-to-register-container" style="display:none;margin-bottom:12px">
-      <button class="btn btn-outline" onclick="nav('register')" style="width:100%;font-size:12px;padding:8px 0;min-height:36px">🔙 Volver a Reservas</button>
+      <button class="btn btn-outline" onclick="nav('register')" style="width:100%;font-size:12px;padding:8px 0;min-height:36px">🔙 Volver a la reserva</button>
     </div>
 
     <div class="hero" style="padding-bottom:4px">
@@ -1002,6 +1004,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.22" defer></script>
+<script src="js/app.js?v=1.23" defer></script>
 </body>
 </html>

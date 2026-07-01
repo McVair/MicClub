@@ -1026,7 +1026,7 @@ function updateRegistrationPageUI() {
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsHtml = sponsors.map(sp => `
     <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
-      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+      <img src="${sp.img}" style="width:62px;height:62px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
     </a>
   `).join('');
   const elSponsorsReg = document.getElementById('register-sponsors');
@@ -1069,7 +1069,7 @@ function updateUI() {
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsHtml = sponsors.map(sp => `
     <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
-      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+      <img src="${sp.img}" style="width:62px;height:62px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
     </a>
   `).join('');
   const elSponsorsReg = document.getElementById('register-sponsors');
@@ -1082,7 +1082,7 @@ function updateUI() {
   if (elSponsorsAdmin) {
     const adminSponsorsHtml = sponsors.map(sp => `
       <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block;margin-bottom:6px">
-        <img src="${sp.img}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+        <img src="${sp.img}" style="width:75px;height:75px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
       </a>
     `).join('');
     elSponsorsAdmin.innerHTML = adminSponsorsHtml || '<div style="font-size:11px;color:var(--text2)">Sin auspiciantes</div>';
@@ -1177,7 +1177,7 @@ function updateProgramPage() {
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsHtml = sponsors.map(sp => `
     <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
-      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+      <img src="${sp.img}" style="width:62px;height:62px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
     </a>
   `).join('');
   const elSponsors = document.getElementById('program-sponsors-top');
@@ -5770,7 +5770,7 @@ function updatePantallaSponsors() {
   const sponsors = localState.settings?.sponsors || [];
   const sponsorsHtml = sponsors.map(sp => `
     <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block">
-      <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+      <img src="${sp.img}" style="width:62px;height:62px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
     </a>
   `).join('');
   
@@ -5783,7 +5783,7 @@ function updatePantallaSponsors() {
   if (elSponsorsRanking) {
     const rankingSponsorsHtml = sponsors.map(sp => `
       <a href="${esc(sp.link || '#')}" target="_blank" style="display:inline-block;margin-bottom:2px">
-        <img src="${sp.img}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+        <img src="${sp.img}" style="width:62px;height:62px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
       </a>
     `).join('');
     elSponsorsRanking.innerHTML = rankingSponsorsHtml || '';
