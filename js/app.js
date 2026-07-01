@@ -3708,6 +3708,24 @@ function changePass() {
 }
 
 let adminTab = 'ctrl';
+function updateMobileEmitButton() {
+  const btnContainer = document.getElementById('mobile-emit-btn-container');
+  if (!btnContainer) return;
+  if (adminTab === 'video') {
+    btnContainer.innerHTML = `
+      <button class="btn btn-sm btn-outline" onclick="setAdminTab('ctrl')" style="min-height:30px;height:30px;font-size:10px;padding:0 8px;border-color:var(--text2);color:var(--text2);margin:0">
+        🔙 Volver
+      </button>
+    `;
+  } else {
+    btnContainer.innerHTML = `
+      <button class="btn btn-sm" onclick="setAdminTab('video')" style="min-height:30px;height:30px;font-size:12px;padding:0 12px;background:#2d6642;border:none;color:#fff;margin:0;font-weight:bold;display:flex;align-items:center;gap:4px">
+        ▶️ Emitir
+      </button>
+    `;
+  }
+}
+
 function setAdminTab(tab) {
   adminTab = tab;
   renderAdminEventSelectorBar();
@@ -3726,6 +3744,8 @@ function setAdminTab(tab) {
       sidebar.style.display = 'block';
     }
   }
+
+  updateMobileEmitButton();
 
   if (tab === 'parts') renderAdminParticipants();
   if (tab === 'jury')  renderAdminJury();

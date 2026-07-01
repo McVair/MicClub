@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.23">
+<link rel="stylesheet" href="css/styles.css?v=1.24">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -67,21 +67,29 @@ if ('serviceWorker' in navigator) {
       <div class="admin-grid-container" id="home-grid-container">
         <div class="admin-main-column">
 
-      <!-- Título Admin Simplificado -->
-      <div style="text-align:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:12px">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">MIC CLUB</span>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--text2);display:inline-block;margin-left:4px">— LAS ALAS DE MI VOZ</span>
-      </div>
-
-      <!-- Sub-cabecera con Evento Activo y Botón de Votación -->
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 14px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;flex:1;min-width:0" id="dash-active-event-name">
-          CARGANDO EVENTO...
+      <!-- Título Admin Simplificado (Izquierda, sin bordes ni cajas) -->
+      <div style="text-align:left;padding:4px 0 10px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
+          <div>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">Mic Club</span>
+            <span style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--text2);display:inline-block;margin-left:4px">las alas de mi voz</span>
+          </div>
+          <!-- Botón de emisión (play) verde en móvil / volver a admin -->
+          <div id="mobile-emit-btn-container" style="display:none">
+            <!-- Renderizado dinámico según pestaña activa -->
+          </div>
         </div>
-        <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:32px;height:32px;font-size:11px;padding:0 12px;width:auto;font-family:'Oswald',sans-serif;letter-spacing:1px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
-          ABRIR VOTACIÓN
-        </button>
-        <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
+        
+        <!-- Fila de Nombre de Evento y Botón Votación (sin cajas ni fondos) -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:12px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" id="dash-active-event-name">
+            CARGANDO EVENTO...
+          </div>
+          <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:30px;height:30px;font-size:11px;padding:0 12px;width:auto;font-family:'Oswald',sans-serif;letter-spacing:1px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
+            ABRIR VOTACIÓN
+          </button>
+          <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
+        </div>
       </div>
 
       <!-- Control de Eventos en Paralelo -->
@@ -828,7 +836,7 @@ if ('serviceWorker' in navigator) {
         <div class="admin-video-column" id="admin-video-sidebar">
           
           <!-- 1. Emisión / Proyección -->
-          <div class="card" style="padding:14px;margin-bottom:14px;border:1px solid var(--gold-dark)">
+          <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
             <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;min-height:42px">📺 EMITIR</button>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -842,7 +850,7 @@ if ('serviceWorker' in navigator) {
           </div>
 
           <!-- Unificado: Reproducción -->
-          <div class="card" style="padding:14px">
+          <div class="card no-gold-border" style="padding:14px">
             <div class="card-title" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
               <span>🎵 Reproducción</span>
               <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
@@ -884,14 +892,6 @@ if ('serviceWorker' in navigator) {
 
             <div id="yt-playlist-items" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
               <!-- Renderizado dinámico -->
-            </div>
-          </div>
-
-          <!-- Auspiciantes en Columna Derecha (Emisión) -->
-          <div class="card" style="padding:14px;margin-top:14px;text-align:center">
-            <div class="card-title" style="margin-bottom:12px;text-align:left">🎨 Auspiciantes</div>
-            <div id="admin-page-sponsors" style="display:flex;flex-direction:column;align-items:center;gap:10px">
-              <!-- Renderizado vertical -->
             </div>
           </div>
 
@@ -1004,6 +1004,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.23" defer></script>
+<script src="js/app.js?v=1.24" defer></script>
 </body>
 </html>

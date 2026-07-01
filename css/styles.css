@@ -1053,5 +1053,23 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   font-weight: 700;
 }
 
+/* Permitir tarjetas sin borde dorado */
+.card.no-gold-border::before {
+  display: none !important;
+}
+.card.no-gold-border {
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+#mobile-emit-btn-container {
+  display: none;
+}
+@media (max-width: 991px) {
+  #mobile-emit-btn-container {
+    display: block !important;
+  }
+}
+
 
 
