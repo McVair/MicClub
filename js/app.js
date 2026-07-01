@@ -5710,52 +5710,52 @@ ${
       const p = parts[currentSingerIdx + 2 + i];
       if (p) {
         upcomingHtml += `
-          <div style="border-left:2px solid var(--gold); padding-left:12px">
-            <div style="font-family:'Bebas Neue',sans-serif; font-size:18px; color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(p.name)}</div>
-            <div style="font-family:'Oswald',sans-serif; font-size:12px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px">${esc(p.songTitle || '—')}</div>
+          <div style="border-left:3px solid var(--gold); padding-left:16px">
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:26px; color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.5px">${esc(p.name)}</div>
+            <div style="font-family:'Oswald',sans-serif; font-size:16px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:4px">${esc(p.songTitle || '—')}</div>
           </div>
         `;
       } else {
         upcomingHtml += `
-          <div style="opacity:0.3; border-left:2px solid rgba(255,255,255,0.1); padding-left:12px">
-            <div style="font-family:'Inter',sans-serif; font-size:12px; color:var(--text2); font-style:italic">—</div>
+          <div style="opacity:0.3; border-left:3px solid rgba(255,255,255,0.1); padding-left:16px">
+            <div style="font-family:'Inter',sans-serif; font-size:15px; color:var(--text2); font-style:italic">—</div>
           </div>
         `;
       }
     }
     
     container.innerHTML = `
-      <div style="display:flex; flex-direction:column; gap:24px; max-width:900px; margin:0 auto; animation:fadeUp 0.5s ease-out forwards; padding:10px">
+      <div style="display:flex; flex-direction:column; gap:36px; max-width:1100px; margin:0 auto; animation:fadeUp 0.5s ease-out forwards; padding:20px 10px; justify-content:center">
         
         <!-- Fila Principal: Cantando y Por Cantar -->
-        <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:24px; align-items:stretch">
+        <div style="display:grid; grid-template-columns:1.20fr 0.80fr; gap:36px; align-items:stretch">
           
           <!-- Bloque 1: Cantando Ahora (Dorado y Grande) -->
-          <div class="card" style="border:1.5px solid var(--gold); background:rgba(201,154,66,0.04); padding:24px; border-radius:12px; display:flex; flex-direction:column; justify-content:center; text-align:left; position:relative">
-            <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--gold); font-weight:700; text-transform:uppercase; margin-bottom:8px">🎤 CANTANDO AHORA</div>
-            <div style="font-family:'Bebas Neue',sans-serif; font-size:46px; color:var(--gold); letter-spacing:1px; line-height:1.1">${esc(currentSinger.name)}</div>
-            <div style="font-family:'Oswald',sans-serif; font-size:22px; color:#ffffff; font-weight:400; margin-top:10px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
-            <div style="font-family:'Inter',sans-serif; font-size:14px; color:var(--text2); margin-top:4px">${esc(currentSinger.songArtist || '')}</div>
+          <div class="card" style="border:2px solid var(--gold); background:rgba(201,154,66,0.06); padding:36px 40px; border-radius:16px; display:flex; flex-direction:column; justify-content:center; text-align:left; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+            <div style="font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:4px; color:var(--gold); font-weight:700; text-transform:uppercase; margin-bottom:12px">🎤 CANTANDO AHORA</div>
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:72px; color:var(--gold); letter-spacing:2px; line-height:1.0">${esc(currentSinger.name)}</div>
+            <div style="font-family:'Oswald',sans-serif; font-size:32px; color:#ffffff; font-weight:400; margin-top:16px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:18px; color:var(--text2); margin-top:6px; opacity:0.8">${esc(currentSinger.songArtist || '')}</div>
           </div>
           
           <!-- Bloque 2: Por Cantar / Siguiente (Blanco/Plata y Mediano) -->
-          <div class="card" style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.01); padding:24px; border-radius:12px; display:flex; flex-direction:column; justify-content:center; text-align:left">
-            <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--text2); font-weight:700; text-transform:uppercase; margin-bottom:8px">⏭️ SIGUIENTE EN COLA</div>
+          <div class="card" style="border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); padding:36px 32px; border-radius:16px; display:flex; flex-direction:column; justify-content:center; text-align:left; box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+            <div style="font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:4px; color:var(--text2); font-weight:700; text-transform:uppercase; margin-bottom:12px">⏭️ SIGUIENTE EN COLA</div>
             ${nextSinger ? `
-              <div style="font-family:'Bebas Neue',sans-serif; font-size:32px; color:#ffffff; letter-spacing:0.5px; line-height:1.1">${esc(nextSinger.name)}</div>
-              <div style="font-family:'Oswald',sans-serif; font-size:17px; color:var(--gold); font-weight:400; margin-top:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
-              <div style="font-family:'Inter',sans-serif; font-size:12px; color:var(--text2); margin-top:2px">${esc(nextSinger.songArtist || '')}</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:48px; color:#ffffff; letter-spacing:1px; line-height:1.0">${esc(nextSinger.name)}</div>
+              <div style="font-family:'Oswald',sans-serif; font-size:24px; color:var(--gold); font-weight:400; margin-top:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
+              <div style="font-family:'Inter',sans-serif; font-size:15px; color:var(--text2); margin-top:4px; opacity:0.7">${esc(nextSinger.songArtist || '')}</div>
             ` : `
-              <div style="font-family:'Inter',sans-serif; font-size:13px; color:var(--text2); font-style:italic">Fin de la lista de participantes</div>
+              <div style="font-family:'Inter',sans-serif; font-size:16px; color:var(--text2); font-style:italic">Fin de la lista de participantes</div>
             `}
           </div>
           
         </div>
         
         <!-- Bloque 3: Siguientes 3 (Lista compacta horizontal) -->
-        <div class="card" style="padding:16px; border:1px solid rgba(255,255,255,0.05); background:transparent; text-align:left">
-          <div style="font-family:'Oswald',sans-serif; font-size:10px; letter-spacing:2px; color:var(--text2); font-weight:600; text-transform:uppercase; margin-bottom:12px">📋 PRÓXIMOS EN LA LISTA</div>
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px">
+        <div class="card" style="padding:24px 32px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.01); border-radius:16px; text-align:left; box-shadow:0 4px 20px rgba(0,0,0,0.2)">
+          <div style="font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:3px; color:var(--text2); font-weight:600; text-transform:uppercase; margin-bottom:18px">📋 PRÓXIMOS EN LA LISTA</div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:32px">
             ${upcomingHtml}
           </div>
         </div>
