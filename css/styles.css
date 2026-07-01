@@ -1300,20 +1300,26 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     overflow-y: visible !important;
   }
   .admin-main-column {
-    display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
     height: auto !important;
     padding-bottom: 20px !important;
+  }
+  .admin-main-column[style*="display: block"],
+  .admin-main-column[style*="display:block"] {
+    display: flex !important;
   }
   #admin-video-sidebar {
     padding-top: 100px !important;
     padding-bottom: 76px !important;
     height: calc(100vh - 176px) !important;
     overflow: hidden !important;
-    display: flex !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
+  }
+  #admin-video-sidebar[style*="display: block"],
+  #admin-video-sidebar[style*="display:block"] {
+    display: flex !important;
   }
   #admin-video-sidebar > .card {
     border: none !important;
@@ -1347,6 +1353,8 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     height: 100vh !important;
     padding-bottom: 20px !important;
     overflow: hidden !important;
+  }
+  #page-home.active, #page-admin.active {
     display: flex !important;
     flex-direction: column !important;
   }
@@ -1354,9 +1362,14 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     flex: 1 !important;
     min-height: 0 !important;
     height: auto !important;
-    display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+  }
+  #home-dashboard[style*="display: block"], 
+  #home-dashboard[style*="display:block"], 
+  #admin-panel[style*="display: block"], 
+  #admin-panel[style*="display:block"] {
+    display: flex !important;
   }
   .admin-grid-container {
     display: grid;
