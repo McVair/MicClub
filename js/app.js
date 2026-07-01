@@ -1705,6 +1705,10 @@ function updateDashboard() {
   if (elActiveName) {
     elActiveName.textContent = activeEvent ? activeEvent.name.toUpperCase() : 'SIN EVENTO ACTIVO';
   }
+  const elBarActiveName = document.getElementById('bar-active-event-name');
+  if (elBarActiveName) {
+    elBarActiveName.textContent = activeEvent ? activeEvent.name.toUpperCase() : 'SIN EVENTO ACTIVO';
+  }
 
   // Resultados label: nombre del evento si hay show activo
   const lbl = document.getElementById('dash-ranking-label');
@@ -2393,10 +2397,30 @@ async function startShow(slot, name, date, time, venue, capacity) {
 function dashCopyLink(mode) {
   const urlMap = { vote: '?mode=vote', jury: '?mode=jury', ranking: '?mode=ranking', micclub: '?mode=micclub', register: '?mode=register', pantalla: '?mode=pantalla' };
   const url = buildBaseURL() + (urlMap[mode] || ('?mode=' + mode));
-  navigator.clipboard?.writeText(url)
-    .then(() => mcAlert('✅ Link copiado al portapapeles'))
-    .catch(() => showCustomModal({ msg: `Copiá este link:<br><br><span style="font-size:11px;word-break:break-all;color:var(--teal)">${url}</span>`, okText: 'OK' }));
+  const modeNames = { jury: 'Jurado', register: 'Reservas', vote: 'Programa', ranking: 'Ranking', pantalla: 'Pantalla' };
+  const label = modeNames[mode] || 'Evento';
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'MIC CLUB',
+      text: `Ingresá al enlace de ${label}:`,
+      url: url
+    }).catch(err => {
+      console.log('Compartir cancelado o fallido', err);
+    });
+  } else {
+    navigator.clipboard?.writeText(url)
+      .then(() => mcAlert('✅ Link copiado al portapapeles'))
+      .catch(() => showCustomModal({ msg: `Copiá este link:<br><br><span style="font-size:11px;word-break:break-all;color:var(--teal)">${url}</span>`, okText: 'OK' }));
+  }
 }
+window.dashCopyLink = dashCopyLink;
+
+function openBarConsole() {
+  const url = buildBaseURL() + '?mode=bar';
+  window.open(url, '_blank');
+}
+window.openBarConsole = openBarConsole;
 
 async function saveDashEvento() {
   const inp = document.getElementById('dash-evento-input');
@@ -5240,6 +5264,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('home-dashboard').style.display  = 'block';
     }
     nav('home');
+  } else if (MODE === 'bar') {
+    nav('bar');
   } else if (MODE === 'register') {
     nav('register');
   } else if (MODE === 'vote') {
@@ -6148,12 +6174,12 @@ function renderPlaylistQueue() {
         </div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
           <!-- Tocar -->
-          <button class="btn btn-sm ${isCurrent ? 'btn-gold' : 'btn-outline'}" onclick="playQueueItem('${item.source}', '${item.id}')" style="min-height:30px;height:30px;padding:0 8px;font-size:10px;width:auto">
-            ${isCurrent ? '⏸️' : '▶️'}
+          <button class="playlist-item-btn" onclick="playQueueItem('${item.source}', '${item.id}')">
+            ${isCurrent ? '⏸' : '▶'}
           </button>
           
           <!-- Borrar -->
-          <button class="btn btn-sm btn-outline" onclick="deleteQueueItem('${item.source}', '${item.id}')" style="min-height:30px;height:30px;padding:0 8px;width:auto;color:var(--red) !important">🗑️</button>
+          <button class="playlist-item-delete-btn" onclick="deleteQueueItem('${item.source}', '${item.id}')">🗑</button>
         </div>
       </div>
     `;
@@ -6500,6 +6526,8 @@ function updateCastButtonsHighlight(layout) {
   layouts.forEach(l => {
     const btn = document.getElementById(`cast-btn-${l}`);
     if (btn) btn.classList.toggle('active', l === layout);
+    const btnBar = document.getElementById(`bar-cast-btn-${l}`);
+    if (btnBar) btnBar.classList.toggle('active', l === layout);
   });
 }
 
@@ -6937,13 +6965,16 @@ function updateMobileLayout() {
     if (videoCol) videoCol.style.display = (activeMobileSection === 'reproduccion') ? 'block' : 'none';
     
     if (toggleBtn) {
+      const mobileDownloadBtn = document.getElementById('mobile-download-btn');
       if (activeMobileSection === 'admin') {
         toggleBtn.innerHTML = '🎵 Ir a Playlist';
         toggleBtn.className = 'btn btn-gold';
+        if (mobileDownloadBtn) mobileDownloadBtn.style.display = 'none';
       } else {
         toggleBtn.innerHTML = 'Ir a administración';
         toggleBtn.className = 'btn btn-outline';
         toggleBtn.style.color = 'var(--text)';
+        if (mobileDownloadBtn) mobileDownloadBtn.style.display = 'block';
       }
     }
     if (activeMobileSection === 'reproduccion') {
@@ -6967,18 +6998,22 @@ let screensaverCurrentView = 'ranking';
 
 function updateScreensaverUIState() {
   const btn = document.getElementById('screensaver-toggle-btn');
-  if (!btn) return;
-  if (screensaverActive) {
-    btn.textContent = '🛑 DETENER';
-    btn.style.borderColor = 'var(--red)';
-    btn.style.color = 'var(--red)';
-    btn.style.background = 'rgba(255, 61, 107, 0.1)';
-  } else {
-    btn.textContent = '✨ SALVAPANTALLAS';
-    btn.style.borderColor = '';
-    btn.style.color = '';
-    btn.style.background = '';
-  }
+  const btnBar = document.getElementById('bar-screensaver-toggle-btn');
+  const btns = [btn, btnBar].filter(Boolean);
+  
+  btns.forEach(b => {
+    if (screensaverActive) {
+      b.textContent = '🛑 DETENER';
+      b.style.borderColor = 'var(--red)';
+      b.style.color = 'var(--red)';
+      b.style.background = 'rgba(255, 61, 107, 0.1)';
+    } else {
+      b.textContent = '✨ SALVAPANTALLAS';
+      b.style.borderColor = '';
+      b.style.color = '';
+      b.style.background = '';
+    }
+  });
 }
 window.updateScreensaverUIState = updateScreensaverUIState;
 

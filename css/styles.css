@@ -1057,27 +1057,27 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 .card.no-gold-border::before {
   display: none !important;
 }
-.card.no-gold-border {
-  border: 1px solid var(--border) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+/* Specific button text fixes inside dark buttons */
+.jury-sel-btn .jury-sel-name {
+  color: #ffffff !important;
+}
+.jury-sel-btn .jury-sel-song {
+  color: #92909C !important;
 }
 
-#mobile-emit-btn-container {
-  display: none;
+/* Already Scored Jury Buttons */
+.jury-sel-btn.scored {
+  border: 1px solid var(--gold) !important;
+  background: rgba(223, 172, 74, 0.08) !important;
 }
-@media (max-width: 991px) {
-  #mobile-emit-btn-container {
-    display: block !important;
-  }
+.jury-sel-btn.scored .jury-sel-name {
+  color: var(--gold) !important;
+}
+.jury-sel-btn.scored .jury-sel-song {
+  color: #92909C !important;
 }
 
-/* ── ALTOS SEGÚN ESPACIO VISIBLE Y CABECERA FIJA ── */
-#admin-fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 90px;
+/* Criteria score active buttons */
 .score-btn.active {
   background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 100%) !important;
   border-color: #FCE0AD !important;
@@ -1409,16 +1409,17 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   }
 }
 
-/* Botones de reproducción Unicode planos sin bordes */
+/* Botones de reproducción Unicode planos sin bordes — AHORA DORADOS CON BLANCO */
 .yt-control-btn {
-  background: transparent !important;
+  background: var(--gold) !important;
   border: none !important;
   color: #ffffff !important;
-  font-size: 24px !important;
+  font-size: 20px !important;
   padding: 0 !important;
   min-height: auto !important;
   height: 38px !important;
   width: 38px !important;
+  border-radius: 8px !important;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1432,6 +1433,75 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 .yt-control-btn:active {
   transform: scale(0.95);
+}
+
+/* Norma general de botones: todos iguales en tamaño y estilo */
+.btn, .btn-dash {
+  font-family: 'Oswald', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: bold !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  padding: 0 20px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s !important;
+  box-shadow: none !important;
+  text-align: center !important;
+}
+
+.btn-gold {
+  background: var(--gold) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.btn-gold:hover {
+  filter: brightness(1.1);
+}
+
+.btn-outline, .btn-dash {
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+.btn-outline:hover, .btn-dash:hover {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
+.btn-danger {
+  background: var(--red) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.btn-danger:hover {
+  filter: brightness(1.1);
+}
+
+/* Botones dorados en la lista de reproducción (Play y Delete) */
+.playlist-item-btn, .playlist-item-delete-btn {
+  background: var(--gold) !important;
+  border: none !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: opacity 0.2s !important;
+}
+.playlist-item-btn:hover, .playlist-item-delete-btn:hover {
+  opacity: 0.85 !important;
 }
 
 @media (min-width: 992px) {

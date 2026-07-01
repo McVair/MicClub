@@ -93,23 +93,40 @@ if ('serviceWorker' in navigator) {
       <div id="events-control-panel" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px">
       </div>
 
-      <!-- Fila 1: Copiar Links -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
-        <button class="btn-dash" onclick="dashCopyLink('jury')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">⭐ Jurado</button>
-        <button class="btn-dash" onclick="dashCopyLink('register')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">🎤 Reservas</button>
-        <button class="btn-dash" onclick="dashCopyLink('vote')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">📋 Programa</button>
-      </div>
-
       <!-- Fila 2: Administrar Secciones -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
-        <button class="btn-dash" onclick="navPush('program')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📋 Adm Prog</button>
-        <button class="btn-dash" onclick="navToConfig()" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">👥 Adm Part</button>
-        <button class="btn-dash" onclick="navPush('history')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📚 Adm Historial</button>
+        <button class="btn-dash" onclick="navPush('program')" style="border-color:var(--gold);color:var(--gold)">📋 Adm Prog</button>
+        <button class="btn-dash" onclick="navToConfig()" style="border-color:var(--gold);color:var(--gold)">👥 Adm Part</button>
+        <button class="btn-dash" onclick="navPush('history')" style="border-color:var(--gold);color:var(--gold)">📚 Adm Historial</button>
       </div>
 
-      <!-- Descargas de Datos -->
-      <div style="margin-bottom:8px">
-        <button class="btn-dash" onclick="downloadReservations()" style="width:100%;font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">📥</span> Descargar Reservas</button>
+      <!-- Consola Bar -->
+      <div style="margin-bottom:12px">
+        <button class="btn-dash" onclick="openBarConsole()" style="width:100%;border-color:var(--gold);color:var(--gold)">🍻 Bar</button>
+      </div>
+
+      <!-- Panel de Emisión / Proyección -->
+      <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
+        <div id="screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">📺 EMITIR</button>
+          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">✨ SALVAPANTALLAS</button>
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
+        </div>
+      </div>
+
+      <!-- Fila 1: Compartir Links (Debajo de Emisión) -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
+        <button class="btn-dash" onclick="dashCopyLink('jury')" style="width:100%">⭐ Jurado</button>
+        <button class="btn-dash" onclick="dashCopyLink('register')" style="width:100%">🎤 Reservas</button>
+        <button class="btn-dash" onclick="dashCopyLink('vote')" style="width:100%">📋 Programa</button>
       </div>
 
       <!-- Pruebas / Simulación -->
@@ -123,25 +140,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Borrar Todo -->
-      <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px;display:none">🗑️ BORRAR TODO</button>
-
-      <!-- Panel de Emisión / Proyección (Debajo de Administración) -->
-      <div class="card no-gold-border" style="padding:14px;margin-top:14px">
-        
-        <div id="screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;letter-spacing:1px;min-height:42px;margin:0">📺 EMITIR</button>
-          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;font-size:11px;font-weight:bold;letter-spacing:1px;min-height:42px;margin:0">✨ SALVAPANTALLAS</button>
-        </div>
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
-        </div>
-      </div>
+      <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);display:none">🗑️ BORRAR TODO</button>
 
         </div>
       </div>
@@ -903,6 +902,47 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 
+  <!-- ─────────── CONSOLA BAR ─────────── -->
+  <div id="page-bar" class="page">
+    <!-- Cabecera Fija Bar (Igual a la de Admin) -->
+    <div id="bar-fixed-header" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:12px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
+        <div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">MIC CLUB</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1.5px;color:#8e867a;display:inline-block;margin-left:4px">Las Alas de mi Voz</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:12px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" id="bar-active-event-name">
+          CARGANDO EVENTO...
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
+    <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
+      <div style="font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">📺 Control de Emisión</div>
+      <div id="bar-screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <button id="bar-cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">📺 EMITIR</button>
+        <button id="bar-screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">✨ SALVAPANTALLAS</button>
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
+      </div>
+    </div>
+
+    <!-- Botón Descargar Reservas exclusivo para Bar -->
+    <div style="margin-top:14px">
+      <button class="btn btn-gold" onclick="downloadReservations()" style="width:100%">📥 Descargar Reservas</button>
+    </div>
+  </div>
+
   <!-- ─────────── CONFIG PARTICIPANTES ─────────── -->
   <div id="page-config" class="page">
     <div style="text-align:center;padding:6px 0 8px">
@@ -1006,12 +1046,13 @@ if ('serviceWorker' in navigator) {
 
 <!-- Contenedor del Botón Único de Navegación Móvil -->
 <div id="mobile-nav-toggle-container" style="display:none">
-  <button id="mobile-nav-toggle-btn" class="btn btn-gold" onclick="toggleMobileSection()" style="width:100%;font-size:13px;font-weight:bold;min-height:46px;margin:0">🎵 Ir a Playlist</button>
+  <button id="mobile-nav-toggle-btn" class="btn btn-gold" onclick="toggleMobileSection()" style="width:100%;margin:0">🎵 Ir a Playlist</button>
+  <button id="mobile-download-btn" class="btn btn-outline" onclick="downloadCombinedSongLinks()" style="width:100%;margin-top:6px;display:none">Descargar</button>
 </div>
 
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.32" defer></script>
+<script src="js/app.js?v=1.33" defer></script>
 </body>
 </html>
