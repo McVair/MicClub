@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.27">
+<link rel="stylesheet" href="css/styles.css?v=1.28">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -64,11 +64,9 @@ if ('serviceWorker' in navigator) {
 
     <!-- Dashboard (visible tras login) -->
     <div id="home-dashboard" style="display:none">
-      <div class="admin-grid-container" id="home-grid-container">
-        <div class="admin-main-column">
-
-      <!-- Título Admin Simplificado (Izquierda, sin bordes ni cajas) -->
-      <div style="text-align:left;padding:4px 0 10px;margin-bottom:10px">
+      
+      <!-- Título Admin Simplificado (Cabecera Fija Móvil y Escritorio) -->
+      <div id="admin-fixed-header">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
           <div>
             <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">Mic Club</span>
@@ -87,6 +85,9 @@ if ('serviceWorker' in navigator) {
           <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
         </div>
       </div>
+
+      <div class="admin-grid-container" id="home-grid-container">
+        <div class="admin-main-column">
 
       <!-- Control de Eventos en Paralelo -->
       <div id="events-control-panel" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px">
@@ -127,7 +128,11 @@ if ('serviceWorker' in navigator) {
       <!-- Panel de Emisión / Proyección (Debajo de Administración) -->
       <div class="card no-gold-border" style="padding:14px;margin-top:14px">
         <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;font-weight:700">📺 Emisión en Pantalla</div>
-        <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;min-height:42px">📺 EMITIR</button>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;letter-spacing:1px;min-height:42px;margin:0">📺 EMITIR</button>
+          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;font-size:11px;font-weight:bold;letter-spacing:1px;min-height:42px;margin:0">✨ SALVAPANTALLAS</button>
+        </div>
         
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
@@ -1000,21 +1005,14 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
-<!-- Barra de Navegación Inferior (Estilo WhatsApp) - Solo Móvil -->
-<div id="mobile-bottom-nav" style="display:none">
-  <button class="mobile-nav-item active" id="mob-nav-admin" onclick="switchMobileSection('admin')">
-    <span style="font-size:18px">🛠️</span>
-    <span style="font-size:10px;font-weight:600;margin-top:2px">Administración</span>
-  </button>
-  <button class="mobile-nav-item" id="mob-nav-emision" onclick="switchMobileSection('reproduccion')">
-    <span style="font-size:18px">🎵</span>
-    <span style="font-size:10px;font-weight:600;margin-top:2px">Reproducción</span>
-  </button>
+<!-- Contenedor del Botón Único de Navegación Móvil -->
+<div id="mobile-nav-toggle-container" style="display:none">
+  <button id="mobile-nav-toggle-btn" class="btn btn-gold" onclick="toggleMobileSection()" style="width:100%;font-size:13px;font-weight:bold;min-height:46px;margin:0">🎵 Ir a Reproducción</button>
 </div>
 
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.27" defer></script>
+<script src="js/app.js?v=1.28" defer></script>
 </body>
 </html>

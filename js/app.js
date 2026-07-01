@@ -476,6 +476,9 @@ function initFirebase() {
       if (s.showRunning === undefined || s.showRunning === null) {
         showRunning = false;
       }
+      if (s.castYtVideo) {
+        activeYtVideo = s.castYtVideo;
+      }
       localState.settings = { ...localState.settings, ...s };
 
       // Fallback de Sincronización para Monitor Extendido (Pantalla)
@@ -1062,7 +1065,7 @@ function updateUI() {
   if (currentPage === 'config') renderConfigParticipants();
   if (currentPage === 'register') updateRegistrationPageUI();
   if (currentPage === 'admin-micclub-participants') renderAdminMicClubParticipants();
-  if (currentPage === 'pantalla') {
+  if (currentPage === 'pantalla' || MODE === 'pantalla') {
     updatePantallaContent();
     updatePantallaSponsors();
   }
@@ -1092,11 +1095,14 @@ function updateUI() {
     elSponsorsAdmin.innerHTML = adminSponsorsHtml || '<div style="font-size:11px;color:var(--text2)">Sin auspiciantes</div>';
   }
 
-  // Controlar barra de navegación inferior móvil
-  const bottomNav = document.getElementById('mobile-bottom-nav');
-  if (bottomNav) {
+  // Controlar barra de navegación inferior móvil (botón único)
+  const bottomNavToggle = document.getElementById('mobile-nav-toggle-container');
+  if (bottomNavToggle) {
     const isDashboardVisible = (currentPage === 'home' || currentPage === 'admin') && adminLoggedIn;
-    bottomNav.style.display = isDashboardVisible ? 'flex' : 'none';
+    bottomNavToggle.style.display = isDashboardVisible ? 'block' : 'none';
+    if (isDashboardVisible) {
+      updateMobileLayout();
+    }
   }
 }
 
@@ -5685,17 +5691,77 @@ ${
       container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">Esperando confirmación de participantes...</div>`;
       return;
     }
-    container.innerHTML = `<div style="max-width: 900px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
-      parts.map((p, index) => {
-        const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
-        return `
-          <div style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+    
+    // Encontrar al cantante actual basado en activeYtVideo
+    let currentSingerIdx = 0;
+    if (activeYtVideo) {
+      const idx = parts.findIndex(p => p.email === activeYtVideo.id || p.name === activeYtVideo.name);
+      if (idx !== -1) {
+        currentSingerIdx = idx;
+      }
+    }
+    
+    const currentSinger = parts[currentSingerIdx];
+    const nextSinger = parts[currentSingerIdx + 1] || null;
+    
+    // Generar HTML de los siguientes 3
+    let upcomingHtml = '';
+    for (let i = 0; i < 3; i++) {
+      const p = parts[currentSingerIdx + 2 + i];
+      if (p) {
+        upcomingHtml += `
+          <div style="border-left:2px solid var(--gold); padding-left:12px">
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:18px; color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">${esc(p.name)}</div>
+            <div style="font-family:'Oswald',sans-serif; font-size:12px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px">${esc(p.songTitle || '—')}</div>
           </div>
         `;
-      }).join('')
-    }</div>`;
+      } else {
+        upcomingHtml += `
+          <div style="opacity:0.3; border-left:2px solid rgba(255,255,255,0.1); padding-left:12px">
+            <div style="font-family:'Inter',sans-serif; font-size:12px; color:var(--text2); font-style:italic">—</div>
+          </div>
+        `;
+      }
+    }
+    
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:24px; max-width:900px; margin:0 auto; animation:fadeUp 0.5s ease-out forwards; padding:10px">
+        
+        <!-- Fila Principal: Cantando y Por Cantar -->
+        <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:24px; align-items:stretch">
+          
+          <!-- Bloque 1: Cantando Ahora (Dorado y Grande) -->
+          <div class="card" style="border:1.5px solid var(--gold); background:rgba(201,154,66,0.04); padding:24px; border-radius:12px; display:flex; flex-direction:column; justify-content:center; text-align:left; position:relative">
+            <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--gold); font-weight:700; text-transform:uppercase; margin-bottom:8px">🎤 CANTANDO AHORA</div>
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:46px; color:var(--gold); letter-spacing:1px; line-height:1.1">${esc(currentSinger.name)}</div>
+            <div style="font-family:'Oswald',sans-serif; font-size:22px; color:#ffffff; font-weight:400; margin-top:10px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:14px; color:var(--text2); margin-top:4px">${esc(currentSinger.songArtist || '')}</div>
+          </div>
+          
+          <!-- Bloque 2: Por Cantar / Siguiente (Blanco/Plata y Mediano) -->
+          <div class="card" style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.01); padding:24px; border-radius:12px; display:flex; flex-direction:column; justify-content:center; text-align:left">
+            <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--text2); font-weight:700; text-transform:uppercase; margin-bottom:8px">⏭️ SIGUIENTE EN COLA</div>
+            ${nextSinger ? `
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:32px; color:#ffffff; letter-spacing:0.5px; line-height:1.1">${esc(nextSinger.name)}</div>
+              <div style="font-family:'Oswald',sans-serif; font-size:17px; color:var(--gold); font-weight:400; margin-top:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
+              <div style="font-family:'Inter',sans-serif; font-size:12px; color:var(--text2); margin-top:2px">${esc(nextSinger.songArtist || '')}</div>
+            ` : `
+              <div style="font-family:'Inter',sans-serif; font-size:13px; color:var(--text2); font-style:italic">Fin de la lista de participantes</div>
+            `}
+          </div>
+          
+        </div>
+        
+        <!-- Bloque 3: Siguientes 3 (Lista compacta horizontal) -->
+        <div class="card" style="padding:16px; border:1px solid rgba(255,255,255,0.05); background:transparent; text-align:left">
+          <div style="font-family:'Oswald',sans-serif; font-size:10px; letter-spacing:2px; color:var(--text2); font-weight:600; text-transform:uppercase; margin-bottom:12px">📋 PRÓXIMOS EN LA LISTA</div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px">
+            ${upcomingHtml}
+          </div>
+        </div>
+
+      </div>
+    `;
   }
   else if (pantallaTab === 'votos') {
     container.innerHTML = `
@@ -6726,4 +6792,118 @@ function openProjectionWindow() {
   }
 }
 window.openProjectionWindow = openProjectionWindow;
+
+// ── LÓGICA DE NAVEGACIÓN MÓVIL Y SALVAPANTALLAS ──
+let activeMobileSection = 'admin'; // 'admin' o 'reproduccion'
+
+function toggleMobileSection() {
+  if (activeMobileSection === 'admin') {
+    activeMobileSection = 'reproduccion';
+  } else {
+    activeMobileSection = 'admin';
+  }
+  updateMobileLayout();
+}
+window.toggleMobileSection = toggleMobileSection;
+
+function updateMobileLayout() {
+  const adminMainCol = document.querySelector('.admin-main-column');
+  const videoCol = document.getElementById('admin-video-sidebar');
+  const toggleBtn = document.getElementById('mobile-nav-toggle-btn');
+  
+  if (window.innerWidth < 992) {
+    if (adminMainCol) adminMainCol.style.display = (activeMobileSection === 'admin') ? 'block' : 'none';
+    if (videoCol) videoCol.style.display = (activeMobileSection === 'reproduccion') ? 'block' : 'none';
+    
+    if (toggleBtn) {
+      if (activeMobileSection === 'admin') {
+        toggleBtn.innerHTML = '🎵 Ir a Reproducción';
+        toggleBtn.className = 'btn btn-gold';
+      } else {
+        toggleBtn.innerHTML = '🔙 Volver a Administración';
+        toggleBtn.className = 'btn btn-outline';
+        toggleBtn.style.color = 'var(--text)';
+      }
+    }
+    if (activeMobileSection === 'reproduccion') {
+      renderPlaylistQueue();
+    }
+  } else {
+    // Escritorio
+    if (adminMainCol) adminMainCol.style.display = 'block';
+    if (videoCol) videoCol.style.display = 'block';
+  }
+}
+window.updateMobileLayout = updateMobileLayout;
+
+// Escuchar cambios de tamaño para recalcular el layout
+window.addEventListener('resize', updateMobileLayout);
+
+// Lógica de Salvapantallas
+let screensaverIntervalId = null;
+let screensaverActive = false;
+let screensaverCurrentView = 'ranking';
+
+function toggleScreensaver() {
+  screensaverActive = !screensaverActive;
+  const btn = document.getElementById('screensaver-toggle-btn');
+  if (screensaverActive) {
+    if (btn) {
+      btn.textContent = '🛑 DETENER';
+      btn.style.borderColor = 'var(--red)';
+      btn.style.color = 'var(--red)';
+      btn.style.background = 'rgba(255, 61, 107, 0.1)';
+    }
+    startScreensaverTimer();
+  } else {
+    if (btn) {
+      btn.textContent = '✨ SALVAPANTALLAS';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      btn.style.background = '';
+    }
+    stopScreensaverTimer();
+  }
+}
+window.toggleScreensaver = toggleScreensaver;
+
+function startScreensaverTimer() {
+  if (screensaverIntervalId) clearInterval(screensaverIntervalId);
+  runScreensaverStep();
+  screensaverIntervalId = setInterval(runScreensaverStep, 60000);
+}
+
+function stopScreensaverTimer() {
+  if (screensaverIntervalId) {
+    clearInterval(screensaverIntervalId);
+    screensaverIntervalId = null;
+  }
+}
+
+function runScreensaverStep() {
+  if (!screensaverActive) return;
+  
+  // Determinar modo automáticamente basado en si hay algún voto en base de datos
+  const activeEventId = getCurrentEventId();
+  let hasVotes = false;
+  
+  if (allParticipants) {
+    hasVotes = Object.keys(allParticipants).some(p => {
+      const res = allParticipants[p]?.reservations?.[activeEventId] || {};
+      return (res.votesCount || 0) > 0;
+    });
+  }
+  
+  const isAfterVoting = votingOpen || hasVotes;
+  
+  if (isAfterVoting) {
+    // Después de votar: alternar entre ranking y votos
+    screensaverCurrentView = (screensaverCurrentView === 'ranking') ? 'vote' : 'ranking';
+  } else {
+    // Antes de votar: alternar entre ranking y participantes
+    screensaverCurrentView = (screensaverCurrentView === 'ranking') ? 'parts' : 'ranking';
+  }
+  
+  setCastLayout(screensaverCurrentView);
+}
 
