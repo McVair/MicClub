@@ -95,43 +95,39 @@ if ('serviceWorker' in navigator) {
 
       <!-- Fila 2: Administrar Secciones -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
-        <button class="btn-dash" onclick="navPush('program')" style="border-color:var(--gold);color:var(--gold)">📋 Adm Prog</button>
-        <button class="btn-dash" onclick="navToConfig()" style="border-color:var(--gold);color:var(--gold)">👥 Adm Part</button>
-        <button class="btn-dash" onclick="navPush('history')" style="border-color:var(--gold);color:var(--gold)">📚 Adm Historial</button>
-      </div>
-
-      <!-- Consola Bar -->
-      <div style="margin-bottom:12px">
-        <button class="btn-dash" onclick="openBarConsole()" style="width:100%;border-color:var(--gold);color:var(--gold)">🍻 Bar</button>
+        <button class="btn-dash" onclick="navPush('program')" style="border-color:var(--gold);color:var(--gold)">Adm Prog</button>
+        <button class="btn-dash" onclick="navToConfig()" style="border-color:var(--gold);color:var(--gold)">Adm Part</button>
+        <button class="btn-dash" onclick="navPush('history')" style="border-color:var(--gold);color:var(--gold)">Adm Historial</button>
       </div>
 
       <!-- Panel de Emisión / Proyección -->
       <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
         <div id="screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">📺 EMITIR</button>
-          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">✨ SALVAPANTALLAS</button>
+          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">EMITIR</button>
+          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">SALVAPANTALLAS</button>
         </div>
         
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">Video</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">Ranking</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">Votación</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">Participantes</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">Karaoke</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">Proximo Evento</button>
         </div>
       </div>
 
       <!-- Fila 1: Compartir Links (Debajo de Emisión) -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
-        <button class="btn-dash" onclick="dashCopyLink('jury')" style="width:100%">⭐ Jurado</button>
-        <button class="btn-dash" onclick="dashCopyLink('register')" style="width:100%">🎤 Reservas</button>
-        <button class="btn-dash" onclick="dashCopyLink('vote')" style="width:100%">📋 Programa</button>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+        <button class="btn-dash" onclick="dashCopyLink('jury')" style="width:100%">Jurado</button>
+        <button class="btn-dash" onclick="dashCopyLink('register')" style="width:100%">Reservas</button>
+        <button class="btn-dash" onclick="dashCopyLink('vote')" style="width:100%">Programa</button>
+        <button class="btn-dash" onclick="dashCopyLink('bar')" style="width:100%">Bar</button>
       </div>
 
       <!-- Pruebas / Simulación -->
       <div id="dash-pruebas-card" class="card" style="display:none;margin-top:10px;margin-bottom:10px;border:1px dashed var(--purple-light);background:rgba(123, 97, 255, 0.03);padding:10px">
-        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;margin-bottom:8px;font-weight:700">🧪 Simulación y Pruebas</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;margin-bottom:8px;font-weight:700">Simulación y Pruebas</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <button onclick="simularEvento()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px">1. Crear Evento Demo</button>
           <button id="btn-sim-votos" onclick="simularVotacion()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px" disabled>2. Simular Votos</button>
@@ -140,7 +136,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Borrar Todo -->
-      <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);display:none">🗑️ BORRAR TODO</button>
+      <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);display:none">BORRAR TODO</button>
 
         </div>
       </div>
@@ -198,11 +194,11 @@ if ('serviceWorker' in navigator) {
         <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:6px">📧 Email no registrado</div>
         <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5" id="reg-email-confirm-msg">¿Querés crear un nuevo usuario con este email?</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <button class="btn btn-outline btn-sm" onclick="cancelEmailConfirm()">✕ No, editar</button>
-          <button class="btn btn-gold btn-sm"    onclick="showRegistrationForm()">✅ Sí, continuar</button>
+          <button class="btn btn-outline btn-sm" onclick="cancelEmailConfirm()">No, editar</button>
+          <button class="btn btn-gold btn-sm"    onclick="showRegistrationForm()">Sí, continuar</button>
         </div>
       </div>
-      <button class="btn btn-gold" id="reg-email-btn" onclick="checkEmail()">🔍 BUSCAR / CONTINUAR</button>
+      <button class="btn btn-gold" id="reg-email-btn" onclick="checkEmail()">BUSCAR / CONTINUAR</button>
     </div>
 
     <!-- B · Formulario completo (solo para usuarios nuevos) -->
@@ -270,13 +266,13 @@ if ('serviceWorker' in navigator) {
 
       <!-- Botón guardar y salir -->
       <div id="confirm-all-err" class="alert alert-error" style="display:none"></div>
-      <button class="btn btn-gold" id="confirm-all-btn" onclick="saveAndExit()" style="width:100%;min-height:52px;font-size:16px;margin-top:4px">💾 GUARDAR Y SALIR</button>
+      <button class="btn btn-gold" id="confirm-all-btn" onclick="saveAndExit()" style="width:100%;min-height:52px;font-size:16px;margin-top:4px">GUARDAR Y SALIR</button>
 
     </div>
 
     <!-- Botón de Ranking Mic Club al final de la pantalla de Reservas -->
     <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; text-align: center; width: 100%;">
-      <button class="btn btn-gold btn-outline" id="btn-register-to-ranking" onclick="nav('show')" style="width: 100%; font-size: 12px; padding: 8px 0; min-height: 36px;">🏆 Ranking Mic Club</button>
+      <button class="btn btn-gold btn-outline" id="btn-register-to-ranking" onclick="nav('show')" style="width: 100%; font-size: 12px; padding: 8px 0; min-height: 36px;">Ranking Mic Club</button>
     </div>
 
   </div>
@@ -630,12 +626,12 @@ if ('serviceWorker' in navigator) {
         <!-- Botones de Navegación del Panel -->
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <div style="font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px;">PANELES DE PANTALLA</div>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('artistas')">🎙️ Artistas Invitados</button>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('participantes')">👥 Participantes MC</button>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('votos')">🗳️ Resultados Votación</button>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('ranking')">🏆 Ranking Mic Club</button>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('proximo')">🖼️ Próximo Evento</button>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('karaoke')">🎵 Karaoke Libre</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('artistas')">Artistas Invitados</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('participantes')">Participantes MC</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('votos')">Resultados Votación</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('ranking')">Ranking Mic Club</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('proximo')">Próximo Evento</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('karaoke')">Karaoke Libre</button>
         </div>
         
         <!-- Auspiciantes (Siempre visibles abajo en el sidebar) -->
@@ -676,7 +672,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Botón Volver a la reserva (solo visible en flujo de reservas) -->
     <div id="show-back-to-register-container" style="display:none;margin-bottom:12px">
-      <button class="btn btn-outline" onclick="nav('register')" style="width:100%;font-size:12px;padding:8px 0;min-height:36px">🔙 Volver a la reserva</button>
+      <button class="btn btn-outline" onclick="nav('register')" style="width:100%;font-size:12px;padding:8px 0;min-height:36px">Volver a la reserva</button>
     </div>
 
     <div class="hero" style="padding-bottom:4px">
@@ -853,7 +849,7 @@ if ('serviceWorker' in navigator) {
             <div class="card-title" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
               <div style="display:flex;align-items:center;gap:8px">
                 <span>Playlist</span>
-                <button class="btn btn-sm btn-outline" onclick="downloadCombinedSongLinks()" style="font-size:10px;padding:2px 8px;min-height:auto;display:inline-flex;align-items:center;gap:4px;border-color:rgba(255,255,255,0.12);color:var(--text);margin:0;width:auto">💾 Descargar</button>
+                <button class="btn btn-sm btn-outline" onclick="downloadCombinedSongLinks()" style="font-size:10px;padding:2px 8px;min-height:auto;display:inline-flex;align-items:center;gap:4px;border-color:rgba(255,255,255,0.12);color:var(--text);margin:0;width:auto">Descargar</button>
               </div>
               <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
             </div>
@@ -865,9 +861,9 @@ if ('serviceWorker' in navigator) {
                 <div id="yt-remote-singer" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">Cargá una canción para iniciar</div>
               </div>
               <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
-                <button class="yt-control-btn" onclick="ytRemotePrev()" title="Anterior">⏮</button>
+                <button class="yt-control-btn skip-btn" onclick="ytRemotePrev()" title="Anterior"><span>⏮</span></button>
                 <button class="yt-control-btn" id="yt-remote-play-btn" onclick="ytRemoteTogglePlay()" title="Reproducir/Pausar">▶</button>
-                <button class="yt-control-btn" onclick="ytRemoteNext()" title="Siguiente">⏭</button>
+                <button class="yt-control-btn skip-btn" onclick="ytRemoteNext()" title="Siguiente"><span>⏭</span></button>
               </div>
             </div>
 
@@ -881,12 +877,12 @@ if ('serviceWorker' in navigator) {
             </div>
 
             <!-- Botón Agregar Canción -->
-            <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin-bottom:12px;font-size:11px;padding:8px 0;min-height:34px">➕ Agregar Canción</button>
+            <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin-bottom:12px;font-size:11px;padding:8px 0;min-height:34px">Agregar Canción</button>
 
             <!-- Selector de filtro de lista (Participantes vs Karaoke) -->
             <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)">
-              <button class="btn btn-sm btn-outline active" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">👥 Participantes</button>
-              <button class="btn btn-sm btn-outline" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">🎤 Karaoke</button>
+              <button class="btn btn-sm btn-outline active" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">Participantes</button>
+              <button class="btn btn-sm btn-outline" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">Karaoke</button>
             </div>
 
             <!-- Título dinámico del listado de cola -->
@@ -1052,6 +1048,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.34" defer></script>
+<script src="js/app.js?v=1.35" defer></script>
 </body>
 </html>

@@ -1638,9 +1638,9 @@ function updateDashboard() {
 
             <!-- 2. Información del Evento (Centro-Izquierda) -->
             <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
-              <div style="display:flex;align-items:center;line-height:1">
-                <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;margin-right:6px;line-height:1;background:linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 50%, #8E5B12 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${orderNum}.</span>
-                <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1;background:linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 50%, #8E5B12 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent" title="${esc(name)}">${esc(name)}</span>
+              <div style="display:flex;align-items:center;line-height:1;color:#ffffff">
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
+                <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1" title="${esc(name)}">${esc(name)}</span>
               </div>
               <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(details)}">
                 ${esc(details)}
@@ -4146,8 +4146,8 @@ function renderAdminParticipants() {
         </div>
       </div>
       <div class="p-actions">
-        <button class="btn btn-outline btn-sm" onclick="openModal('${p.id}')">✏️ Editar</button>
-        <button class="btn btn-danger btn-sm"  onclick="delParticipant('${p.id}')">🗑️</button>
+        <button class="btn btn-outline btn-sm" onclick="openModal('${p.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm"  onclick="delParticipant('${p.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:0;width:34px;height:34px;min-height:auto"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
       </div>
     </div>`;
   }).join('');
@@ -4188,10 +4188,10 @@ function renderAdminMicClubParticipants() {
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
         ${ytButton}
         <button class="btn btn-sm btn-outline" onclick="openModal('${p.id}')" style="font-size:11px;padding:6px 10px;min-height:auto;background:transparent;cursor:pointer">
-          ✏️ Editar
+          Editar
         </button>
         <button class="btn btn-sm" onclick="delParticipant('${p.id}')" style="border-color:rgba(255,61,107,.4);color:rgba(255,61,107,.7);font-size:11px;padding:6px 10px;min-height:auto;background:transparent;cursor:pointer">
-          🗑️ Borrar
+          Borrar
         </button>
       </div>
     </div>`;
@@ -5416,7 +5416,7 @@ function updateFreeKaraokePages() {
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
           ${ytButton}
           <button class="btn btn-sm" onclick="deleteFreeKaraokeItem('${item.id}')" style="border-color:rgba(255,61,107,.4);color:rgba(255,61,107,.7);font-size:11px;padding:6px 10px;min-height:auto;background:transparent;cursor:pointer">
-            🗑️ Borrar
+            Borrar
           </button>
         </div>
       </div>`;
@@ -6176,7 +6176,7 @@ function renderPlaylistQueue() {
           </button>
           
           <!-- Borrar -->
-          <button class="playlist-item-delete-btn" onclick="deleteQueueItem('${item.source}', '${item.id}')">🗑</button>
+          <button class="playlist-item-delete-btn" onclick="deleteQueueItem('${item.source}', '${item.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:0"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
         </div>
       </div>
     `;

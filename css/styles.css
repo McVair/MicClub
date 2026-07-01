@@ -1347,9 +1347,15 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     height: 100vh !important;
     padding-bottom: 20px !important;
     overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   #home-dashboard, #admin-panel {
-    height: calc(100% - 90px) !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
     overflow: hidden !important;
   }
   .admin-grid-container {
@@ -1357,7 +1363,9 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     grid-template-columns: 1.15fr 0.85fr;
     gap: 20px;
     align-items: start;
-    height: 100% !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
     max-width: 100%;
     margin: 0 auto;
     overflow: hidden !important;
@@ -1432,6 +1440,10 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 .yt-control-btn:active {
   transform: scale(0.95);
+}
+.yt-control-btn.skip-btn span {
+  display: inline-block;
+  transform: translateY(-2px);
 }
 
 /* Norma general de botones: todos iguales en tamaño y estilo */
