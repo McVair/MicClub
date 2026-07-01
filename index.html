@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.25">
+<link rel="stylesheet" href="css/styles.css?v=1.26">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -64,70 +64,128 @@ if ('serviceWorker' in navigator) {
 
     <!-- Dashboard (visible tras login) -->
     <div id="home-dashboard" style="display:none">
-      <div class="admin-grid-container" id="home-grid-container">
-        <div class="admin-main-column">
-
-      <!-- Título Admin Simplificado (Izquierda, sin bordes ni cajas) -->
-      <div style="text-align:left;padding:4px 0 10px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
-          <div>
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">Mic Club</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--text2);display:inline-block;margin-left:4px">las alas de mi voz</span>
+      <div class="admin-layout-wrapper">
+        
+        <!-- Sidebar Fija (Desktop) -->
+        <div class="admin-sidebar">
+          <div class="sidebar-brand">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold-main),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">Mic Club</span>
+            <span style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;color:var(--text-muted);display:block;margin-top:2px">las alas de mi voz</span>
+          </div>
+          <nav class="sidebar-nav">
+            <button class="sidebar-link active" onclick="switchMobileSection('admin')">📅 Eventos</button>
+            <button class="sidebar-link" onclick="switchMobileSection('emision')">📺 Emisión</button>
+            <button class="sidebar-link" onclick="navToConfig()">👥 Participantes</button>
+            <button class="sidebar-link" onclick="nav('register')">🎤 Reservas</button>
+            <button class="sidebar-link" onclick="nav('program')">📋 Programa</button>
+            <button class="sidebar-link" onclick="nav('vote-public')">🗳️ Votación</button>
+            <button class="sidebar-link" onclick="nav('ranking')">🏆 Ranking</button>
+            <button class="sidebar-link" onclick="nav('history')">📚 Historial</button>
+          </nav>
+          <div class="sidebar-user">
+            <div class="user-avatar">🎙️</div>
+            <div class="user-info">
+              <div class="user-name">Stanley</div>
+              <div class="user-role">Productor</div>
+            </div>
           </div>
         </div>
         
-        <!-- Fila de Nombre de Evento y Botón Votación (sin cajas ni fondos) -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:12px">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" id="dash-active-event-name">
-            CARGANDO EVENTO...
-          </div>
-          <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:30px;height:30px;font-size:11px;padding:0 12px;width:auto;font-family:'Oswald',sans-serif;letter-spacing:1px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
-            ABRIR VOTACIÓN
-          </button>
-          <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
-        </div>
-      </div>
-
-      <!-- Control de Eventos en Paralelo -->
-      <div id="events-control-panel" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px">
-      </div>
-
-      <!-- Fila 1: Copiar Links -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
-        <button class="btn-dash" onclick="dashCopyLink('jury')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">⭐ Jurado</button>
-        <button class="btn-dash" onclick="dashCopyLink('register')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">🎤 Reservas</button>
-        <button class="btn-dash" onclick="dashCopyLink('vote')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%">📋 Programa</button>
-      </div>
-
-      <!-- Fila 2: Administrar Secciones -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
-        <button class="btn-dash" onclick="navPush('program')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📋 Adm Prog</button>
-        <button class="btn-dash" onclick="navToConfig()" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">👥 Adm Part</button>
-        <button class="btn-dash" onclick="navPush('history')" style="font-size:11px;padding:8px 2px;text-align:center;min-height:36px;width:100%;border-color:var(--gold);color:var(--gold)">📚 Adm Historial</button>
-      </div>
-
-      <!-- Descargas de Datos -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-        <button class="btn-dash" onclick="downloadCombinedSongLinks()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">🎵</span> Descargar Canciones</button>
-        <button class="btn-dash" onclick="downloadReservations()" style="font-size:11px;padding:8px 6px;text-align:left;display:flex;align-items:center;gap:6px"><span style="font-size:14px">📥</span> Descargar Reservas</button>
-      </div>
-
-      <!-- Pruebas / Simulación -->
-      <div id="dash-pruebas-card" class="card" style="display:none;margin-top:10px;margin-bottom:10px;border:1px dashed var(--purple-light);background:rgba(123, 97, 255, 0.03);padding:10px">
-        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;margin-bottom:8px;font-weight:700">🧪 Simulación y Pruebas</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <button onclick="simularEvento()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px">1. Crear Evento Demo</button>
-          <button id="btn-sim-votos" onclick="simularVotacion()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px" disabled>2. Simular Votos</button>
-          <button onclick="limpiarSimulacion()" class="btn btn-sm btn-outline" style="grid-column:span 2;border-color:var(--red);color:var(--red);font-size:11px;min-height:auto;padding:8px;margin-top:4px">Limpiar / Salir de Pruebas</button>
-        </div>
-      </div>
-
-      <!-- Borrar Todo -->
-      <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn-dash" style="width:100%;margin-bottom:8px;border-color:rgba(255,61,107,.35);color:rgba(255,61,107,.7);font-size:13px;display:none">🗑️ BORRAR TODO</button>
-
-        </div>
-      </div>
-    </div>
+        <!-- Contenido principal -->
+        <div class="admin-content-wrapper">
+          
+          <!-- Header Superior (Desktop) -->
+          <header class="admin-header">
+            <div class="header-left">
+              <div id="dash-active-event-name" style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#fff;letter-spacing:0.5px;line-height:1.2;text-transform:uppercase">
+                CARGANDO EVENTO...
+              </div>
+              <div id="dash-active-event-meta" style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                -
+              </div>
+            </div>
+            <div class="header-right" style="display:flex;align-items:center;gap:12px">
+              <span id="dash-voting-badge" class="badge badge-closed">Votación Cerrada</span>
+              <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="margin:0;width:auto;min-height:36px;height:36px;border-radius:8px">
+                ABRIR VOTACIÓN
+              </button>
+              <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
+            </div>
+          </header>
+          
+          <!-- Grid Principal (Columna Principal + Sidebar Video) -->
+          <div class="admin-grid-container" id="home-grid-container">
+            <div class="admin-main-column">
+              
+              <!-- 1. EVENTOS -->
+              <div class="card">
+                <div class="card-title">📅 Control de Eventos</div>
+                <div id="events-control-panel" style="margin-top:8px;display:flex;flex-direction:column;gap:8px">
+                  <!-- Inyectado dinámicamente -->
+                </div>
+              </div>
+              
+              <!-- 2. ACCESOS RÁPIDOS -->
+              <div class="card">
+                <div class="card-title">⚡ Accesos Rápidos</div>
+                <div class="quick-actions-grid" style="margin-top:8px">
+                  <button class="btn-dash" onclick="switchMobileSection('emision')">📺 Emisión</button>
+                  <button class="btn-dash" onclick="nav('ranking')">📊 Ranking</button>
+                  <button class="btn-dash" onclick="nav('vote-public')">🗳️ Votación</button>
+                  <button class="btn-dash" onclick="navToConfig()">👥 Partic.</button>
+                  <button class="btn-dash" onclick="nav('program')">📋 Programa</button>
+                  <button class="btn-dash" onclick="nav('register')">🎤 Reservas</button>
+                </div>
+              </div>
+              
+              <!-- 3. CONFIGURACIÓN Y ADMINISTRACIÓN -->
+              <div class="card">
+                <div class="card-title">⚙️ Configuración y Datos</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px">
+                  <button class="btn-dash" onclick="navPush('program')">📋 Adm Prog</button>
+                  <button class="btn-dash" onclick="navToConfig()">👥 Adm Part</button>
+                  <button class="btn-dash" onclick="navPush('history')">📚 Historial</button>
+                </div>
+              </div>
+              
+              <!-- 4. DESCARGAS -->
+              <div class="card">
+                <div class="card-title">📥 Descargas</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+                  <button class="btn-dash" onclick="downloadCombinedSongLinks()" style="text-align:left;display:flex;align-items:center;gap:8px">💾 Descargar Canciones</button>
+                  <button class="btn-dash" onclick="downloadReservations()" style="text-align:left;display:flex;align-items:center;gap:8px">📥 Descargar Reservas</button>
+                </div>
+              </div>
+              
+              <!-- 5. ZONA DE RIESGO -->
+              <div class="card" style="border-color:rgba(197, 91, 91, 0.35)">
+                <div class="card-title" style="color:var(--danger)">⚠️ Zona de Riesgo</div>
+                <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Acciones críticas del show. Proceder con precaución.</p>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button class="btn btn-danger" onclick="openTerminarConfirmModal()">🏁 Terminar Evento Activo</button>
+                  <button id="dash-clear-all-btn" onclick="dashBorrarTodo()" class="btn btn-outline" style="border-color:rgba(197, 91, 91, 0.35);color:var(--danger);display:none">🗑️ Borrar Todo</button>
+                </div>
+              </div>
+              
+              <!-- Pruebas / Simulación -->
+              <div id="dash-pruebas-card" class="card" style="display:none;margin-top:10px;margin-bottom:10px;border:1px dashed var(--purple);background:rgba(140, 111, 209, 0.03);padding:10px">
+                <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple);text-transform:uppercase;margin-bottom:8px;font-weight:700">🧪 Simulación y Pruebas</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <button onclick="simularEvento()" class="btn btn-sm btn-outline" style="border-color:var(--purple);color:var(--purple);font-size:11px;min-height:auto;padding:8px">1. Crear Evento Demo</button>
+                  <button id="btn-sim-votos" onclick="simularVotacion()" class="btn btn-sm btn-outline" style="border-color:var(--purple);color:var(--purple);font-size:11px;min-height:auto;padding:8px" disabled>2. Simular Votos</button>
+                  <button onclick="limpiarSimulacion()" class="btn btn-sm btn-outline" style="grid-column:span 2;border-color:var(--danger);color:var(--danger);font-size:11px;min-height:auto;padding:8px;margin-top:4px">Limpiar / Salir de Pruebas</button>
+                </div>
+              </div>
+              
+            </div> <!-- .admin-main-column -->
+            
+            <!-- Columna derecha (.admin-video-column / #admin-video-sidebar) -->
+            <!-- Inyectada dinámicamente desde js/app.js nav() -->
+            
+          </div> <!-- .admin-grid-container -->
+        </div> <!-- .admin-content-wrapper -->
+      </div> <!-- .admin-layout-wrapper -->
+    </div> <!-- #home-dashboard -->
   </div>
 
   <!-- ─────────── RESERVA ─────────── -->
@@ -832,7 +890,7 @@ if ('serviceWorker' in navigator) {
         <div class="admin-video-column" id="admin-video-sidebar">
           
           <!-- 1. Emisión / Proyección -->
-          <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
+          <div class="card no-gold-border" id="video-emision-card" style="padding:14px;margin-bottom:14px">
             <button class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;font-size:13px;font-weight:bold;margin-bottom:12px;letter-spacing:1px;min-height:42px">📺 EMITIR</button>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -846,7 +904,7 @@ if ('serviceWorker' in navigator) {
           </div>
 
           <!-- Unificado: Reproducción -->
-          <div class="card no-gold-border" style="padding:14px">
+          <div class="card no-gold-border" id="video-reproduccion-card" style="padding:14px">
             <div class="card-title" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
               <span>🎵 Reproducción</span>
               <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
@@ -997,21 +1055,52 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
+<!-- Modal de Doble Confirmación para Terminar Evento -->
+<div class="modal-overlay" id="terminar-confirm-modal" style="display:none">
+  <div class="modal" style="max-width:400px; border-color:var(--danger)">
+    <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:18px;color:var(--danger);margin-bottom:12px;text-transform:uppercase">🏁 Terminar Evento</div>
+    <p style="font-size:12px;color:var(--text-soft);margin-bottom:16px;line-height:1.5">
+      Al terminar el evento se vaciará la cola de reproducción actual, se cerrará y reiniciará la votación del público y los puntajes del jurado.<br>
+      <strong style="color:var(--text-main)">Los perfiles de participantes y sus puntos acumulados se conservarán.</strong>
+    </p>
+    <div class="form-group" style="margin-bottom:14px">
+      <label style="color:var(--danger)">Escribí la palabra <span style="font-weight:bold;text-decoration:underline">TERMINAR</span> para confirmar:</label>
+      <input type="text" id="terminar-confirm-input" placeholder="Escribir aquí..." oninput="validateTerminarInput()" style="text-align:center">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-outline" onclick="closeTerminarConfirmModal()">Cancelar</button>
+      <button class="btn btn-danger" id="terminar-confirm-btn" onclick="submitTerminarConfirm()" disabled style="opacity:0.4">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Barra de Navegación Inferior (Estilo WhatsApp) - Solo Móvil -->
 <div id="mobile-bottom-nav" style="display:none">
-  <button class="mobile-nav-item active" id="mob-nav-admin" onclick="switchMobileSection('admin')">
-    <span style="font-size:18px">🛠️</span>
-    <span style="font-size:10px;font-weight:600;margin-top:2px">Administración</span>
+  <button class="mobile-nav-item active" id="mob-nav-events" onclick="switchMobileTab('events')">
+    <span style="font-size:18px">📅</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Eventos</span>
   </button>
-  <button class="mobile-nav-item" id="mob-nav-emision" onclick="switchMobileSection('emision')">
+  <button class="mobile-nav-item" id="mob-nav-emision" onclick="switchMobileTab('emision')">
     <span style="font-size:18px">📺</span>
     <span style="font-size:10px;font-weight:600;margin-top:2px">Emisión</span>
+  </button>
+  <button class="mobile-nav-item" id="mob-nav-playlist" onclick="switchMobileTab('playlist')">
+    <span style="font-size:18px">🎵</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Playlist</span>
+  </button>
+  <button class="mobile-nav-item" id="mob-nav-parts" onclick="switchMobileTab('parts')">
+    <span style="font-size:18px">👥</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Partic.</span>
+  </button>
+  <button class="mobile-nav-item" id="mob-nav-more" onclick="switchMobileTab('more')">
+    <span style="font-size:18px">⚙️</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Más</span>
   </button>
 </div>
 
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.25" defer></script>
+<script src="js/app.js?v=1.26" defer></script>
 </body>
 </html>
