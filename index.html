@@ -732,11 +732,11 @@ if ('serviceWorker' in navigator) {
     <!-- Panel -->
     <div id="admin-panel" style="display:none">
       <div class="toggle-wrap" style="margin-bottom:16px">
-        <button class="toggle-btn active" id="atab-ctrl-btn"  onclick="setAdminTab('ctrl')">⚙️ Control</button>
-        <button class="toggle-btn"        id="atab-parts-btn" onclick="setAdminTab('parts')">👥 Partic.</button>
-        <button class="toggle-btn"        id="atab-jury-btn"  onclick="setAdminTab('jury')">⭐ Jurado</button>
-        <button class="toggle-btn"        id="atab-links-btn" onclick="setAdminTab('links')">🔗 Links</button>
-        <button class="toggle-btn"        id="atab-video-btn" onclick="setAdminTab('video')">🎵 Reproducción</button>
+        <button class="toggle-btn active" id="atab-ctrl-btn"  onclick="setAdminTab('ctrl')">Control</button>
+        <button class="toggle-btn"        id="atab-parts-btn" onclick="setAdminTab('parts')">Partic.</button>
+        <button class="toggle-btn"        id="atab-jury-btn"  onclick="setAdminTab('jury')">Jurado</button>
+        <button class="toggle-btn"        id="atab-links-btn" onclick="setAdminTab('links')">Links</button>
+        <button class="toggle-btn"        id="atab-video-btn" onclick="setAdminTab('video')">Reproducción</button>
       </div>
       
       <!-- Selector de Evento para Gestión -->
@@ -749,13 +749,13 @@ if ('serviceWorker' in navigator) {
           <!-- Control -->
           <div id="atab-ctrl">
         <div class="card">
-          <div class="card-title">⚙️ Control del Evento</div>
+          <div class="card-title">Control del Evento</div>
           <div style="display:grid;gap:10px">
 
             <!-- Bonus -->
             <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:8px;padding:13px;border:1px solid var(--border)">
               <div>
-                <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px">⚡ Bonus Temática</div>
+                <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px">Bonus Temática</div>
                 <div style="font-size:11px;color:var(--text2)">Doble puntaje en premios</div>
               </div>
               <label style="position:relative;display:inline-block;width:50px;height:26px;margin:0">
@@ -768,20 +768,20 @@ if ('serviceWorker' in navigator) {
 
             <!-- Terminar Evento -->
             <div style="background:rgba(212,168,67,.06);border:2px solid var(--gold);border-radius:8px;padding:13px">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🎬 Terminar Evento</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Terminar Evento</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Borra canciones, puntajes del jurado y votos del público. <strong style="color:var(--gold)">Los participantes y sus puntos MicClub se conservan</strong> para el próximo evento.</div>
               <div style="display:flex;gap:8px">
                 <button class="btn btn-gold btn-sm" onclick="endShow()" style="flex:1">TERMINAR EVENTO</button>
-                <button class="btn btn-teal btn-sm" id="config-vote-toggle-btn" onclick="toggleVoting()" style="flex:1">🔓 ABRIR VOTACIÓN</button>
+                <button class="btn btn-teal btn-sm" id="config-vote-toggle-btn" onclick="toggleVoting()" style="flex:1">ABRIR VOTACIÓN</button>
               </div>
             </div>
 
 
-<button class="btn btn-outline btn-sm" onclick="exportCSV()" style="width:100%">📤 Exportar CSV</button>
+<button class="btn btn-outline btn-sm" onclick="exportCSV()" style="width:100%">Exportar CSV</button>
 
             <!-- Cargar Flyer del Próximo Evento -->
             <div style="background:rgba(212,168,67,.06);border:1px solid var(--gold-dark);border-radius:8px;padding:13px;margin-top:10px">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🖼️ Flyer Próximo Evento</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Flyer Próximo Evento</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Cargá el flyer o imagen promocional para el próximo evento. Se mostrará en la pantalla del público.</div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <input type="file" id="next-event-file" accept="image/*" style="width:100%;font-size:12px;color:var(--text2)">
@@ -795,14 +795,14 @@ if ('serviceWorker' in navigator) {
             </div>
             <hr class="divider">
             <div id="admin-clear-db-card" style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px;display:none">
-              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">🗑️ Vaciar Base de Datos</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">Vaciar Base de Datos</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Elimina TODOS los participantes y deja el sistema vacío. No se puede deshacer.</div>
-              <button class="btn btn-danger btn-sm" onclick="clearAllParticipants()" style="width:100%">🗑️ BORRAR TODO Y EMPEZAR DE CERO</button>
+              <button class="btn btn-danger btn-sm" onclick="clearAllParticipants()" style="width:100%">BORRAR TODO Y EMPEZAR DE CERO</button>
             </div>
             <div style="background:rgba(139,47,201,.08);border:1px solid var(--purple-light);border-radius:8px;padding:12px">
-              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--purple-light);margin-bottom:4px">🧪 Datos de Prueba</div>
+              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--purple-light);margin-bottom:4px">Datos de Prueba</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Borra todos los participantes actuales y carga 16 nuevos con canciones ya confirmadas, listos para votar.</div>
-              <button id="seed-btn" class="btn btn-sm" onclick="seedTestData()" style="width:100%;background:linear-gradient(135deg,var(--purple-light),var(--purple));color:#fff">🧪 CARGAR 16 PARTICIPANTES DE PRUEBA</button>
+              <button id="seed-btn" class="btn btn-sm" onclick="seedTestData()" style="width:100%;background:linear-gradient(135deg,var(--purple-light),var(--purple));color:#fff">CARGAR 16 PARTICIPANTES DE PRUEBA</button>
             </div>
           </div>
         </div>
@@ -1046,13 +1046,12 @@ if ('serviceWorker' in navigator) {
 
 <!-- Contenedor del Botón Único de Navegación Móvil -->
 <div id="mobile-nav-toggle-container" style="display:none">
-  <button id="mobile-nav-toggle-btn" class="btn btn-gold" onclick="toggleMobileSection()" style="width:100%;margin:0">🎵 Ir a Playlist</button>
-  <button id="mobile-download-btn" class="btn btn-outline" onclick="downloadCombinedSongLinks()" style="width:100%;margin-top:6px;display:none">Descargar</button>
+  <button id="mobile-nav-toggle-btn" class="btn btn-gold" onclick="toggleMobileSection()" style="width:100%;margin:0">Ir a Playlist</button>
 </div>
 
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.33" defer></script>
+<script src="js/app.js?v=1.34" defer></script>
 </body>
 </html>

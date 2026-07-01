@@ -1298,7 +1298,6 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     padding-bottom: 76px !important;
     height: auto !important;
     overflow-y: visible !important;
-    display: block !important;
   }
   .admin-main-column {
     display: flex !important;
@@ -1411,7 +1410,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 
 /* Botones de reproducción Unicode planos sin bordes — AHORA DORADOS CON BLANCO */
 .yt-control-btn {
-  background: var(--gold) !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
   border: none !important;
   color: #ffffff !important;
   font-size: 20px !important;
@@ -1457,7 +1456,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 
 .btn-gold {
-  background: var(--gold) !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
   color: #ffffff !important;
   border: none !important;
 }
@@ -1486,7 +1485,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 
 /* Botones dorados en la lista de reproducción (Play y Delete) */
 .playlist-item-btn, .playlist-item-delete-btn {
-  background: var(--gold) !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
   border: none !important;
   color: #ffffff !important;
   border-radius: 6px !important;

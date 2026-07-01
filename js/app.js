@@ -1166,7 +1166,8 @@ function updateUI() {
   // Controlar barra de navegación inferior móvil (botón único)
   const bottomNavToggle = document.getElementById('mobile-nav-toggle-container');
   if (bottomNavToggle) {
-    const isDashboardVisible = (currentPage === 'home' || currentPage === 'admin') && adminLoggedIn;
+    const isMobile = window.innerWidth < 992;
+    const isDashboardVisible = isMobile && (currentPage === 'home' || currentPage === 'admin') && adminLoggedIn;
     bottomNavToggle.style.display = isDashboardVisible ? 'block' : 'none';
     if (isDashboardVisible) {
       updateMobileLayout();
@@ -2395,12 +2396,14 @@ async function startShow(slot, name, date, time, venue, capacity) {
 }
 
 function dashCopyLink(mode) {
-  const urlMap = { vote: '?mode=vote', jury: '?mode=jury', ranking: '?mode=ranking', micclub: '?mode=micclub', register: '?mode=register', pantalla: '?mode=pantalla' };
+  const urlMap = { vote: '?mode=vote', jury: '?mode=jury', ranking: '?mode=ranking', micclub: '?mode=micclub', register: '?mode=register', pantalla: '?mode=pantalla', bar: '?mode=bar' };
   const url = buildBaseURL() + (urlMap[mode] || ('?mode=' + mode));
-  const modeNames = { jury: 'Jurado', register: 'Reservas', vote: 'Programa', ranking: 'Ranking', pantalla: 'Pantalla' };
+  const modeNames = { jury: 'Jurado', register: 'Reservas', vote: 'Programa', ranking: 'Ranking', pantalla: 'Pantalla', bar: 'Bar' };
   const label = modeNames[mode] || 'Evento';
 
-  if (navigator.share) {
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  if (isMobile && navigator.share) {
     navigator.share({
       title: 'MIC CLUB',
       text: `Ingresá al enlace de ${label}:`,
@@ -2415,12 +2418,6 @@ function dashCopyLink(mode) {
   }
 }
 window.dashCopyLink = dashCopyLink;
-
-function openBarConsole() {
-  const url = buildBaseURL() + '?mode=bar';
-  window.open(url, '_blank');
-}
-window.openBarConsole = openBarConsole;
 
 async function saveDashEvento() {
   const inp = document.getElementById('dash-evento-input');
@@ -6959,22 +6956,21 @@ function updateMobileLayout() {
   const adminMainCol = document.querySelector('.admin-main-column');
   const videoCol = document.getElementById('admin-video-sidebar');
   const toggleBtn = document.getElementById('mobile-nav-toggle-btn');
+  const container = document.getElementById('mobile-nav-toggle-container');
   
   if (window.innerWidth < 992) {
+    if (container) container.style.display = 'block';
     if (adminMainCol) adminMainCol.style.display = (activeMobileSection === 'admin') ? 'block' : 'none';
     if (videoCol) videoCol.style.display = (activeMobileSection === 'reproduccion') ? 'block' : 'none';
     
     if (toggleBtn) {
-      const mobileDownloadBtn = document.getElementById('mobile-download-btn');
       if (activeMobileSection === 'admin') {
-        toggleBtn.innerHTML = '🎵 Ir a Playlist';
+        toggleBtn.innerHTML = 'Ir a Playlist';
         toggleBtn.className = 'btn btn-gold';
-        if (mobileDownloadBtn) mobileDownloadBtn.style.display = 'none';
       } else {
         toggleBtn.innerHTML = 'Ir a administración';
         toggleBtn.className = 'btn btn-outline';
         toggleBtn.style.color = 'var(--text)';
-        if (mobileDownloadBtn) mobileDownloadBtn.style.display = 'block';
       }
     }
     if (activeMobileSection === 'reproduccion') {
@@ -6982,6 +6978,7 @@ function updateMobileLayout() {
     }
   } else {
     // Escritorio
+    if (container) container.style.display = 'none';
     if (adminMainCol) adminMainCol.style.display = 'block';
     if (videoCol) videoCol.style.display = 'block';
   }
@@ -7003,12 +7000,12 @@ function updateScreensaverUIState() {
   
   btns.forEach(b => {
     if (screensaverActive) {
-      b.textContent = '🛑 DETENER';
+      b.textContent = 'DETENER';
       b.style.borderColor = 'var(--red)';
       b.style.color = 'var(--red)';
       b.style.background = 'rgba(255, 61, 107, 0.1)';
     } else {
-      b.textContent = '✨ SALVAPANTALLAS';
+      b.textContent = 'SALVAPANTALLAS';
       b.style.borderColor = '';
       b.style.color = '';
       b.style.background = '';
