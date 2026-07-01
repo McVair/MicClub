@@ -105,7 +105,7 @@ function nav(page) {
   currentPage = page;
 
   if (page === 'home' || page === 'admin') {
-    switchMobileTab('events');
+    switchMobileSection('admin');
   }
 
   // Move YouTube sidebar to correct grid container based on active page
@@ -1630,10 +1630,6 @@ function updateDashboard() {
   const elActiveName = document.getElementById('dash-active-event-name');
   if (elActiveName) {
     elActiveName.textContent = activeEvent ? activeEvent.name.toUpperCase() : 'SIN EVENTO ACTIVO';
-  }
-  const elActiveMeta = document.getElementById('dash-active-event-meta');
-  if (elActiveMeta) {
-    elActiveMeta.textContent = activeEvent ? `${activeEvent.date} · ${activeEvent.time} · Stanley` : 'No hay un show activo en este momento';
   }
 
   // Resultados label: nombre del evento si hay show activo
@@ -3723,139 +3719,29 @@ function changePass() {
 }
 
 let adminTab = 'ctrl';
-function switchMobileTab(tab) {
-  // Highlight active bottom nav item
-  ['events', 'emision', 'playlist', 'parts', 'more'].forEach(t => {
-    const btn = document.getElementById(`mob-nav-${t}`);
-    if (btn) btn.classList.toggle('active', t === tab);
+function switchMobileSection(section) {
+  const adminCols = document.querySelectorAll('.admin-main-column');
+  const videoCols = document.querySelectorAll('.admin-video-column');
+  
+  const btnAdmin = document.getElementById('mob-nav-admin');
+  const btnEmision = document.getElementById('mob-nav-emision');
+  
+  if (btnAdmin) btnAdmin.classList.toggle('active', section === 'admin');
+  if (btnEmision) btnEmision.classList.toggle('active', section === 'emision');
+  
+  adminCols.forEach(col => {
+    col.style.display = (section === 'admin') ? 'block' : 'none';
   });
   
-  const adminMainCol = document.querySelector('.admin-main-column');
-  const videoCol = document.getElementById('admin-video-sidebar');
-  const emisionCard = document.getElementById('video-emision-card');
-  const reproCard = document.getElementById('video-reproduccion-card');
+  videoCols.forEach(col => {
+    col.style.display = (section === 'emision') ? 'block' : 'none';
+  });
   
-  if (window.innerWidth < 992) {
-    if (adminMainCol) adminMainCol.style.display = 'none';
-    if (videoCol) videoCol.style.display = 'none';
-    if (emisionCard) emisionCard.style.display = 'none';
-    if (reproCard) reproCard.style.display = 'none';
-    
-    const cards = adminMainCol ? adminMainCol.querySelectorAll('.card') : [];
-    cards.forEach(card => {
-      card.style.display = 'none';
-    });
-    
-    if (tab === 'events') {
-      if (adminMainCol) {
-        adminMainCol.style.display = 'block';
-        if (cards[0]) cards[0].style.display = 'block'; // Eventos
-        if (cards[1]) cards[1].style.display = 'block'; // Accesos Rápidos
-      }
-    } else if (tab === 'emision') {
-      if (videoCol) {
-        videoCol.style.display = 'block';
-        if (emisionCard) emisionCard.style.display = 'block';
-      }
-    } else if (tab === 'playlist') {
-      if (videoCol) {
-        videoCol.style.display = 'block';
-        if (reproCard) reproCard.style.display = 'block';
-      }
-      renderPlaylistQueue();
-    } else if (tab === 'parts') {
-      navToConfig();
-    } else if (tab === 'more') {
-      if (adminMainCol) {
-        adminMainCol.style.display = 'block';
-        if (cards[2]) cards[2].style.display = 'block'; // Adm/Config
-        if (cards[3]) cards[3].style.display = 'block'; // Descargas
-        if (cards[4]) cards[4].style.display = 'block'; // Risk Zone
-      }
-    }
-  } else {
-    // Desktop: make sure all components are visible
-    if (adminMainCol) adminMainCol.style.display = '';
-    if (videoCol) videoCol.style.display = '';
-    if (emisionCard) emisionCard.style.display = '';
-    if (reproCard) reproCard.style.display = '';
-    
-    const cards = adminMainCol ? adminMainCol.querySelectorAll('.card') : [];
-    cards.forEach(card => {
-      card.style.display = '';
-    });
-  }
-}
-window.switchMobileTab = switchMobileTab;
-
-function switchMobileSection(section) {
   if (section === 'emision') {
-    switchMobileTab('emision');
-  } else {
-    switchMobileTab('events');
+    renderPlaylistQueue();
   }
 }
 window.switchMobileSection = switchMobileSection;
-
-let targetConfirmSlot = null;
-
-function openTerminarConfirmModal() {
-  const activeEventId = getCurrentEventId();
-  if (!activeEventId) {
-    mcAlert('No hay ningún evento activo para terminar.');
-    return;
-  }
-  targetConfirmSlot = activeEventId;
-  
-  const modal = document.getElementById('terminar-confirm-modal');
-  const input = document.getElementById('terminar-confirm-input');
-  const btn = document.getElementById('terminar-confirm-btn');
-  
-  if (input) input.value = '';
-  if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.4';
-  }
-  if (modal) modal.style.display = 'flex';
-}
-window.openTerminarConfirmModal = openTerminarConfirmModal;
-
-function closeTerminarConfirmModal() {
-  const modal = document.getElementById('terminar-confirm-modal');
-  if (modal) modal.style.display = 'none';
-  targetConfirmSlot = null;
-}
-window.closeTerminarConfirmModal = closeTerminarConfirmModal;
-
-function validateTerminarInput() {
-  const input = document.getElementById('terminar-confirm-input');
-  const btn = document.getElementById('terminar-confirm-btn');
-  if (!input || !btn) return;
-  
-  const text = (input.value || '').trim();
-  if (text === 'TERMINAR') {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-  } else {
-    btn.disabled = true;
-    btn.style.opacity = '0.4';
-  }
-}
-window.validateTerminarInput = validateTerminarInput;
-
-async function submitTerminarConfirm() {
-  if (!targetConfirmSlot) return;
-  const slot = targetConfirmSlot;
-  closeTerminarConfirmModal();
-  
-  mcPrompt(`Ingresá la contraseña para terminar el ${slot === 'event1' ? 'Evento 1' : 'Evento 2'}:`, async (pass) => {
-    if (!pass) return;
-    const adminPass = localState.settings?.adminPassword || ADMIN_PASS_DEFAULT;
-    if (pass !== adminPass) { mcAlert('Contraseña incorrecta'); return; }
-    await endShow(slot);
-  }, 'password', 'Contraseña');
-}
-window.submitTerminarConfirm = submitTerminarConfirm;
 
 function setAdminTab(tab) {
   adminTab = tab;
@@ -3954,45 +3840,25 @@ function renderVotingToggleBtn() {
       cfgBtn.className   = 'btn btn-teal btn-sm';
     }
   }
-  // Botón y Badge del dashboard
+  // Botón del dashboard
   const dashBtn = document.getElementById('dash-vote-toggle-btn');
-  const dashBadge = document.getElementById('dash-voting-badge');
-  
-  if (dashBadge) {
-    if (showRunning) {
-      if (votingOpen) {
-        dashBadge.textContent = 'Votación Abierta';
-        dashBadge.className = 'badge badge-open';
-      } else {
-        dashBadge.textContent = 'Votación Cerrada';
-        dashBadge.className = 'badge badge-closed';
-      }
-    } else {
-      dashBadge.textContent = 'Sin Show Activo';
-      dashBadge.className = 'badge badge-closed';
-    }
-  }
-
   if (dashBtn) {
     if (showRunning) {
       dashBtn.style.opacity       = '1';
       dashBtn.style.pointerEvents = 'auto';
       if (votingOpen) {
         dashBtn.textContent      = 'CERRAR VOTACIÓN';
-        dashBtn.style.background = 'var(--danger)';
+        dashBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         dashBtn.style.color      = '#fff';
-        dashBtn.style.border      = 'none';
       } else {
         dashBtn.textContent      = 'ABRIR VOTACIÓN';
-        dashBtn.style.background = 'var(--gold-main)';
-        dashBtn.style.color      = '#111';
-        dashBtn.style.border      = 'none';
+        dashBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+        dashBtn.style.color      = '#fff';
       }
     } else {
       dashBtn.textContent         = 'ABRIR VOTACIÓN';
-      dashBtn.style.background    = 'transparent';
-      dashBtn.style.color         = 'var(--text-disabled)';
-      dashBtn.style.border         = '1px solid var(--border-soft)';
+      dashBtn.style.background    = 'linear-gradient(135deg,#1a3324,#101e16)';
+      dashBtn.style.color         = '#fff';
       dashBtn.style.opacity       = '0.55';
       dashBtn.style.pointerEvents = 'none';
     }
