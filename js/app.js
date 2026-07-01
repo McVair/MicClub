@@ -478,8 +478,76 @@ function initFirebase() {
       }
       if (s.castYtVideo) {
         activeYtVideo = s.castYtVideo;
+        if (MODE === 'admin') {
+          const titleEl = document.getElementById('yt-remote-title');
+          const singerEl = document.getElementById('yt-remote-singer');
+          const thumbEl = document.getElementById('yt-remote-thumb');
+          if (titleEl) titleEl.textContent = s.castYtVideo.song;
+          if (singerEl) singerEl.textContent = s.castYtVideo.title || s.castYtVideo.name;
+          if (thumbEl) {
+            thumbEl.innerHTML = `<img src="https://img.youtube.com/vi/${s.castYtVideo.ytId}/default.jpg" style="width:100%;height:100%;object-fit:cover">`;
+          }
+        }
       }
+
+      if (MODE === 'admin') {
+        if (s.playerState) {
+          isYtPlaying = (s.playerState === 'playing');
+          const playBtn = document.getElementById('yt-remote-play-btn');
+          if (playBtn) playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+        }
+        
+        const progressEl = document.getElementById('yt-remote-progress');
+        const timeCurrentEl = document.getElementById('yt-remote-time-current');
+        const timeDurationEl = document.getElementById('yt-remote-time-duration');
+        
+        if (s.playerDuration !== undefined && progressEl) {
+          progressEl.max = Math.floor(s.playerDuration);
+          if (timeDurationEl) timeDurationEl.textContent = formatTime(s.playerDuration);
+        }
+        if (s.playerTime !== undefined && progressEl) {
+          progressEl.value = Math.floor(s.playerTime);
+          if (timeCurrentEl) timeCurrentEl.textContent = formatTime(s.playerTime);
+        }
+      }
+
+      if (s.customQueueItems) {
+        const currentStr = JSON.stringify(customQueueItems);
+        const newStr = JSON.stringify(s.customQueueItems);
+        if (currentStr !== newStr) {
+          customQueueItems = s.customQueueItems;
+          if (adminLoggedIn) {
+            renderPlaylistQueue();
+          }
+        }
+      } else {
+        if (customQueueItems.length > 0) {
+          customQueueItems = [];
+          if (adminLoggedIn) {
+            renderPlaylistQueue();
+          }
+        }
+      }
+
       localState.settings = { ...localState.settings, ...s };
+
+      if (s.screensaverActive !== undefined) {
+        const changed = (screensaverActive !== !!s.screensaverActive);
+        screensaverActive = !!s.screensaverActive;
+        if (changed) {
+          updateScreensaverUIState();
+          if (MODE === 'pantalla') {
+            if (screensaverActive) {
+              startScreensaverTimer();
+            } else {
+              stopScreensaverTimer();
+              if (s.castLayout) {
+                applyProyectorLayout(s.castLayout);
+              }
+            }
+          }
+        }
+      }
 
       // Fallback de Sincronización para Monitor Extendido (Pantalla)
       if (MODE === 'pantalla') {
@@ -5684,35 +5752,33 @@ ${
   }
   else if (pantallaTab === 'participantes') {
     const activeEventId = getCurrentEventId();
-    const parts = getEnrichedParticipantsList(activeEventId)
-      .filter(p => p.songConfirmed)
-      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    if (!parts.length) {
+    const queue = getConsolidatedQueue(activeEventId);
+    if (!queue.length) {
       container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px;font-size:14px">Esperando confirmación de participantes...</div>`;
       return;
     }
     
     // Encontrar al cantante actual basado en activeYtVideo
-    let currentSingerIdx = 0;
+    let currentIdx = 0;
     if (activeYtVideo) {
-      const idx = parts.findIndex(p => p.email === activeYtVideo.id || p.name === activeYtVideo.name);
+      const idx = queue.findIndex(x => x.source === activeYtVideo.source && x.id === activeYtVideo.id);
       if (idx !== -1) {
-        currentSingerIdx = idx;
+        currentIdx = idx;
       }
     }
     
-    const currentSinger = parts[currentSingerIdx];
-    const nextSinger = parts[currentSingerIdx + 1] || null;
+    const currentSinger = queue[currentIdx];
+    const nextSinger = queue[currentIdx + 1] || null;
     
     // Generar HTML de los siguientes 3
     let upcomingHtml = '';
     for (let i = 0; i < 3; i++) {
-      const p = parts[currentSingerIdx + 2 + i];
+      const p = queue[currentIdx + 2 + i];
       if (p) {
         upcomingHtml += `
           <div style="border-left:3px solid var(--gold); padding-left:16px">
-            <div style="font-family:'Bebas Neue',sans-serif; font-size:26px; color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.5px">${esc(p.name)}</div>
-            <div style="font-family:'Oswald',sans-serif; font-size:16px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:4px">${esc(p.songTitle || '—')}</div>
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:clamp(20px, 2.2vw, 36px); color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.5px">${esc(p.name)}</div>
+            <div style="font-family:'Oswald',sans-serif; font-size:clamp(14px, 1.4vw, 20px); color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:4px">${esc(p.songTitle || '—')}</div>
           </div>
         `;
       } else {
@@ -5733,18 +5799,18 @@ ${
           <!-- Bloque 1: Cantando Ahora (Dorado y Grande) -->
           <div class="card" style="border:2px solid var(--gold); background:rgba(201,154,66,0.06); padding:36px 40px; border-radius:16px; display:flex; flex-direction:column; justify-content:center; text-align:left; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.5)">
             <div style="font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:4px; color:var(--gold); font-weight:700; text-transform:uppercase; margin-bottom:12px">🎤 CANTANDO AHORA</div>
-            <div style="font-family:'Bebas Neue',sans-serif; font-size:72px; color:var(--gold); letter-spacing:2px; line-height:1.0">${esc(currentSinger.name)}</div>
-            <div style="font-family:'Oswald',sans-serif; font-size:32px; color:#ffffff; font-weight:400; margin-top:16px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
-            <div style="font-family:'Inter',sans-serif; font-size:18px; color:var(--text2); margin-top:6px; opacity:0.8">${esc(currentSinger.songArtist || '')}</div>
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:clamp(60px, 6.5vw, 110px); color:var(--gold); letter-spacing:2px; line-height:1.0">${esc(currentSinger.name)}</div>
+            <div style="font-family:'Oswald',sans-serif; font-size:clamp(26px, 2.8vw, 44px); color:#ffffff; font-weight:400; margin-top:16px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:clamp(16px, 1.6vw, 24px); color:#ffffff; margin-top:6px; opacity:0.8">${esc(currentSinger.songArtist || '')}</div>
           </div>
           
           <!-- Bloque 2: Por Cantar / Siguiente (Blanco/Plata y Mediano) -->
           <div class="card" style="border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); padding:36px 32px; border-radius:16px; display:flex; flex-direction:column; justify-content:center; text-align:left; box-shadow:0 8px 32px rgba(0,0,0,0.3)">
             <div style="font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:4px; color:var(--text2); font-weight:700; text-transform:uppercase; margin-bottom:12px">⏭️ SIGUIENTE EN COLA</div>
             ${nextSinger ? `
-              <div style="font-family:'Bebas Neue',sans-serif; font-size:48px; color:#ffffff; letter-spacing:1px; line-height:1.0">${esc(nextSinger.name)}</div>
-              <div style="font-family:'Oswald',sans-serif; font-size:24px; color:var(--gold); font-weight:400; margin-top:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
-              <div style="font-family:'Inter',sans-serif; font-size:15px; color:var(--text2); margin-top:4px; opacity:0.7">${esc(nextSinger.songArtist || '')}</div>
+              <div style="font-family:'Bebas Neue',sans-serif; font-size:clamp(40px, 4.5vw, 75px); color:#ffffff; letter-spacing:1px; line-height:1.0">${esc(nextSinger.name)}</div>
+              <div style="font-family:'Oswald',sans-serif; font-size:clamp(20px, 2.2vw, 32px); color:var(--gold); font-weight:400; margin-top:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
+              <div style="font-family:'Inter',sans-serif; font-size:clamp(14px, 1.4vw, 20px); color:#ffffff; margin-top:4px; opacity:0.7">${esc(nextSinger.songArtist || '')}</div>
             ` : `
               <div style="font-family:'Inter',sans-serif; font-size:16px; color:var(--text2); font-style:italic">Fin de la lista de participantes</div>
             `}
@@ -5893,8 +5959,14 @@ function updatePantallaSponsors() {
 
 window.setPantallaTab = setPantallaTab;
 
-// ── SISTEMA DE VIDEO YOUTUBE & EMISIÓN (CAST) ──
 let customQueueItems = [];
+function saveCustomQueueItems() {
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings'), { customQueueItems: customQueueItems });
+  } else {
+    saveLocal();
+  }
+}
 let activeYtVideo = null;
 let isYtPlaying = false;
 let castChannel = null;
@@ -5943,6 +6015,8 @@ function getConsolidatedQueue(eventId = null) {
         id: p.id,
         name: p.name,
         song: pe.songTitle && pe.songArtist ? `${pe.songTitle} — ${pe.songArtist}` : (pe.song || 'Sin título'),
+        songTitle: pe.songTitle || pe.song || 'Sin título',
+        songArtist: pe.songArtist || '',
         url: pe.karaokeLink,
         ytId: getYouTubeId(pe.karaokeLink)
       };
@@ -5960,6 +6034,8 @@ function getConsolidatedQueue(eventId = null) {
       id: item.id,
       name: item.name,
       song: item.songTitle && item.songArtist ? `${item.songTitle} — ${item.songArtist}` : (item.song || 'Sin título'),
+      songTitle: item.songTitle || item.song || 'Sin título',
+      songArtist: item.songArtist || '',
       url: item.youtubeLink || item.link,
       ytId: getYouTubeId(item.youtubeLink || item.link)
     }));
@@ -5971,6 +6047,8 @@ function getConsolidatedQueue(eventId = null) {
     id: `manual-${idx}`,
     name: item.name,
     song: item.song,
+    songTitle: item.song,
+    songArtist: '',
     url: item.url,
     ytId: getYouTubeId(item.url),
     targetList: item.targetList || 'micclub'
@@ -6092,6 +6170,7 @@ async function deleteQueueItem(source, id) {
     const idx = parseInt(id.replace('manual-', ''), 10);
     if (!isNaN(idx)) {
       customQueueItems.splice(idx, 1);
+      saveCustomQueueItems();
       renderPlaylistQueue();
     }
   } else if (source === 'libre') {
@@ -6210,6 +6289,7 @@ async function submitAddSongModal() {
     url: url,
     targetList: activeFilter
   });
+  saveCustomQueueItems();
 
   closeAddSongModal();
   updateUI();
@@ -6241,7 +6321,7 @@ function playQueueItem(source, id) {
   if (thumbEl) {
     thumbEl.innerHTML = `<img src="https://img.youtube.com/vi/${item.ytId}/default.jpg" style="width:100%;height:100%;object-fit:cover">`;
   }
-  if (playBtn) playBtn.textContent = '⏸️';
+  if (playBtn) playBtn.textContent = '⏸';
 
   // Enviar comando de carga a la pantalla de proyección
   if (castChannel) {
@@ -6273,6 +6353,7 @@ function removeQueueItem(id) {
     const idx = parseInt(id.replace('manual-', ''), 10);
     if (!isNaN(idx)) {
       customQueueItems.splice(idx, 1);
+      saveCustomQueueItems();
       renderPlaylistQueue();
     }
   }
@@ -6301,6 +6382,7 @@ function ytAddManualItem() {
   const song = (songInput?.value || '').trim() || 'Canción Manual';
 
   customQueueItems.push({ name: singer, song: song, url: url });
+  saveCustomQueueItems();
   
   if (singerInput) singerInput.value = '';
   if (songInput) songInput.value = '';
@@ -6322,7 +6404,7 @@ function ytRemoteTogglePlay() {
 
   isYtPlaying = !isYtPlaying;
   const playBtn = document.getElementById('yt-remote-play-btn');
-  if (playBtn) playBtn.textContent = isYtPlaying ? '⏸️' : '▶️';
+  if (playBtn) playBtn.textContent = isYtPlaying ? '⏸' : '▶';
 
   if (castChannel) {
     castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
@@ -6434,6 +6516,7 @@ function formatTime(secs) {
 let proyectorStatusInterval = null;
 
 function startProyectorStatusLoop() {
+  let tickCount = 0;
   if (proyectorStatusInterval) clearInterval(proyectorStatusInterval);
   proyectorStatusInterval = setInterval(() => {
     if (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.getCurrentTime === 'function') {
@@ -6446,13 +6529,28 @@ function startProyectorStatusLoop() {
         '5': 'cued'
       };
       const playerState = projectionPlayer.getPlayerState();
+      const currentTime = projectionPlayer.getCurrentTime();
+      const duration = projectionPlayer.getDuration();
       const status = {
         type: 'yt_status',
         state: stateMap[playerState] || 'unknown',
-        currentTime: projectionPlayer.getCurrentTime(),
-        duration: projectionPlayer.getDuration()
+        currentTime: currentTime,
+        duration: duration
       };
       if (castChannel) castChannel.postMessage(status);
+      
+      tickCount++;
+      if (tickCount >= 4) { // Cada 2 segundos
+        tickCount = 0;
+        if (firebaseOk) {
+          dbUpdate(dbRef(db, 'settings'), {
+            playerState: stateMap[playerState] || 'unknown',
+            playerTime: currentTime,
+            playerDuration: duration,
+            playerTimestamp: Date.now()
+          });
+        }
+      }
     }
   }, 500);
 }
@@ -6505,22 +6603,41 @@ function onPlayerReady(event) {
 }
 
 function onPlayerStateChange(event) {
+  const stateMap = {
+    '0': 'ended',
+    '1': 'playing',
+    '2': 'paused',
+    '3': 'buffering'
+  };
+  const st = stateMap[event.data] || 'unknown';
+
   if (event.data === YT.PlayerState.PLAYING) {
     startProyectorStatusLoop();
+    if (firebaseOk) {
+      dbUpdate(dbRef(db, 'settings'), {
+        playerState: 'playing',
+        playerTime: projectionPlayer.getCurrentTime(),
+        playerDuration: projectionPlayer.getDuration(),
+        playerTimestamp: Date.now()
+      });
+    }
   } else {
     stopProyectorStatusLoop();
     if (typeof projectionPlayer.getCurrentTime === 'function') {
-      const stateMap = {
-        '0': 'ended',
-        '2': 'paused',
-        '3': 'buffering'
-      };
       if (castChannel) {
         castChannel.postMessage({
           type: 'yt_status',
-          state: stateMap[event.data] || 'unknown',
+          state: st,
           currentTime: projectionPlayer.getCurrentTime(),
           duration: projectionPlayer.getDuration()
+        });
+      }
+      if (firebaseOk) {
+        dbUpdate(dbRef(db, 'settings'), {
+          playerState: st,
+          playerTime: projectionPlayer.getCurrentTime(),
+          playerDuration: projectionPlayer.getDuration(),
+          playerTimestamp: Date.now()
         });
       }
     }
@@ -6530,6 +6647,8 @@ function onPlayerStateChange(event) {
     if (castChannel) {
       castChannel.postMessage({ type: 'yt_ended' });
     }
+    // El proyector avanza automáticamente a la siguiente canción
+    ytRemoteNext();
   }
 }
 
@@ -6612,7 +6731,7 @@ function handleCastMessage(data) {
     const isActive = activeStates.includes(data.state);
 
     if (playBtn) {
-      playBtn.textContent = isActive ? '⏸️' : '▶️';
+      playBtn.textContent = isActive ? '⏸' : '▶';
     }
 
     if (!isSeeking && progressEl) {
@@ -6627,8 +6746,10 @@ function handleCastMessage(data) {
   } else if (data.type === 'yt_ended') {
     isYtPlaying = false;
     const playBtn = document.getElementById('yt-remote-play-btn');
-    if (playBtn) playBtn.textContent = '▶️';
-    ytRemoteNext();
+    if (playBtn) playBtn.textContent = '▶';
+    if (!firebaseOk) {
+      ytRemoteNext();
+    }
   } else if (data.type === 'sync_request') {
     if (MODE === 'pantalla') {
       const playerState = (projectionPlayer && projectionPlayerReady) ? projectionPlayer.getPlayerState() : -1;
@@ -6650,7 +6771,7 @@ function handleCastMessage(data) {
       
       isYtPlaying = data.isPlaying;
       const playBtn = document.getElementById('yt-remote-play-btn');
-      if (playBtn) playBtn.textContent = isYtPlaying ? '⏸️' : '▶️';
+      if (playBtn) playBtn.textContent = isYtPlaying ? '⏸' : '▶';
       
       const volEl = document.getElementById('yt-remote-volume');
       if (volEl) volEl.value = data.volume;
@@ -6817,10 +6938,10 @@ function updateMobileLayout() {
     
     if (toggleBtn) {
       if (activeMobileSection === 'admin') {
-        toggleBtn.innerHTML = '🎵 Ir a Reproducción';
+        toggleBtn.innerHTML = '🎵 Ir a Playlist';
         toggleBtn.className = 'btn btn-gold';
       } else {
-        toggleBtn.innerHTML = '🔙 Volver a Administración';
+        toggleBtn.innerHTML = 'Ir a administración';
         toggleBtn.className = 'btn btn-outline';
         toggleBtn.style.color = 'var(--text)';
       }
@@ -6844,25 +6965,35 @@ let screensaverIntervalId = null;
 let screensaverActive = false;
 let screensaverCurrentView = 'ranking';
 
-function toggleScreensaver() {
-  screensaverActive = !screensaverActive;
+function updateScreensaverUIState() {
   const btn = document.getElementById('screensaver-toggle-btn');
+  if (!btn) return;
   if (screensaverActive) {
-    if (btn) {
-      btn.textContent = '🛑 DETENER';
-      btn.style.borderColor = 'var(--red)';
-      btn.style.color = 'var(--red)';
-      btn.style.background = 'rgba(255, 61, 107, 0.1)';
-    }
-    startScreensaverTimer();
+    btn.textContent = '🛑 DETENER';
+    btn.style.borderColor = 'var(--red)';
+    btn.style.color = 'var(--red)';
+    btn.style.background = 'rgba(255, 61, 107, 0.1)';
   } else {
-    if (btn) {
-      btn.textContent = '✨ SALVAPANTALLAS';
-      btn.style.borderColor = '';
-      btn.style.color = '';
-      btn.style.background = '';
+    btn.textContent = '✨ SALVAPANTALLAS';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    btn.style.background = '';
+  }
+}
+window.updateScreensaverUIState = updateScreensaverUIState;
+
+function toggleScreensaver() {
+  const targetState = !screensaverActive;
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings'), { screensaverActive: targetState });
+  } else {
+    screensaverActive = targetState;
+    updateScreensaverUIState();
+    if (screensaverActive) {
+      startScreensaverTimer();
+    } else {
+      stopScreensaverTimer();
     }
-    stopScreensaverTimer();
   }
 }
 window.toggleScreensaver = toggleScreensaver;
@@ -6904,6 +7035,10 @@ function runScreensaverStep() {
     screensaverCurrentView = (screensaverCurrentView === 'ranking') ? 'parts' : 'ranking';
   }
   
-  setCastLayout(screensaverCurrentView);
+  if (MODE === 'pantalla') {
+    applyProyectorLayout(screensaverCurrentView);
+  } else if (!firebaseOk) {
+    setCastLayout(screensaverCurrentView);
+  }
 }
 

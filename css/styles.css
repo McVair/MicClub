@@ -1078,6 +1078,201 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   left: 0;
   right: 0;
   height: 90px;
+.score-btn.active {
+  background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 100%) !important;
+  border-color: #FCE0AD !important;
+  color: #0D0C10 !important;
+}
+
+/* 8. Top Dashboard Buttons Hover & Active States */
+#dash-vote-toggle-btn,
+#dash-free-karaoke-btn,
+#dash-participants-btn,
+#dash-show-btn {
+  transition: filter 0.15s, transform 0.15s !important;
+}
+#dash-vote-toggle-btn:hover,
+#dash-free-karaoke-btn:hover,
+#dash-participants-btn:hover,
+#dash-show-btn:hover {
+  filter: brightness(1.15) !important;
+  transform: translateY(-1px);
+}
+#dash-vote-toggle-btn:active,
+#dash-free-karaoke-btn:active,
+#dash-participants-btn:active,
+#dash-show-btn:active {
+  filter: brightness(0.9) !important;
+  transform: translateY(0);
+}
+
+/* 9. Public Presentation Screen Layout */
+body.mode-pantalla,
+body.mode-pantalla * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+body.mode-pantalla *::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Compresión extrema para pantalla de proyector */
+body.mode-pantalla .pantalla-content {
+  padding: 12px 16px !important;
+}
+body.mode-pantalla .result-column-card {
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+}
+body.mode-pantalla .result-column-header {
+  margin-bottom: 8px !important;
+  padding-bottom: 4px !important;
+}
+body.mode-pantalla .column-category-title {
+  font-size: 14px !important;
+}
+body.mode-pantalla .column-source-tag {
+  font-size: 8px !important;
+  padding: 1px 5px !important;
+}
+
+/* Filas de Ranking Activos */
+body.mode-pantalla #pantalla-show-rows > div {
+  padding: 4px 0 !important;
+}
+body.mode-pantalla #pantalla-show-rows > div > div {
+  margin-bottom: 2px !important;
+  gap: 6px !important;
+}
+body.mode-pantalla #pantalla-consagrados-rows > div {
+  padding: 4px 0 !important;
+}
+body.mode-pantalla #pantalla-show-rows > div > div > div:nth-child(2),
+body.mode-pantalla #pantalla-show-rows > div > div > div:nth-child(3),
+body.mode-pantalla #pantalla-consagrados-rows > div > div:nth-child(2),
+body.mode-pantalla #pantalla-consagrados-rows > div > div:nth-child(3) {
+  font-size: 14px !important;
+}
+
+/* Filas de Podio de Votación */
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div {
+  padding: 4px 0 !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(1) {
+  gap: 6px !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(1) > div:nth-child(2),
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(1) > div:nth-child(3) {
+  font-size: 13px !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(2) {
+  margin-top: 1px !important;
+  font-size: 10px !important;
+}
+body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div > div:nth-child(2) > span {
+  font-size: 10px !important;
+}
+
+.pantalla-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #0A0A0F;
+}
+.pantalla-sidebar {
+  display: none !important;
+}
+.pantalla-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 32px;
+  position: relative;
+}
+@media (max-width: 768px) {
+  .pantalla-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+  .pantalla-sidebar {
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 16px;
+    gap: 16px;
+  }
+  .pantalla-content {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 20px 16px;
+  }
+}
+
+/* ── RESPONSIVE ADMIN DIVIDIDO (SPLIT-SCREEN) & YOUTUBE PLAYER ── */
+@media (min-width: 992px) {
+  #page-home, #page-admin {
+    max-width: 1000px !important;
+    width: 95% !important;
+  }
+  .admin-grid-container {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
+    align-items: start;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+}
+@media (max-width: 991px) {
+  .admin-grid-container {
+    display: block;
+  }
+  .admin-video-column {
+    display: none;
+  }
+  #atab-video-btn {
+    display: inline-block !important;
+  }
+}
+.cast-btn.active {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
+  border-color: var(--gold) !important;
+  color: var(--bg) !important;
+  font-weight: 700;
+}
+
+/* Permitir tarjetas sin borde dorado */
+.card.no-gold-border::before {
+  display: none !important;
+}
+.card.no-gold-border {
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+#mobile-emit-btn-container {
+  display: none;
+}
+@media (max-width: 991px) {
+  #mobile-emit-btn-container {
+    display: block !important;
+  }
+}
+
+/* ── ALTOS SEGÚN ESPACIO VISIBLE Y CABECERA FIJA ── */
+#admin-fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
   background: var(--bg);
   padding: 10px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -1096,26 +1291,65 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 #home-dashboard {
   height: 100%;
 }
+
 @media (max-width: 991px) {
   #home-dashboard {
     padding-top: 100px !important;
-    padding-bottom: 80px !important;
+    padding-bottom: 76px !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    display: block !important;
+  }
+  .admin-main-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    height: auto !important;
+    padding-bottom: 20px !important;
   }
   #admin-video-sidebar {
     padding-top: 100px !important;
-    padding-bottom: 80px !important;
+    padding-bottom: 76px !important;
+    height: calc(100vh - 176px) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+  #admin-video-sidebar > .card {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  #yt-playlist-items {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    max-height: none !important;
+    padding-bottom: 20px !important;
+  }
+  #cast-btn-emitir {
+    display: none !important;
+  }
+  #screensaver-toggle-row {
+    grid-template-columns: 1fr !important;
   }
 }
 
 @media (min-width: 992px) {
-  #page-home {
+  #page-home, #page-admin {
     max-width: 1200px !important;
     width: 95% !important;
     height: 100vh !important;
     padding-bottom: 20px !important;
     overflow: hidden !important;
   }
-  #home-dashboard {
+  #home-dashboard, #admin-panel {
     height: calc(100% - 90px) !important;
     overflow: hidden !important;
   }
@@ -1175,5 +1409,33 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   }
 }
 
+/* Botones de reproducción Unicode planos sin bordes */
+.yt-control-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 24px !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  height: 38px !important;
+  width: 38px !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.yt-control-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+.yt-control-btn:active {
+  transform: scale(0.95);
+}
 
-
+@media (min-width: 992px) {
+  #atab-video-btn {
+    display: none !important;
+  }
+}
