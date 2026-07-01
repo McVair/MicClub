@@ -104,6 +104,10 @@ function nav(page) {
   if (el) el.classList.add('active');
   currentPage = page;
 
+  if (page === 'home' || page === 'admin') {
+    switchMobileSection('admin');
+  }
+
   // Move YouTube sidebar to correct grid container based on active page
   const sidebar = document.getElementById('admin-video-sidebar');
   if (sidebar) {
@@ -1086,6 +1090,13 @@ function updateUI() {
       </a>
     `).join('');
     elSponsorsAdmin.innerHTML = adminSponsorsHtml || '<div style="font-size:11px;color:var(--text2)">Sin auspiciantes</div>';
+  }
+
+  // Controlar barra de navegación inferior móvil
+  const bottomNav = document.getElementById('mobile-bottom-nav');
+  if (bottomNav) {
+    const isDashboardVisible = (currentPage === 'home' || currentPage === 'admin') && adminLoggedIn;
+    bottomNav.style.display = isDashboardVisible ? 'flex' : 'none';
   }
 }
 
@@ -3708,23 +3719,29 @@ function changePass() {
 }
 
 let adminTab = 'ctrl';
-function updateMobileEmitButton() {
-  const btnContainer = document.getElementById('mobile-emit-btn-container');
-  if (!btnContainer) return;
-  if (adminTab === 'video') {
-    btnContainer.innerHTML = `
-      <button class="btn btn-sm btn-outline" onclick="setAdminTab('ctrl')" style="min-height:30px;height:30px;font-size:10px;padding:0 8px;border-color:var(--text2);color:var(--text2);margin:0">
-        🔙 Volver
-      </button>
-    `;
-  } else {
-    btnContainer.innerHTML = `
-      <button class="btn btn-sm" onclick="setAdminTab('video')" style="min-height:30px;height:30px;font-size:12px;padding:0 12px;background:#2d6642;border:none;color:#fff;margin:0;font-weight:bold;display:flex;align-items:center;gap:4px">
-        ▶️ Emitir
-      </button>
-    `;
+function switchMobileSection(section) {
+  const adminCols = document.querySelectorAll('.admin-main-column');
+  const videoCols = document.querySelectorAll('.admin-video-column');
+  
+  const btnAdmin = document.getElementById('mob-nav-admin');
+  const btnEmision = document.getElementById('mob-nav-emision');
+  
+  if (btnAdmin) btnAdmin.classList.toggle('active', section === 'admin');
+  if (btnEmision) btnEmision.classList.toggle('active', section === 'emision');
+  
+  adminCols.forEach(col => {
+    col.style.display = (section === 'admin') ? 'block' : 'none';
+  });
+  
+  videoCols.forEach(col => {
+    col.style.display = (section === 'emision') ? 'block' : 'none';
+  });
+  
+  if (section === 'emision') {
+    renderPlaylistQueue();
   }
 }
+window.switchMobileSection = switchMobileSection;
 
 function setAdminTab(tab) {
   adminTab = tab;
@@ -3744,8 +3761,6 @@ function setAdminTab(tab) {
       sidebar.style.display = 'block';
     }
   }
-
-  updateMobileEmitButton();
 
   if (tab === 'parts') renderAdminParticipants();
   if (tab === 'jury')  renderAdminJury();

@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.24">
+<link rel="stylesheet" href="css/styles.css?v=1.25">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -73,10 +73,6 @@ if ('serviceWorker' in navigator) {
           <div>
             <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">Mic Club</span>
             <span style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--text2);display:inline-block;margin-left:4px">las alas de mi voz</span>
-          </div>
-          <!-- Botón de emisión (play) verde en móvil / volver a admin -->
-          <div id="mobile-emit-btn-container" style="display:none">
-            <!-- Renderizado dinámico según pestaña activa -->
           </div>
         </div>
         
@@ -1001,9 +997,21 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
+<!-- Barra de Navegación Inferior (Estilo WhatsApp) - Solo Móvil -->
+<div id="mobile-bottom-nav" style="display:none">
+  <button class="mobile-nav-item active" id="mob-nav-admin" onclick="switchMobileSection('admin')">
+    <span style="font-size:18px">🛠️</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Administración</span>
+  </button>
+  <button class="mobile-nav-item" id="mob-nav-emision" onclick="switchMobileSection('emision')">
+    <span style="font-size:18px">📺</span>
+    <span style="font-size:10px;font-weight:600;margin-top:2px">Emisión</span>
+  </button>
+</div>
+
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.24" defer></script>
+<script src="js/app.js?v=1.25" defer></script>
 </body>
 </html>
