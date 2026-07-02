@@ -6746,6 +6746,38 @@ function ytAddManualItem() {
   renderPlaylistQueue();
 }
 
+function togglePlaybackMode() {
+  const currentMode = localState.settings?.playbackMode || 'theme';
+  const newMode = (currentMode === 'theme') ? 'continuous' : 'theme';
+  
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings'), { playbackMode: newMode });
+  } else {
+    if (!localState.settings) localState.settings = {};
+    localState.settings.playbackMode = newMode;
+    saveLocal();
+  }
+}
+
+function updatePlaybackModeUI() {
+  const btn = document.getElementById('playback-mode-btn');
+  if (!btn) return;
+  
+  const mode = localState.settings?.playbackMode || 'theme';
+  if (mode === 'continuous') {
+    btn.textContent = 'Continuo';
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-gold');
+  } else {
+    btn.textContent = 'Por tema';
+    btn.classList.remove('btn-gold');
+    btn.classList.add('btn-outline');
+  }
+}
+
+window.togglePlaybackMode = togglePlaybackMode;
+window.updatePlaybackModeUI = updatePlaybackModeUI;
+
 // Alternar reproducción (Play / Pause)
 function ytRemoteTogglePlay() {
   if (!activeYtVideo) {
