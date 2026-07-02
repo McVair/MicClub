@@ -4035,12 +4035,14 @@ function doAdminLogin() {
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display  = 'block';
     setAdminTab('ctrl');
+    updateDashboard();
   } else if (pass === stored) {
     adminLoggedIn = true;
     isSuperAdmin = false;
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display  = 'block';
     setAdminTab('ctrl');
+    updateDashboard();
   } else {
     const e = document.getElementById('admin-err');
     e.style.display = 'block';
@@ -7366,16 +7368,16 @@ function toggleMobileSection() {
 window.toggleMobileSection = toggleMobileSection;
 
 function updateMobileLayout() {
-  const adminMainCol = document.querySelector('.admin-main-column');
+  const adminMainCols = document.querySelectorAll('.admin-main-column');
   const videoCol = document.getElementById('admin-video-sidebar');
   const toggleBtn = document.getElementById('mobile-nav-toggle-btn');
   const container = document.getElementById('mobile-nav-toggle-container');
   
   if (window.innerWidth < 992) {
     if (container) container.style.display = 'block';
-    if (adminMainCol) {
-      adminMainCol.classList.toggle('active-mobile', activeMobileSection === 'admin');
-    }
+    adminMainCols.forEach(col => {
+      col.classList.toggle('active-mobile', activeMobileSection === 'admin');
+    });
     if (videoCol) {
       videoCol.classList.toggle('active-mobile', activeMobileSection === 'reproduccion');
     }
@@ -7396,10 +7398,10 @@ function updateMobileLayout() {
   } else {
     // Escritorio
     if (container) container.style.display = 'none';
-    if (adminMainCol) {
-      adminMainCol.style.display = 'block';
-      adminMainCol.classList.remove('active-mobile');
-    }
+    adminMainCols.forEach(col => {
+      col.style.display = 'block';
+      col.classList.remove('active-mobile');
+    });
     if (videoCol) {
       videoCol.style.display = 'block';
       videoCol.classList.remove('active-mobile');
