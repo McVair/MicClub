@@ -596,7 +596,6 @@ function initFirebase() {
             } else {
               projectionPlayer.cueVideoById(s.castYtVideo.ytId);
             }
-            applyProyectorLayout('video');
           }
         }
         if (s.castYtCommand && s.castYtCommand.timestamp !== lastCastYtCommandTimestamp) {
@@ -7019,18 +7018,46 @@ function applyProyectorLayout(layout) {
   const layoutContainer = document.querySelector('.pantalla-layout');
 
   if (layout === 'video') {
-    if (ytContainer) ytContainer.style.display = 'block';
+    if (ytContainer) {
+      ytContainer.style.display = 'block';
+      ytContainer.style.position = 'absolute';
+      ytContainer.style.top = '0';
+      ytContainer.style.left = '0';
+      ytContainer.style.width = '100%';
+      ytContainer.style.height = '100%';
+      ytContainer.style.opacity = '1';
+      ytContainer.style.zIndex = '9999';
+      ytContainer.style.pointerEvents = 'auto';
+    }
     if (layoutContainer) layoutContainer.style.display = 'none';
   } else if (layout === 'blank') {
-    if (ytContainer) ytContainer.style.display = 'none';
+    if (ytContainer) {
+      ytContainer.style.display = 'block';
+      ytContainer.style.position = 'absolute';
+      ytContainer.style.left = '-9999px';
+      ytContainer.style.width = '1px';
+      ytContainer.style.height = '1px';
+      ytContainer.style.opacity = '0';
+      ytContainer.style.zIndex = '-9999';
+      ytContainer.style.pointerEvents = 'none';
+    }
     if (layoutContainer) layoutContainer.style.display = 'none';
     if (projectionPlayer && projectionPlayerReady) projectionPlayer.pauseVideo();
   } else {
-    if (ytContainer) ytContainer.style.display = 'none';
+    if (ytContainer) {
+      ytContainer.style.display = 'block';
+      ytContainer.style.position = 'absolute';
+      ytContainer.style.left = '-9999px';
+      ytContainer.style.width = '1px';
+      ytContainer.style.height = '1px';
+      ytContainer.style.opacity = '0';
+      ytContainer.style.zIndex = '-9999';
+      ytContainer.style.pointerEvents = 'none';
+    }
     if (layoutContainer) {
       layoutContainer.style.display = (window.innerWidth < 768) ? 'block' : 'grid';
     }
-    if (projectionPlayer && projectionPlayerReady) projectionPlayer.pauseVideo();
+    // No pausamos el video en otros layouts para permitir reproducción en segundo plano.
     
     if (layout === 'ranking') setPantallaTab('ranking');
     else if (layout === 'parts') setPantallaTab('participantes');
@@ -7049,12 +7076,10 @@ function handleProyectorMessage(data) {
   } else if (data.type === 'yt_load') {
     if (projectionPlayer && projectionPlayerReady) {
       projectionPlayer.loadVideoById(data.ytId);
-      applyProyectorLayout('video');
     }
   } else if (data.type === 'yt_cue') {
     if (projectionPlayer && projectionPlayerReady) {
       projectionPlayer.cueVideoById(data.ytId);
-      applyProyectorLayout('video');
     }
   } else if (data.type === 'yt_play') {
     if (projectionPlayer && projectionPlayerReady) {
