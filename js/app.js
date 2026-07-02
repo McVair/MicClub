@@ -1670,10 +1670,16 @@ function updateDashboard() {
             </div>
 
             <!-- 2. Estadísticas del Evento Activo (Centro) -->
-            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:left;flex:1;font-size:11px;font-weight:600;line-height:1.3;padding-left:12px">
-              <div style="color:var(--teal)">${item.partsCount} participantes</div>
-              <div style="color:#fff">${item.reserved} reservas</div>
-              <div style="color:var(--gold)">${spots.isLimited ? spots.remaining : 'Ilimitados'} lugares disponibles</div>
+            <div style="display:flex;flex-direction:column;justify-content:center;text-align:left;flex:1;font-size:11px;font-weight:600;line-height:1.3;padding-left:12px;min-width:0">
+              <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--gold);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px">${esc(name)}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:normal;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(details)}</div>
+              <div style="display:flex;gap:8px;font-size:10px;color:rgba(255,255,255,0.6);flex-wrap:wrap">
+                <span style="color:var(--teal)">${item.partsCount} part.</span>
+                <span>·</span>
+                <span style="color:#fff">${item.reserved} res.</span>
+                <span>·</span>
+                <span style="color:var(--gold)">${spots.isLimited ? `${spots.remaining} lib.` : 'Ilimitado'}</span>
+              </div>
             </div>
 
             <!-- 3. Botón Terminar Evento (Derecha) -->
@@ -4137,7 +4143,7 @@ function renderAdminEventSelectorBar() {
         ${isGlobalActive ? `
           <button class="btn btn-sm btn-gold" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;font-family:'Inter',sans-serif;letter-spacing:1px;margin:0;cursor:default">ACTIVO</button>
         ` : `
-          <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
+          <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVAR</button>
         `}
       </div>
     `;
