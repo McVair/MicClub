@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.36">
+<link rel="stylesheet" href="css/styles.css?v=1.37">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -72,11 +72,11 @@ if ('serviceWorker' in navigator) {
             <span class="logo-micclub">MIC CLUB</span>
             <span class="logo-sub">Las Alas de mi Voz</span>
             <span class="logo-separator">·</span>
-            <div id="dash-active-event-name">CARGANDO EVENTO...</div>
+            <div id="dash-active-event-name">Cargando evento...</div>
           </div>
           <div class="header-vote-action">
-            <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:30px;height:30px;font-size:11px;padding:0 12px;width:auto;font-family:'Oswald',sans-serif;letter-spacing:1px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
-              ABRIR VOTACIÓN
+            <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:30px;height:30px;font-size:11px;padding:0 12px;width:auto;font-family:'Inter',sans-serif;letter-spacing:-0.2px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
+              Abrir votación
             </button>
             <button id="dash-show-btn" onclick="dashToggleShow()" style="display:none"></button>
           </div>
@@ -100,8 +100,8 @@ if ('serviceWorker' in navigator) {
       <!-- Panel de Emisión / Proyección -->
       <div class="card card-yellow" style="padding:14px;margin-bottom:14px">
         <div id="screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">EMITIR</button>
-          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">SALVAPANTALLAS</button>
+          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">Emitir</button>
+          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">Salvapantallas</button>
         </div>
         
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -110,7 +110,7 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">Votación</button>
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">Participantes</button>
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">Karaoke</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">Proximo Evento</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">Próximo Evento</button>
         </div>
       </div>
 
@@ -1044,6 +1044,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.36" defer></script>
+<script src="js/app.js?v=1.37" defer></script>
 </body>
 </html>

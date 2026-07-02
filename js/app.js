@@ -3925,19 +3925,19 @@ async function toggleBonus(val) {
 
 function renderVotingToggleBtn() {
   const isMobile = window.innerWidth < 992;
-  const closedLabel = isMobile ? 'VOTAR' : 'ABRIR VOTACIÓN';
-  const openLabel = isMobile ? 'CERRAR' : 'CERRAR VOTACIÓN';
+  const closedLabel = isMobile ? 'Votar' : 'Abrir votación';
+  const openLabel = isMobile ? 'Cerrar' : 'Cerrar votación';
 
   // Botón config
   const cfgBtn = document.getElementById('config-vote-toggle-btn');
   if (cfgBtn) {
     if (votingOpen) {
-      cfgBtn.textContent = 'CERRAR VOTACIÓN';
+      cfgBtn.textContent = 'Cerrar votación';
       cfgBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
       cfgBtn.style.borderColor = '#aa3d50';
       cfgBtn.style.color = '#fff';
     } else {
-      cfgBtn.textContent = 'ABRIR VOTACIÓN';
+      cfgBtn.textContent = 'Abrir votación';
       cfgBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
       cfgBtn.style.borderColor = '#4d9e6a';
       cfgBtn.style.color = '#fff';

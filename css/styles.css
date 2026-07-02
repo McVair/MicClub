@@ -1338,6 +1338,45 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     max-height: none !important;
     padding-bottom: 20px !important;
   }
+
+  /* Reducir espacio entre eventos y los 3 botones de admin */
+  #events-control-panel {
+    margin-bottom: 4px !important;
+  }
+  
+  /* Reducir espacio debajo de la fila de 3 botones de admin, y entre botones y emisión */
+  .admin-main-column > div[style*="grid-template-columns:repeat(3,1fr)"],
+  .admin-main-column > div[style*="grid-template-columns: repeat(3, 1fr)"] {
+    margin-bottom: 6px !important;
+    gap: 4px !important;
+  }
+  
+  /* Reducir espacio en la tarjeta de emisión y su margen inferior */
+  .card.card-yellow {
+    padding: 8px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  /* Reducir espacio en el grid interno de la tarjeta de emisión */
+  .card.card-yellow > div {
+    gap: 4px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  /* Reducir espacio debajo de la tarjeta de emisión y la última tanda de botones (Compartir) */
+  .admin-main-column > div[style*="grid-template-columns:repeat(4,1fr)"],
+  .admin-main-column > div[style*="grid-template-columns: repeat(4, 1fr)"] {
+    margin-bottom: 6px !important;
+    gap: 4px !important;
+  }
+
+  /* Reducir el alto de los botones y el padding interno en un 50% */
+  .btn, .btn-dash {
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 10px !important;
+  }
 }
 
 /* Responsive header layout for active event title and logo */
@@ -1408,14 +1447,6 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   border-color: #ffffff !important;
 }
 
-@media (max-width: 991px) {
-  /* Reducir tamaño de botones de dashboard en móvil */
-  .btn-dash {
-    padding: 10px 4px !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-  }
-}
 
 @media (min-width: 992px) {
   .header-content-wrapper {
@@ -1546,13 +1577,12 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   transform: translateY(-2px);
 }
 
-/* Norma general de botones: todos iguales en tamaño y estilo */
 .btn, .btn-dash {
-  font-family: 'Oswald', sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 13px !important;
-  font-weight: bold !important;
-  letter-spacing: 1px !important;
-  text-transform: uppercase !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+  text-transform: none !important;
   min-height: 44px !important;
   height: 44px !important;
   padding: 0 20px !important;
