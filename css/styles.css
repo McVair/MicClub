@@ -1281,11 +1281,14 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 @media (min-width: 992px) {
   #admin-fixed-header, #bar-fixed-header {
-    position: static;
-    height: auto;
-    padding: 4px 0 0;
-    border-bottom: none;
-    background: transparent;
+    position: static !important;
+    height: auto !important;
+    padding: 12px 18px !important;
+    border-bottom: none !important;
+    background: rgba(223, 172, 74, 0.05) !important;
+    border-radius: 12px !important;
+    margin-bottom: 16px !important;
+    box-sizing: border-box !important;
   }
 }
 
@@ -1472,7 +1475,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 @media (min-width: 992px) {
   .header-content-wrapper {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
   }
   .header-logo-event {
@@ -1495,7 +1498,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     width: calc(42.5% - 10px);
     margin-left: 20px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
   #page-home, #page-admin {
     max-width: 1200px !important;
