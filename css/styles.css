@@ -1267,19 +1267,20 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 
 /* ── ALTOS SEGÚN ESPACIO VISIBLE Y CABECERA FIJA ── */
-#admin-fixed-header {
+#admin-fixed-header, #bar-fixed-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 90px;
+  height: 110px;
   background: var(--bg);
-  padding: 10px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 1000;
+  box-sizing: border-box;
 }
 @media (min-width: 992px) {
-  #admin-fixed-header {
+  #admin-fixed-header, #bar-fixed-header {
     position: static;
     height: auto;
     padding: 4px 0 10px;
@@ -1294,10 +1295,15 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 
 @media (max-width: 991px) {
   #home-dashboard {
-    padding-top: 100px !important;
+    padding-top: 120px !important;
     padding-bottom: 76px !important;
     height: auto !important;
     overflow-y: visible !important;
+  }
+  #page-bar {
+    padding-top: 120px !important;
+    padding-bottom: 76px !important;
+    height: auto !important;
   }
   .admin-main-column {
     flex-direction: column !important;
@@ -1310,9 +1316,9 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     display: flex !important;
   }
   #admin-video-sidebar {
-    padding-top: 100px !important;
+    padding-top: 120px !important;
     padding-bottom: 76px !important;
-    height: calc(100vh - 176px) !important;
+    height: calc(100vh - 196px) !important;
     overflow: hidden !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
@@ -1377,6 +1383,26 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     padding: 0 8px !important;
     font-size: 10px !important;
   }
+
+  
+  /* Ocultar detalles del evento en móviles en la lista de ranuras */
+  .dash-event-details {
+    display: none !important;
+  }
+  
+  /* Detalles del evento activo en la cabecera móvil */
+  #dash-active-event-details, #bar-active-event-details {
+    display: block !important;
+    font-size: 11px !important;
+    color: #8e867a !important;
+    margin-top: 2px !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+  }
+}
+
+#dash-active-event-details, #bar-active-event-details {
+  display: none !important;
 }
 
 /* Responsive header layout for active event title and logo */
@@ -1397,7 +1423,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   flex-wrap: nowrap;
 }
 .logo-micclub {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Bebas Neue', sans-serif !important;
   font-size: 26px;
   letter-spacing: 1px;
   background: linear-gradient(135deg, var(--gold), #8a640f);
@@ -1406,19 +1432,15 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   display: inline-block;
 }
 .logo-sub {
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-family: 'Bebas Neue', sans-serif !important;
+  font-size: 12px !important;
   letter-spacing: 1.5px;
   color: #8e867a;
   display: inline-block;
   margin-left: 4px;
 }
 .logo-separator {
-  display: none;
-  font-family: 'Inter', sans-serif;
-  font-size: 22px;
-  color: #8e867a;
-  margin: 0 4px;
+  display: none !important;
 }
 #dash-active-event-name {
   grid-area: event;
@@ -1445,9 +1467,9 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 
 /* Cast layouts button selection styles */
 .cast-btn.active {
-  background: #ffffff !important;
-  color: #0d0c10 !important;
-  border-color: #ffffff !important;
+  background: #0d0c10 !important;
+  color: var(--gold) !important;
+  border-color: var(--gold) !important;
 }
 
 
@@ -1463,10 +1485,10 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     flex-wrap: nowrap;
   }
   .logo-separator {
-    display: inline-block;
+    display: none !important;
   }
-  #dash-active-event-name {
-    margin-left: 4px;
+  .header-event-container {
+    margin-left: 16px !important;
   }
   #page-home, #page-admin {
     max-width: 1200px !important;
@@ -1543,11 +1565,6 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   z-index: 1000;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-}
-@media (max-width: 991px) {
-  #mobile-nav-toggle-container {
-    display: block !important;
-  }
 }
 
 /* Botones de reproducción Unicode planos sin bordes — AHORA DORADOS CON BLANCO */

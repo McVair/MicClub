@@ -73,7 +73,10 @@ if ('serviceWorker' in navigator) {
             <span class="logo-sub">Las Alas de mi Voz</span>
           </div>
           <span class="logo-separator">·</span>
-          <div id="dash-active-event-name">Cargando evento...</div>
+          <div class="header-event-container">
+            <div id="dash-active-event-name">Cargando evento...</div>
+            <div id="dash-active-event-details"></div>
+          </div>
           <div class="header-vote-action">
             <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:30px;height:30px;font-size:11px;padding:0 12px;width:auto;font-family:'Inter',sans-serif;letter-spacing:-0.2px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
               Abrir votación
@@ -432,7 +435,22 @@ if ('serviceWorker' in navigator) {
 
       <!-- Artistas invitados actuales -->
       <div style="font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;font-weight:700">Artistas invitados actuales</div>
-      <div id="admin-artists-list" style="max-height:160px;overflow-y:auto;border:1px solid rgba(255,255,255,0.05);padding:6px;border-radius:6px"></div>
+      <div id="admin-artists-list" style="max-height:160px;overflow-y:auto;border:1px solid rgba(255,255,255,0.05);padding:6px;border-radius:6px;margin-bottom:12px"></div>
+
+      <!-- Cargar Flyer del Próximo Evento -->
+      <div style="background:rgba(212,168,67,.06);border:1px solid var(--gold-dark);border-radius:8px;padding:13px;margin-top:10px">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Flyer Próximo Evento</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Cargá el flyer o imagen promocional para el próximo evento. Se mostrará en la pantalla del público.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input type="file" id="next-event-file" accept="image/*" style="width:100%;font-size:12px;color:var(--text2)">
+          <button class="btn btn-gold btn-sm" onclick="uploadNextEventImage()">CARGAR IMAGEN DE NUEVO EVENTO</button>
+          <div id="admin-next-event-preview-container" style="display:none;margin-top:8px;text-align:center">
+            <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Flyer actual:</div>
+            <img id="admin-next-event-preview" src="" style="max-height:100px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);display:block;margin:0 auto 6px">
+            <button class="btn btn-danger btn-sm" onclick="deleteNextEventImage()" style="min-height:auto;padding:4px 8px;font-size:11px;width:auto">Eliminar Flyer</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Botón flotante para votar (estilo WhatsApp) -->
@@ -770,21 +788,6 @@ if ('serviceWorker' in navigator) {
 
 
 <button class="btn btn-outline btn-sm" onclick="exportCSV()" style="width:100%">Exportar CSV</button>
-
-            <!-- Cargar Flyer del Próximo Evento -->
-            <div style="background:rgba(212,168,67,.06);border:1px solid var(--gold-dark);border-radius:8px;padding:13px;margin-top:10px">
-              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Flyer Próximo Evento</div>
-              <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Cargá el flyer o imagen promocional para el próximo evento. Se mostrará en la pantalla del público.</div>
-              <div style="display:flex;flex-direction:column;gap:8px">
-                <input type="file" id="next-event-file" accept="image/*" style="width:100%;font-size:12px;color:var(--text2)">
-                <button class="btn btn-gold btn-sm" onclick="uploadNextEventImage()">CARGAR IMAGEN DE NUEVO EVENTO</button>
-                <div id="admin-next-event-preview-container" style="display:none;margin-top:8px;text-align:center">
-                  <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Flyer actual:</div>
-                  <img id="admin-next-event-preview" src="" style="max-height:100px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);display:block;margin:0 auto 6px">
-                  <button class="btn btn-danger btn-sm" onclick="deleteNextEventImage()" style="min-height:auto;padding:4px 8px;font-size:11px;width:auto">Eliminar Flyer</button>
-                </div>
-              </div>
-            </div>
             <hr class="divider">
             <div id="admin-clear-db-card" style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px;display:none">
               <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">Vaciar Base de Datos</div>
@@ -897,35 +900,35 @@ if ('serviceWorker' in navigator) {
   <!-- ─────────── CONSOLA BAR ─────────── -->
   <div id="page-bar" class="page">
     <!-- Cabecera Fija Bar (Igual a la de Admin) -->
-    <div id="bar-fixed-header" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:12px;margin-bottom:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
-        <div>
-          <span style="font-family:'Inter',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">MIC CLUB</span>
-          <span style="font-family:'Inter',sans-serif;font-size:15px;letter-spacing:1.5px;color:#8e867a;display:inline-block;margin-left:4px">Las Alas de mi Voz</span>
+    <div id="bar-fixed-header">
+      <div class="header-content-wrapper">
+        <div class="header-logo-event">
+          <span class="logo-micclub">MIC CLUB</span>
+          <span class="logo-sub">Las Alas de mi Voz</span>
         </div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:12px">
-        <div style="font-family:'Inter',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" id="bar-active-event-name">
-          CARGANDO EVENTO...
+        <span class="logo-separator">·</span>
+        <div class="header-event-container">
+          <div id="bar-active-event-name">Cargando evento...</div>
+          <div id="bar-active-event-details"></div>
         </div>
       </div>
     </div>
 
     <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
-    <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
-      <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">📺 Control de Emisión</div>
+    <div class="card card-yellow" style="padding:14px;margin-bottom:14px">
+      <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">Control de Emisión</div>
       <div id="bar-screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <button id="bar-cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">📺 EMITIR</button>
-        <button id="bar-screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">✨ SALVAPANTALLAS</button>
+        <button id="bar-cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>
+        <button id="bar-screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">Salvapantallas</button>
       </div>
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">🎬 Video</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">📊 Ranking</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">🗳️ Votación</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">👥 Participantes</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">🎤 Karaoke</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">🖼️ Proximo Evento</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">Video</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">Ranking</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">Votación</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">Participantes</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">Karaoke</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">Próximo Evento</button>
       </div>
     </div>
 

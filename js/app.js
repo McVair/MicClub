@@ -49,6 +49,8 @@ let isSuperAdmin     = false;
 let currentPId      = null;
 let votingOpen      = false;
 let showRunning     = false;
+let projectionWindowRef = null;
+let lastProjectionActive = false;
 let navStack        = [];
 let juryCat         = 'song';
 let celebrationAnimationId = null;
@@ -439,7 +441,16 @@ async function saveAndExit() {
 function updateBackBtn() {
   const bar = document.getElementById('back-bar');
   if (!bar) return;
-  bar.style.display = (MODE === 'home' && navStack.length > 0 && currentPage !== 'pantalla') ? 'block' : 'none';
+  const isShown = (MODE === 'home' && navStack.length > 0 && currentPage !== 'pantalla');
+  bar.style.display = isShown ? 'block' : 'none';
+  
+  const bottomNavToggle = document.getElementById('mobile-nav-toggle-container');
+  const isToggleVisible = bottomNavToggle && bottomNavToggle.style.display !== 'none';
+  if (window.innerWidth < 992 && isToggleVisible) {
+    bar.style.bottom = '56px';
+  } else {
+    bar.style.bottom = '0';
+  }
 }
 
 function renderNav() { /* nav removed — navigation via buttons + back bar */ }
@@ -476,6 +487,23 @@ function initFirebase() {
       if (s.showRunning === undefined || s.showRunning === null) {
         showRunning = false;
       }
+
+      const projectionActive = !!s.projectionActive;
+      const isPC = window.innerWidth >= 992;
+      if (isPC) {
+        if (projectionActive && !lastProjectionActive) {
+          if (!projectionWindowRef || projectionWindowRef.closed) {
+            openProjectionWindow();
+          }
+        } else if (!projectionActive && lastProjectionActive) {
+          if (projectionWindowRef && !projectionWindowRef.closed) {
+            projectionWindowRef.close();
+            projectionWindowRef = null;
+          }
+        }
+      }
+      lastProjectionActive = projectionActive;
+      updateProjectionButtonUI();
       if (s.castYtVideo) {
         activeYtVideo = s.castYtVideo;
         if (MODE === 'admin') {
@@ -1173,6 +1201,7 @@ function updateUI() {
       updateMobileLayout();
     }
   }
+  updateBackBtn();
 }
 
 let programSelectedEventId = null;
@@ -1630,7 +1659,7 @@ function updateDashboard() {
             <!-- 1. Botón / Badge ACTIVO (Izquierda) -->
             <div style="width:80px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">
               ${slot === currentActiveId ? `
-                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:#fff;font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
+                <span style="background:var(--gold);color:#fff;font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
               ` : `
                 <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:#fff;background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
               `}
@@ -1639,10 +1668,10 @@ function updateDashboard() {
             <!-- 2. Información del Evento (Centro-Izquierda) -->
             <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
               <div style="display:flex;align-items:center;line-height:1;color:#ffffff">
-                <span style="font-family:'Inter',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
+                <span class="dash-event-number" style="font-family:'Inter',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
                 <span style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1" title="${esc(name)}">${esc(name)}</span>
               </div>
-              <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(details)}">
+              <div class="dash-event-details" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(details)}">
                 ${esc(details)}
               </div>
             </div>
@@ -1703,12 +1732,24 @@ function updateDashboard() {
   const activeEventId = getCurrentEventId();
   const activeEvent = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
   const elActiveName = document.getElementById('dash-active-event-name');
+  const elActiveDetails = document.getElementById('dash-active-event-details');
   if (elActiveName) {
-    elActiveName.textContent = activeEvent ? activeEvent.name.toUpperCase() : 'SIN EVENTO ACTIVO';
+    elActiveName.textContent = activeEvent ? activeEvent.name : 'Sin evento activo';
+  }
+  if (elActiveDetails) {
+    elActiveDetails.textContent = activeEvent 
+      ? `${activeEvent.date} · ${activeEvent.time} · ${activeEvent.venue}`
+      : '';
   }
   const elBarActiveName = document.getElementById('bar-active-event-name');
+  const elBarActiveDetails = document.getElementById('bar-active-event-details');
   if (elBarActiveName) {
-    elBarActiveName.textContent = activeEvent ? activeEvent.name.toUpperCase() : 'SIN EVENTO ACTIVO';
+    elBarActiveName.textContent = activeEvent ? activeEvent.name : 'Sin evento activo';
+  }
+  if (elBarActiveDetails) {
+    elBarActiveDetails.textContent = activeEvent 
+      ? `${activeEvent.date} · ${activeEvent.time} · ${activeEvent.venue}`
+      : '';
   }
 
   // Resultados label: nombre del evento si hay show activo
@@ -2401,12 +2442,24 @@ function dashCopyLink(mode) {
   const modeNames = { jury: 'Jurado', register: 'Reservas', vote: 'Programa', ranking: 'Ranking', pantalla: 'Pantalla', bar: 'Bar' };
   const label = modeNames[mode] || 'Evento';
 
+  const activeEventId = getCurrentEventId();
+  const activeEvent = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+  const eventName = activeEvent ? activeEvent.name : 'MicClub';
+
+  const shareTexts = {
+    jury: 'Panel de votación del jurado',
+    register: 'Participa del Mic Club, reservá tu lugar.',
+    vote: `Mirá el programa de ${eventName}`,
+    bar: 'Panel de Emision - Mic Club'
+  };
+  const shareText = shareTexts[mode] || `Ingresá al enlace de ${label}:`;
+
   const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   if (isMobile && navigator.share) {
     navigator.share({
       title: 'MIC CLUB',
-      text: `Ingresá al enlace de ${label}:`,
+      text: shareText,
       url: url
     }).catch(err => {
       console.log('Compartir cancelado o fallido', err);
@@ -2414,7 +2467,7 @@ function dashCopyLink(mode) {
   } else {
     navigator.clipboard?.writeText(url)
       .then(() => mcAlert('✅ Link copiado al portapapeles'))
-      .catch(() => showCustomModal({ msg: `Copiá este link:<br><br><span style="font-size:11px;word-break:break-all;color:var(--teal)">${url}</span>`, okText: 'OK' }));
+      .catch(() => showCustomModal({ msg: `${shareText}<br><br><span style="font-size:11px;word-break:break-all;color:var(--teal)">${url}</span>`, okText: 'OK' }));
   }
 }
 window.dashCopyLink = dashCopyLink;
@@ -3898,7 +3951,7 @@ function renderAdminEventSelectorBar() {
       <div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${isGlobalActive ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:6px 12px;box-sizing:border-box;min-height:38px">
         <span style="font-size:13px;color:var(--text);font-weight:600">${esc(name)}${dateText}</span>
         ${isGlobalActive ? `
-          <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:4px 10px;border-radius:6px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;text-align:center">ACTIVO</span>
+          <span style="background:var(--gold);color:#fff;font-size:10px;padding:4px 10px;border-radius:6px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;text-align:center">ACTIVO</span>
         ` : `
           <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
         `}
@@ -6940,15 +6993,66 @@ function openProjectionWindow() {
   // Abrir como ventana popup limpia (sin barras de URL o pestañas)
   // E intentar posicionarla en el segundo monitor a la derecha (coordenada left = w)
   const features = `width=${w},height=${h},left=${w},top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no`;
-  const win = window.open(url, name, features);
-  if (win) {
-    win.focus();
+  projectionWindowRef = window.open(url, name, features);
+  if (projectionWindowRef) {
+    projectionWindowRef.focus();
   } else {
     // Si el navegador bloquea los popups, usar fallback normal en nueva pestaña
-    window.open(url, '_blank');
+    projectionWindowRef = window.open(url, '_blank');
+  }
+  
+  if (firebaseOk && !lastProjectionActive) {
+    dbUpdate(dbRef(db, 'settings'), { projectionActive: true });
   }
 }
 window.openProjectionWindow = openProjectionWindow;
+
+function toggleProjectionState() {
+  if (lastProjectionActive) {
+    mcConfirm('¿Desea cerrar la ventana de emisión?', () => {
+      if (firebaseOk) {
+        dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
+      } else {
+        lastProjectionActive = false;
+        if (projectionWindowRef && !projectionWindowRef.closed) {
+          projectionWindowRef.close();
+          projectionWindowRef = null;
+        }
+        updateProjectionButtonUI();
+      }
+    });
+  } else {
+    if (firebaseOk) {
+      dbUpdate(dbRef(db, 'settings'), { projectionActive: true });
+    } else {
+      openProjectionWindow();
+      updateProjectionButtonUI();
+    }
+  }
+}
+window.toggleProjectionState = toggleProjectionState;
+
+function updateProjectionButtonUI() {
+  const active = lastProjectionActive;
+  const btn = document.getElementById('cast-btn-emitir');
+  const btnBar = document.getElementById('bar-cast-btn-emitir');
+  const btns = [btn, btnBar].filter(Boolean);
+  
+  btns.forEach(b => {
+    if (active) {
+      b.textContent = 'Cerrar emisión';
+      b.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+      b.style.borderColor = '#aa3d50';
+      b.style.color = '#fff';
+    } else {
+      b.textContent = 'Emitir';
+      b.style.background = '';
+      b.style.borderColor = '';
+      b.style.color = '';
+    }
+  });
+}
+window.updateProjectionButtonUI = updateProjectionButtonUI;
 
 // ── LÓGICA DE NAVEGACIÓN MÓVIL Y SALVAPANTALLAS ──
 let activeMobileSection = 'admin'; // 'admin' o 'reproduccion'
@@ -7013,13 +7117,12 @@ function updateScreensaverUIState() {
   const btns = [btn, btnBar].filter(Boolean);
   
   btns.forEach(b => {
+    b.textContent = 'Salvapantallas';
     if (screensaverActive) {
-      b.textContent = 'DETENER';
       b.style.borderColor = 'var(--red)';
       b.style.color = 'var(--red)';
       b.style.background = 'rgba(255, 61, 107, 0.1)';
     } else {
-      b.textContent = 'SALVAPANTALLAS';
       b.style.borderColor = '';
       b.style.color = '';
       b.style.background = '';
