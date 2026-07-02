@@ -7304,8 +7304,12 @@ function updateMobileLayout() {
   
   if (window.innerWidth < 992) {
     if (container) container.style.display = 'block';
-    if (adminMainCol) adminMainCol.style.display = (activeMobileSection === 'admin') ? 'block' : 'none';
-    if (videoCol) videoCol.style.display = (activeMobileSection === 'reproduccion') ? 'block' : 'none';
+    if (adminMainCol) {
+      adminMainCol.classList.toggle('active-mobile', activeMobileSection === 'admin');
+    }
+    if (videoCol) {
+      videoCol.classList.toggle('active-mobile', activeMobileSection === 'reproduccion');
+    }
     
     if (toggleBtn) {
       if (activeMobileSection === 'admin') {
@@ -7323,8 +7327,14 @@ function updateMobileLayout() {
   } else {
     // Escritorio
     if (container) container.style.display = 'none';
-    if (adminMainCol) adminMainCol.style.display = 'block';
-    if (videoCol) videoCol.style.display = 'block';
+    if (adminMainCol) {
+      adminMainCol.style.display = 'block';
+      adminMainCol.classList.remove('active-mobile');
+    }
+    if (videoCol) {
+      videoCol.style.display = 'block';
+      videoCol.classList.remove('active-mobile');
+    }
   }
 }
 window.updateMobileLayout = updateMobileLayout;
