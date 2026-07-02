@@ -1665,25 +1665,14 @@ function updateDashboard() {
               `}
             </div>
 
-            <!-- 2. Información del Evento (Centro-Izquierda) -->
-            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
-              <div style="display:flex;align-items:center;line-height:1;color:#ffffff">
-                <span class="dash-event-number" style="font-family:'Inter',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
-                <span style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1" title="${esc(name)}">${esc(name)}</span>
-              </div>
-              <div class="dash-event-details" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(details)}">
-                ${esc(details)}
-              </div>
-            </div>
-
-            <!-- 3. Estadísticas en 3 renglones (Centro-Derecha) -->
-            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:10px;font-weight:600;line-height:1.2;min-width:120px">
+            <!-- 2. Estadísticas del Evento Activo (Centro) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:left;flex:1;font-size:11px;font-weight:600;line-height:1.3;padding-left:12px">
               <div style="color:var(--teal)">${item.partsCount} participantes</div>
               <div style="color:#fff">${item.reserved} reservas</div>
               <div style="color:var(--gold)">${spots.isLimited ? spots.remaining : 'Ilimitados'} lugares disponibles</div>
             </div>
 
-            <!-- 4. Botón Terminar Evento (Derecha) -->
+            <!-- 3. Botón Terminar Evento (Derecha) -->
             <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Inter',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
               ${btnText}
             </button>
@@ -1692,7 +1681,6 @@ function updateDashboard() {
       } else {
         // Inactivo
         const slotLabel = slot === 'event1' ? 'Evento 1' : 'Evento 2';
-        const eventText = `Sin evento activo (${slotLabel})`;
         const btnText = `▶️ INICIAR EVENTO`;
         const btnBg = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
         const btnColor = '#0a0a0f';
@@ -1703,21 +1691,13 @@ function updateDashboard() {
             <!-- 1. Placeholder ACTIVO (Izquierda) -->
             <div style="width:80px;height:54px;flex-shrink:0"></div>
 
-            <!-- 2. Información del Evento Inactivo (Centro-Izquierda) -->
-            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
-              <div style="color:var(--text2);display:flex;align-items:center;line-height:1">
-                <span style="font-family:'Inter',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
-                <span style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1">${eventText}</span>
-              </div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.2)">Crea un evento para comenzar</div>
+            <!-- 2. Estadísticas Evento Inactivo (Centro) -->
+            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:left;flex:1;font-size:11px;font-weight:600;line-height:1.3;padding-left:12px;color:var(--text2)">
+              <div>Sin evento activo (${slotLabel})</div>
+              <div style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.2)">Crea un evento para comenzar</div>
             </div>
 
-            <!-- 3. Estadísticas Inactivo (Centro-Derecha) -->
-            <div style="display:flex;flex-direction:column;justify-content:center;height:54px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;line-height:1.2;color:var(--text2);min-width:90px">
-              <div>Inactivo</div>
-            </div>
-
-            <!-- 4. Botón Iniciar Evento (Derecha) -->
+            <!-- 3. Botón Iniciar Evento (Derecha) -->
             <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Inter',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
               ${btnText}
             </button>
