@@ -1667,7 +1667,7 @@ function updateDashboard() {
             <!-- 1. Botón / Badge ACTIVO (Izquierda) -->
             <div style="width:80px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">
               ${slot === currentActiveId ? `
-                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:#fff;font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
+                <button class="btn btn-gold" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box;cursor:default">ACTIVO</button>
               ` : `
                 <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:#fff;background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
               `}
@@ -4137,7 +4137,7 @@ function renderAdminEventSelectorBar() {
       <div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${isGlobalActive ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:6px 12px;box-sizing:border-box;min-height:38px">
         <span style="font-size:13px;color:var(--text);font-weight:600">${esc(name)}${dateText}</span>
         ${isGlobalActive ? `
-          <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:#fff;font-size:10px;padding:4px 10px;border-radius:6px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;text-align:center">ACTIVO</span>
+          <button class="btn btn-sm btn-gold" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;font-family:'Inter',sans-serif;letter-spacing:1px;margin:0;cursor:default">ACTIVO</button>
         ` : `
           <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
         `}
