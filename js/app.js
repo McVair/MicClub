@@ -1618,7 +1618,7 @@ function updateDashboard() {
         // Activo: nombre del evento - fecha, hora y lugar [TERMINAR EVENTO] n/n reservados
         const name = ev.name || '';
         const details = `${ev.date}, ${ev.time} y ${ev.venue}`;
-        const btnText = 'TERMINAR EVENTO';
+        const btnText = 'Terminar';
         const btnBg = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         const btnColor = '#fff';
         const btnBorder = '#aa3d50';
@@ -3924,15 +3924,23 @@ async function toggleBonus(val) {
 }
 
 function renderVotingToggleBtn() {
+  const isMobile = window.innerWidth < 992;
+  const closedLabel = isMobile ? 'VOTAR' : 'ABRIR VOTACIÓN';
+  const openLabel = isMobile ? 'CERRAR' : 'CERRAR VOTACIÓN';
+
   // Botón config
   const cfgBtn = document.getElementById('config-vote-toggle-btn');
   if (cfgBtn) {
     if (votingOpen) {
       cfgBtn.textContent = 'CERRAR VOTACIÓN';
-      cfgBtn.className   = 'btn btn-danger btn-sm';
+      cfgBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+      cfgBtn.style.borderColor = '#aa3d50';
+      cfgBtn.style.color = '#fff';
     } else {
       cfgBtn.textContent = 'ABRIR VOTACIÓN';
-      cfgBtn.className   = 'btn btn-teal btn-sm';
+      cfgBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+      cfgBtn.style.borderColor = '#4d9e6a';
+      cfgBtn.style.color = '#fff';
     }
   }
   // Botón del dashboard
@@ -3942,18 +3950,21 @@ function renderVotingToggleBtn() {
       dashBtn.style.opacity       = '1';
       dashBtn.style.pointerEvents = 'auto';
       if (votingOpen) {
-        dashBtn.textContent      = 'CERRAR VOTACIÓN';
+        dashBtn.textContent      = openLabel;
         dashBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
         dashBtn.style.color      = '#fff';
+        dashBtn.style.borderColor = '#aa3d50';
       } else {
-        dashBtn.textContent      = 'ABRIR VOTACIÓN';
+        dashBtn.textContent      = closedLabel;
         dashBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
         dashBtn.style.color      = '#fff';
+        dashBtn.style.borderColor = '#4d9e6a';
       }
     } else {
-      dashBtn.textContent         = 'ABRIR VOTACIÓN';
+      dashBtn.textContent         = closedLabel;
       dashBtn.style.background    = 'linear-gradient(135deg,#1a3324,#101e16)';
       dashBtn.style.color         = '#fff';
+      dashBtn.style.borderColor   = 'transparent';
       dashBtn.style.opacity       = '0.55';
       dashBtn.style.pointerEvents = 'none';
     }
@@ -6986,7 +6997,10 @@ function updateMobileLayout() {
 window.updateMobileLayout = updateMobileLayout;
 
 // Escuchar cambios de tamaño para recalcular el layout
-window.addEventListener('resize', updateMobileLayout);
+window.addEventListener('resize', () => {
+  updateMobileLayout();
+  renderVotingToggleBtn();
+});
 
 // Lógica de Salvapantallas
 let screensaverIntervalId = null;

@@ -1338,15 +1338,102 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     max-height: none !important;
     padding-bottom: 20px !important;
   }
-  #cast-btn-emitir {
-    display: none !important;
-  }
-  #screensaver-toggle-row {
-    grid-template-columns: 1fr !important;
+}
+
+/* Responsive header layout for active event title and logo */
+.header-content-wrapper {
+  display: grid;
+  grid-template-areas: "logo vote" "event event";
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.header-logo-event {
+  grid-area: logo;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+.logo-micclub {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--gold), #8a640f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+.logo-sub {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  color: #8e867a;
+  display: inline-block;
+  margin-left: 4px;
+}
+.logo-separator {
+  display: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: #8e867a;
+  margin: 0 4px;
+}
+#dash-active-event-name {
+  grid-area: event;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-vote-action {
+  grid-area: vote;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Card amarilla en panel de emisión */
+.card.card-yellow {
+  border: 1px solid var(--gold) !important;
+  background: rgba(223, 172, 74, 0.08) !important;
+}
+
+/* Cast layouts button selection styles */
+.cast-btn.active {
+  background: #ffffff !important;
+  color: #0d0c10 !important;
+  border-color: #ffffff !important;
+}
+
+@media (max-width: 991px) {
+  /* Reducir tamaño de botones de dashboard en móvil */
+  .btn-dash {
+    padding: 10px 4px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
   }
 }
 
 @media (min-width: 992px) {
+  .header-content-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-logo-event {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+  .logo-separator {
+    display: inline-block;
+  }
+  #dash-active-event-name {
+    margin-left: 4px;
+  }
   #page-home, #page-admin {
     max-width: 1200px !important;
     width: 95% !important;
