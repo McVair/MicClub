@@ -101,9 +101,9 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Panel de Emisión / Proyección -->
-      <div class="card card-yellow" style="padding:14px;margin-bottom:14px">
+      <div class="card" style="padding:14px;margin-bottom:14px">
         <div id="screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <button id="cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">Emitir</button>
+          <button id="cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>
           <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">Salvapantallas</button>
         </div>
         
@@ -923,7 +923,7 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
-    <div class="card card-yellow" style="padding:14px;margin-bottom:14px">
+    <div class="card" style="padding:14px;margin-bottom:14px">
       <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">Control de Emisión</div>
       <div id="bar-screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <button id="bar-cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>

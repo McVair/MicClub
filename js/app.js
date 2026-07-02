@@ -50,6 +50,7 @@ let currentPId      = null;
 let votingOpen      = false;
 let showRunning     = false;
 let projectionWindowRef = null;
+let projectionCheckInterval = null;
 let lastProjectionActive = false;
 let navStack        = [];
 let juryCat         = 'song';
@@ -499,6 +500,10 @@ function initFirebase() {
           if (projectionWindowRef && !projectionWindowRef.closed) {
             projectionWindowRef.close();
             projectionWindowRef = null;
+          }
+          if (projectionCheckInterval) {
+            clearInterval(projectionCheckInterval);
+            projectionCheckInterval = null;
           }
         }
       }
@@ -5855,17 +5860,59 @@ function renderPantallaContent() {
       container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando confirmación de participantes...</div>`;
       return;
     }
-    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
-      parts.map((p, index) => {
-        const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
-        return `
-          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
-            <span style="font-family:'Inter',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+    
+    const activeSinger = parts[0];
+    const songLabel = activeSinger.songTitle ? `${esc(activeSinger.songTitle)}${activeSinger.songArtist ? ' — ' + esc(activeSinger.songArtist) : ''}` : '—';
+    
+    let html = `
+      <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; box-sizing: border-box; animation: fadeUp 0.5s ease-out forwards;">
+        
+        <!-- Cantando Ahora Block -->
+        <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 14px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">
+            🎤 En Escena
           </div>
-        `;
-      }).join('')
-    }</div>`;
+          <div style="font-family: 'Oswald', sans-serif; font-size: 100px; font-weight: 700; color: #ffffff; text-shadow: 0 0 24px rgba(223, 172, 74, 0.5); line-height: 1.1; width: 80%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${esc(activeSinger.name)}
+          </div>
+          <div style="font-family: 'Inter', sans-serif; font-size: 28px; color: var(--gold); font-weight: 500; margin-top: 12px; margin-bottom: 12px; letter-spacing: 0.5px; opacity: 0.9;">
+            ${songLabel}
+          </div>
+        </div>
+    `;
+    
+    const nextList = parts.slice(1);
+    if (nextList.length > 0) {
+      html += `
+        <!-- Divisor -->
+        <div style="width: 80%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 20px 0 30px 0;"></div>
+        
+        <!-- Siguientes en la cola -->
+        <div style="width: 100%; max-width: 800px; margin: 0 auto;">
+          <div style="font-size: 12px; letter-spacing: 3px; color: var(--text2); font-weight: bold; margin-bottom: 16px; text-transform: uppercase; text-align: center;">
+            A Continuación...
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 6px;">
+            ${nextList.map((p, idx) => {
+              const pSongLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
+              return `
+                <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-family:'Inter',sans-serif; font-size: 18px; color: #ffffff; letter-spacing: 0.5px; font-weight: 500;">
+                    ${idx + 2}. ${esc(p.name)}
+                  </span>
+                  <span style="font-family:'Inter',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55%;">
+                    ${pSongLabel}
+                  </span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+    
+    html += `</div>`;
+    container.innerHTML = html;
   }
   else if (pantallaTab === 'votos') {
     container.innerHTML = `
@@ -7213,6 +7260,22 @@ function activateAutoplay() {
 }
 window.activateAutoplay = activateAutoplay;
 
+function checkProjectionWindowClosed() {
+  if (projectionWindowRef && projectionWindowRef.closed) {
+    projectionWindowRef = null;
+    if (firebaseOk) {
+      dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
+    } else {
+      lastProjectionActive = false;
+      updateProjectionButtonUI();
+    }
+    if (projectionCheckInterval) {
+      clearInterval(projectionCheckInterval);
+      projectionCheckInterval = null;
+    }
+  }
+}
+
 function openProjectionWindow() {
   const url = '?mode=pantalla';
   const name = 'micclub_projection';
@@ -7233,28 +7296,34 @@ function openProjectionWindow() {
   if (firebaseOk && !lastProjectionActive) {
     dbUpdate(dbRef(db, 'settings'), { projectionActive: true });
   }
+  
+  if (projectionCheckInterval) clearInterval(projectionCheckInterval);
+  projectionCheckInterval = setInterval(checkProjectionWindowClosed, 1000);
 }
 window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
   if (lastProjectionActive) {
-    mcConfirm('¿Desea cerrar la ventana de emisión?', () => {
-      if (firebaseOk) {
-        dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
-      } else {
-        lastProjectionActive = false;
-        if (projectionWindowRef && !projectionWindowRef.closed) {
-          projectionWindowRef.close();
-          projectionWindowRef = null;
-        }
-        updateProjectionButtonUI();
+    if (firebaseOk) {
+      dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
+    } else {
+      lastProjectionActive = false;
+      if (projectionWindowRef && !projectionWindowRef.closed) {
+        projectionWindowRef.close();
       }
-    });
+      projectionWindowRef = null;
+      updateProjectionButtonUI();
+    }
+    if (projectionCheckInterval) {
+      clearInterval(projectionCheckInterval);
+      projectionCheckInterval = null;
+    }
   } else {
     if (firebaseOk) {
       dbUpdate(dbRef(db, 'settings'), { projectionActive: true });
     } else {
       openProjectionWindow();
+      lastProjectionActive = true;
       updateProjectionButtonUI();
     }
   }
@@ -7269,7 +7338,7 @@ function updateProjectionButtonUI() {
   
   btns.forEach(b => {
     if (active) {
-      b.textContent = 'Cerrar emisión';
+      b.textContent = 'Cerrar';
       b.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
       b.style.borderColor = '#aa3d50';
       b.style.color = '#fff';
