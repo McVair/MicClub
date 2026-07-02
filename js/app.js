@@ -1200,16 +1200,8 @@ function updateUI() {
     elSponsorsAdmin.innerHTML = adminSponsorsHtml || '<div style="font-size:11px;color:var(--text2)">Sin auspiciantes</div>';
   }
 
-  // Controlar barra de navegación inferior móvil (botón único)
-  const bottomNavToggle = document.getElementById('mobile-nav-toggle-container');
-  if (bottomNavToggle) {
-    const isMobile = window.innerWidth < 992;
-    const isDashboardVisible = isMobile && (currentPage === 'home' || currentPage === 'admin') && adminLoggedIn;
-    bottomNavToggle.style.display = isDashboardVisible ? 'block' : 'none';
-    if (isDashboardVisible) {
-      updateMobileLayout();
-    }
-  }
+  // Controlar barra de navegación inferior móvil
+  updateMobileLayout();
   updateBackBtn();
 }
 
@@ -5546,6 +5538,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (window._firebaseReady) initFirebase();
   if (window.location.hash === '#show') nav('show');
+  updateMobileLayout();
   setInterval(() => { if (!firebaseOk) updateUI(); }, 10000);
 });
 
@@ -7398,27 +7391,42 @@ function updateMobileLayout() {
   const toggleBtn = document.getElementById('mobile-nav-toggle-btn');
   const container = document.getElementById('mobile-nav-toggle-container');
   
-  if (window.innerWidth < 992) {
-    if (container) container.style.display = 'block';
-    adminMainCols.forEach(col => {
-      col.classList.toggle('active-mobile', activeMobileSection === 'admin');
-    });
-    if (videoCol) {
-      videoCol.classList.toggle('active-mobile', activeMobileSection === 'reproduccion');
+  const isMobile = window.innerWidth < 992;
+  const isDashboardVisible = isMobile && (currentPage === 'home' || currentPage === 'admin') && adminLoggedIn;
+  
+  if (isMobile) {
+    if (container) {
+      container.style.display = isDashboardVisible ? 'block' : 'none';
     }
     
-    if (toggleBtn) {
-      if (activeMobileSection === 'admin') {
-        toggleBtn.innerHTML = 'Ir a Playlist';
-        toggleBtn.className = 'btn btn-gold';
-      } else {
-        toggleBtn.innerHTML = 'Ir a administración';
-        toggleBtn.className = 'btn btn-outline';
-        toggleBtn.style.color = 'var(--text)';
+    if (isDashboardVisible) {
+      adminMainCols.forEach(col => {
+        col.classList.toggle('active-mobile', activeMobileSection === 'admin');
+      });
+      if (videoCol) {
+        videoCol.classList.toggle('active-mobile', activeMobileSection === 'reproduccion');
       }
-    }
-    if (activeMobileSection === 'reproduccion') {
-      renderPlaylistQueue();
+      
+      if (toggleBtn) {
+        if (activeMobileSection === 'admin') {
+          toggleBtn.innerHTML = 'Ir a Playlist';
+          toggleBtn.className = 'btn btn-gold';
+        } else {
+          toggleBtn.innerHTML = 'Ir a administración';
+          toggleBtn.className = 'btn btn-outline';
+          toggleBtn.style.color = 'var(--text)';
+        }
+      }
+      if (activeMobileSection === 'reproduccion') {
+        renderPlaylistQueue();
+      }
+    } else {
+      adminMainCols.forEach(col => {
+        col.classList.remove('active-mobile');
+      });
+      if (videoCol) {
+        videoCol.classList.remove('active-mobile');
+      }
     }
   } else {
     // Escritorio
