@@ -165,7 +165,7 @@ async function navBack() {
 }
 
 async function autoSaveSong() {
-  if (!showRunning || !currentPId || !selectedEventId) return;
+  if (!currentPId || !selectedEventId) return;
   const title  = document.getElementById('s-title')?.value.trim();
   const artist = document.getElementById('s-artist')?.value.trim();
   const link   = document.getElementById('s-link')?.value.trim();
@@ -263,7 +263,7 @@ function updateSongCheck() {
   }
 
   let songValid = true;
-  if (showRunning) {
+  if (selectedEventId) {
     const allSongEmpty = !title && !artist && !link;
     const allSongFilled = !!(title && artist && link && isLinkOk);
     songValid = allSongEmpty || allSongFilled;
@@ -287,7 +287,7 @@ function updateSongCheck() {
   }
 
   if (ck) {
-    ck.style.display = (showRunning && title && artist && link && isLinkOk) ? 'flex' : 'none';
+    ck.style.display = (selectedEventId && title && artist && link && isLinkOk) ? 'flex' : 'none';
   }
 
   if (btn) {
@@ -317,7 +317,7 @@ async function saveAndExit() {
 
   const updates = { name, whatsapp: phone, updatedAt: Date.now() };
 
-  if (showRunning && selectedEventId) {
+  if (selectedEventId) {
     const ppl    = parseInt(document.getElementById('prof-people-input')?.value) || 0;
     const title  = document.getElementById('s-title')?.value.trim();
     const artist = document.getElementById('s-artist')?.value.trim();
@@ -401,7 +401,7 @@ async function saveAndExit() {
       p.name = name;
       p.whatsapp = phone;
       p.updatedAt = Date.now();
-      if (showRunning && selectedEventId) {
+      if (selectedEventId) {
         if (!p.reservations) p.reservations = {};
         p.reservations[selectedEventId] = updates[`reservations/${selectedEventId}`];
         if (selectedEventId === 'event1') {
@@ -418,7 +418,7 @@ async function saveAndExit() {
     if (allParticipants[currentPId]) {
       allParticipants[currentPId].name = name;
       allParticipants[currentPId].whatsapp = phone;
-      if (showRunning && selectedEventId) {
+      if (selectedEventId) {
         if (!allParticipants[currentPId].reservations) allParticipants[currentPId].reservations = {};
         allParticipants[currentPId].reservations[selectedEventId] = updates[`reservations/${selectedEventId}`];
         if (selectedEventId === 'event1') {
@@ -702,7 +702,7 @@ let selectedEventId = null;
 let eventSelectedManually = false;
 
 function parseEventDate(dateStr) {
-  if (!dateStr) return 0;
+  if (!dateStr || typeof dateStr !== 'string') return 0;
   const parts = dateStr.split('/');
   if (parts.length !== 3) return 0;
   const day = parseInt(parts[0], 10);
@@ -1072,7 +1072,7 @@ function updateRegistrationPageUI() {
   // Si Firebase está activo y ya cargó sus settings, y además detectamos que hay
   // múltiples eventos activos en la base de datos real, pero el selectedEventId
   // se había auto-seleccionado (no manual), reseteamos para mostrar el selector.
-  if (firebaseOk && firebaseSettingsLoaded && firebaseParticipantsLoaded) {
+  if (firebaseOk && firebaseSettingsLoaded) {
     if (ev1 && ev2 && selectedEventId && !eventSelectedManually) {
       selectedEventId = null;
     }
@@ -1104,15 +1104,15 @@ function updateRegistrationPageUI() {
       }
       renderRegistrationEventSelectorList(ev1, ev2);
     } else if (ev1) {
-      if (!firebaseOk || (firebaseSettingsLoaded && firebaseParticipantsLoaded)) {
+      if (!firebaseOk || firebaseSettingsLoaded) {
         selectRegistrationEvent('event1', false);
       }
     } else if (ev2) {
-      if (!firebaseOk || (firebaseSettingsLoaded && firebaseParticipantsLoaded)) {
+      if (!firebaseOk || firebaseSettingsLoaded) {
         selectRegistrationEvent('event2', false);
       }
     } else {
-      const hasLoadedSettings = (localState.settings && Object.keys(localState.settings).length > 4);
+      const hasLoadedSettings = firebaseOk ? firebaseSettingsLoaded : (localState.settings && Object.keys(localState.settings).length > 0);
       if (hasLoadedSettings && !ev1 && !ev2) {
         if (selector) selector.style.display = 'none';
         if (gate) {
@@ -3199,7 +3199,7 @@ function showRegistrationForm() {
   document.getElementById('reg-main-form').style.display     = 'block';
   // Personas en reserva solo se carga cuando hay evento activo
   const peopleRow = document.getElementById('r-people-row');
-  if (peopleRow) peopleRow.style.display = showRunning ? '' : 'none';
+  if (peopleRow) peopleRow.style.display = selectedEventId ? '' : 'none';
   document.getElementById('r-name').focus();
   updateRegPreview();
 }
@@ -3211,13 +3211,13 @@ async function createNewUser() {
 
   const name = document.getElementById('r-name').value.trim();
   const wa   = document.getElementById('r-wa').value.trim();
-  const ppl  = showRunning ? (parseInt(document.getElementById('r-people').value) || 1) : 0;
+  const ppl  = selectedEventId ? (parseInt(document.getElementById('r-people').value) || 1) : 0;
   const ref  = document.getElementById('r-ref').value.trim();
 
   if (!name) { showErr('reg-form-err', 'Escribí tu nombre'); return; }
   if (!wa)   { showErr('reg-form-err', 'El WhatsApp es obligatorio'); return; }
 
-  if (showRunning && selectedEventId) {
+  if (selectedEventId) {
     const spots = getEventSpots(selectedEventId);
     if (spots.isLimited && ppl > spots.remaining) {
       showErr('reg-form-err', `Solo quedan ${spots.remaining} lugares disponibles. Modificá tu cantidad de invitados.`);
@@ -3440,7 +3440,7 @@ function showProfileView(id, p) {
 
   const ce    = selectedEventId ? localState.settings?.events?.[selectedEventId] : localState.settings?.currentEvent;
   const subEl = document.getElementById('register-page-sub');
-  if (subEl) subEl.textContent = showRunning && ce?.name ? `Para ${ce.name}` : 'Tu perfil · Canción · Puntos';
+  if (subEl) subEl.textContent = ce?.name ? `Para ${ce.name}` : 'Tu perfil · Canción · Puntos';
 
   const emailEl = document.getElementById('prof-email');
   if (emailEl) emailEl.textContent = p.email || '';
@@ -3450,16 +3450,16 @@ function showProfileView(id, p) {
   if (ni)  ni.value  = p.name     || '';
   if (phi) phi.value = p.whatsapp || '';
   const peopleRow = document.getElementById('prof-people-display-row');
-  if (peopleRow) peopleRow.style.display = showRunning ? '' : 'none';
+  if (peopleRow) peopleRow.style.display = selectedEventId ? '' : 'none';
   if (ppi) {
-    ppi.value    = showRunning && (parseInt(pEvent.people) || 0) > 0 ? String(pEvent.people) : '';
-    ppi.disabled = !showRunning;
+    ppi.value    = selectedEventId && (parseInt(pEvent.people) || 0) > 0 ? String(pEvent.people) : '';
+    ppi.disabled = !selectedEventId;
   }
 
   const eventSection = document.getElementById('prof-event-section');
-  if (eventSection) eventSection.style.display = showRunning ? 'block' : 'none';
+  if (eventSection) eventSection.style.display = selectedEventId ? 'block' : 'none';
 
-  if (showRunning) {
+  if (selectedEventId) {
     const ppi = document.getElementById('prof-people-input');
     const ti  = document.getElementById('s-title');
     const ai  = document.getElementById('s-artist');
