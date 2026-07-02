@@ -511,7 +511,7 @@ function initFirebase() {
       updateProjectionButtonUI();
       if (s.castYtVideo) {
         activeYtVideo = s.castYtVideo;
-        if (MODE === 'admin') {
+        if (MODE === 'admin' || MODE === 'home') {
           const titleEl = document.getElementById('yt-remote-title');
           const singerEl = document.getElementById('yt-remote-singer');
           const thumbEl = document.getElementById('yt-remote-thumb');
@@ -523,7 +523,7 @@ function initFirebase() {
         }
       }
 
-      if (MODE === 'admin') {
+      if (MODE === 'admin' || MODE === 'home') {
         updatePlaybackModeUI();
         if (s.playerState) {
           isYtPlaying = (s.playerState === 'playing');
@@ -7151,7 +7151,7 @@ function handleCastMessage(data) {
       }
     }
   } else if (data.type === 'sync_response') {
-    if (MODE === 'admin') {
+    if (MODE === 'admin' || MODE === 'home') {
       currentCastLayout = data.layout;
       updateCastButtonsHighlight(data.layout);
       
@@ -7162,7 +7162,7 @@ function handleCastMessage(data) {
       if (volEl) volEl.value = data.volume;
     }
   } else if (data.type === 'projection_ready') {
-    if (MODE === 'admin') {
+    if (MODE === 'admin' || MODE === 'home') {
       setCastLayout(currentCastLayout);
       if (activeYtVideo) {
         if (castChannel) {
@@ -7216,7 +7216,7 @@ if (MODE === 'pantalla') {
 }
 
 // Solicitar sincronización inicial
-if (MODE === 'admin') {
+if (MODE === 'admin' || MODE === 'home') {
   setTimeout(() => {
     if (castChannel) castChannel.postMessage({ type: 'sync_request' });
   }, 1000);
