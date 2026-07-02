@@ -70,7 +70,7 @@ body::before {
   flex-shrink: 0;
 }
 .btn-show-action {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 700;
   min-height: 52px;
@@ -103,7 +103,7 @@ body::before {
   z-index: -1;
 }
 .card-title {
-  font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 4.5vw, 24px);
+  font-family: 'Inter', sans-serif; font-size: clamp(20px, 4.5vw, 24px);
   letter-spacing: 2px; margin-bottom: 14px;
   color: var(--gold);
   display: inline-block;
@@ -169,7 +169,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 /* ── HERO ── */
 .hero { text-align: center; padding: 10px 0 10px; }
 .hero-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: clamp(30px, 9vw, 52px); letter-spacing: 4px; line-height: 1;
   color: var(--gold);
 }
@@ -193,18 +193,18 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 /* ── RANKING ── */
 .rank-table { width: 100%; border-collapse: collapse; }
 .rank-table th {
-  font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 2px;
+  font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 2px;
   text-transform: uppercase; color: var(--text2); text-align: left;
   padding: 7px 10px; border-bottom: 1px solid var(--border);
 }
 .rank-table td { padding: 11px 10px; border-bottom: 1px solid rgba(255,255,255,.03); vertical-align: middle; }
-.rank-pos { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text2); min-width: 32px; }
+.rank-pos { font-family: 'Inter', sans-serif; font-size: 22px; color: var(--text2); min-width: 32px; }
 .rank-pos.gold   { color: var(--gold); }
 .rank-pos.silver { color: #c0c0c0; }
 .rank-pos.bronze { color: #cd7f32; }
-.rank-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px; }
+.rank-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; }
 .rank-song { font-size: 11px; color: var(--text2); margin-top: 2px; }
-.rank-pts  { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); text-align: right; white-space: nowrap; }
+.rank-pts  { font-family: 'Inter', sans-serif; font-size: 22px; color: var(--gold); text-align: right; white-space: nowrap; }
 .bar-wrap  { height: 3px; background: var(--bg4); border-radius: 2px; margin-top: 5px; }
 .bar-fill  { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); border-radius: 2px; transition: width .8s ease; }
 
@@ -219,7 +219,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .vote-card:hover, .vote-card.sel { border-color: var(--gold); background: rgba(212,168,67,.1); }
 .vote-card.sel-purple { border-color: var(--purple-light); background: rgba(139,47,201,.1); }
 .vote-card .vc-emoji  { font-size: 28px; display: block; margin-bottom: 6px; }
-.vote-card .vc-name   { font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.vote-card .vc-name   { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; line-height: 1.2; }
 .vote-card .vc-song   { font-size: 10px; color: var(--text2); margin-top: 3px; line-height: 1.3; }
 
 /* ── JURY SELECTOR GRID ── */
@@ -256,7 +256,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .jury-sl-gold,
 .jury-sl-teal   { background: rgba(212,168,67,.85); }
 .jury-section-total {
-  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
+  font-family: 'Inter', sans-serif; font-size: 18px; letter-spacing: 1px;
 }
 .jury-st-purple,
 .jury-st-gold,
@@ -284,28 +284,28 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 /* ── JURY LEADERBOARD ── */
 .jury-lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg3); border-radius: 10px; margin-bottom: 7px; border: 1px solid var(--border); }
 .jury-lb-row.leader { border-color: var(--gold); background: rgba(212,168,67,.07); }
-.jury-lb-pos  { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text2); min-width: 30px; }
+.jury-lb-pos  { font-family: 'Inter', sans-serif; font-size: 22px; color: var(--text2); min-width: 30px; }
 .jury-lb-info { flex: 1; }
-.jury-lb-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px; }
-.jury-lb-pts  { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--gold); }
+.jury-lb-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; }
+.jury-lb-pts  { font-family: 'Inter', sans-serif; font-size: 26px; color: var(--gold); }
 
 /* ── PROGRESS ── */
 .progress-wrap { background: var(--bg4); border-radius: 999px; height: 20px; overflow: hidden; position: relative; border: 1px solid var(--border); }
 .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); transition: width 1s ease; }
-.progress-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 10px; font-weight: 700; color: var(--bg); letter-spacing: 1px; }
+.progress-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; color: var(--bg); letter-spacing: 1px; }
 
 /* ── BADGES ── */
-.badge { display: inline-block; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1px; font-weight: 600; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; }
+.badge { display: inline-block; font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 1px; font-weight: 600; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; }
 .badge-gold   { background: rgba(212,168,67,.18); color: var(--gold); border: 1px solid var(--gold-dark); }
 .badge-purple { background: rgba(139,47,201,.18); color: var(--purple-light); }
 .badge-teal   { background: rgba(0,212,170,.18); color: var(--teal); }
 .badge-red    { background: rgba(255,61,107,.18); color: var(--red); }
 
 /* ── STATS ── */
-.stat-big { font-family: 'Bebas Neue', sans-serif; font-size: 46px; color: var(--gold); line-height: 1; }
+.stat-big { font-family: 'Inter', sans-serif; font-size: 46px; color: var(--gold); line-height: 1; }
 .grid-2   { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .stat-box { text-align: center; padding: 14px; background: var(--bg3); border-radius: 10px; border: 1px solid var(--border); }
-.stat-label { font-size: 10px; color: var(--text2); letter-spacing: 2px; font-family: 'Oswald', sans-serif; margin-top: 3px; }
+.stat-label { font-size: 10px; color: var(--text2); letter-spacing: 2px; font-family: 'Inter', sans-serif; margin-top: 3px; }
 
 /* ── SHOW MODE ── */
 #page-show { padding: 14px !important; }
@@ -317,22 +317,22 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
     var(--bg);
 }
 .show-header { text-align: center; padding: 28px 20px 12px; border-bottom: 1px solid var(--border); }
-.show-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(34px, 7vw, 68px); letter-spacing: 8px; color: var(--gold); text-shadow: 0 0 24px rgba(224,188,99,.38); }
-.show-subtitle { font-family: 'Oswald', sans-serif; color: var(--text2); letter-spacing: 4px; font-size: 13px; }
+.show-title { font-family: 'Inter', sans-serif; font-size: clamp(34px, 7vw, 68px); letter-spacing: 8px; color: var(--gold); text-shadow: 0 0 24px rgba(224,188,99,.38); }
+.show-subtitle { font-family: 'Inter', sans-serif; color: var(--text2); letter-spacing: 4px; font-size: 13px; }
 .show-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; padding: 20px; align-content: start; }
 .show-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; animation: fadeUp .4s ease both; }
 .show-row.top1 { border-color: var(--gold); background: rgba(212,168,67,.05); }
 .show-row.top2 { border-color: #c0c0c0; }
 .show-row.top3 { border-color: #cd7f32; }
-.show-pos { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 4vw, 48px); min-width: 50px; text-align: center; }
+.show-pos { font-family: 'Inter', sans-serif; font-size: clamp(28px, 4vw, 48px); min-width: 50px; text-align: center; }
 .show-pos.p1 { color: var(--gold); filter: drop-shadow(0 0 6px var(--gold)); }
 .show-pos.p2 { color: #c0c0c0; }
 .show-pos.p3 { color: #cd7f32; }
 .show-info { flex: 1; }
-.show-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(16px, 2.5vw, 26px); }
+.show-name { font-family: 'Inter', sans-serif; font-weight: 700; font-size: clamp(16px, 2.5vw, 26px); }
 .show-song { font-size: clamp(11px, 1.5vw, 15px); color: var(--text2); }
-.show-pts  { font-family: 'Bebas Neue', sans-serif; font-size: clamp(26px, 4vw, 44px); color: var(--gold); text-align: right; }
-.show-pts small { display: block; font-size: 11px; color: var(--text2); font-family: 'Oswald', sans-serif; font-weight: 300; }
+.show-pts  { font-family: 'Inter', sans-serif; font-size: clamp(26px, 4vw, 44px); color: var(--gold); text-align: right; }
+.show-pts small { display: block; font-size: 11px; color: var(--text2); font-family: 'Inter', sans-serif; font-weight: 300; }
 
 /* ── EVENT BANNER ── */
 .event-banner {
@@ -344,20 +344,20 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
 /* ── ADMIN LIST ── */
 .p-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-.p-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 16px; }
+.p-name { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 16px; }
 .p-info { font-size: 12px; color: var(--text2); margin-top: 3px; }
 .p-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
 /* ── MODAL ── */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.85);
-  z-index: 200; display: none; align-items: flex-end; justify-content: center;
-  padding: 0;
+  z-index: 200; display: none; align-items: center; justify-content: center;
+  padding: 20px;
 }
 .modal-overlay.open { display: flex; }
 .modal {
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 16px 16px 0 0; padding: 22px 18px 28px;
+  border-radius: 16px; padding: 22px 18px 28px;
   width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto;
 }
 #jury-score-modal {
@@ -367,11 +367,11 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   width: 82%; max-width: 360px;
   border-radius: 16px;
 }
-.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--gold); margin-bottom: 12px; }
+.modal-title { font-family: 'Inter', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--gold); margin-bottom: 12px; }
 .modal-field-group { display: flex; flex-direction: column; gap: 0; }
 .modal-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
 .modal-row:last-child { border-bottom: none; }
-.modal-row label { font-size: 11px; letter-spacing: 1px; color: var(--text2); text-transform: uppercase; font-weight: 600; white-space: nowrap; min-width: 90px; margin: 0; }
+.modal-row label { font-size: 11px; letter-spacing: 1px; color: var(--text2); text-transform: none; font-weight: 600; white-space: nowrap; min-width: 90px; margin: 0; }
 .modal-row input { flex: 1; background: transparent; border: none; border-radius: 0; padding: 4px 0; font-size: 14px; color: var(--text); outline: none; min-width: 0; }
 .modal-row input:focus { border-bottom: 1px solid var(--gold); }
 .modal-row input:-webkit-autofill,
@@ -394,14 +394,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .score-item { background: var(--bg3); border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
 .score-item span:first-child { font-size: 12px; color: var(--text2); }
-.score-item span:last-child  { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--gold); }
+.score-item span:last-child  { font-family: 'Inter', sans-serif; font-size: 20px; color: var(--gold); }
 
 /* ── QR ── */
 .qr-box { background: #fff; border-radius: 10px; padding: 14px; display: inline-block; box-shadow: 0 0 24px rgba(212,168,67,.28); }
 
 /* ── STEP INDICATOR ── */
 .steps { display: flex; gap: 0; margin-bottom: 18px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-.step { flex: 1; padding: 11px; text-align: center; background: var(--bg3); color: var(--text2); font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; transition: all .3s; }
+.step { flex: 1; padding: 11px; text-align: center; background: var(--bg3); color: var(--text2); font-family: 'Inter', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; transition: all .3s; }
 .step.active { background: var(--gold); color: var(--bg); }
 .step.done   { background: rgba(0,212,170,.15); color: var(--teal); }
 
@@ -411,7 +411,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   border: 1px solid var(--gold-dark); border-radius: 12px; padding: 14px; text-align: center;
   margin-bottom: 14px;
 }
-.code-value { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 7px; color: var(--gold); }
+.code-value { font-family: 'Inter', sans-serif; font-size: 38px; letter-spacing: 7px; color: var(--gold); }
 
 /* ── BONUS ── */
 .bonus-active {
@@ -422,7 +422,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
 /* ── JURY CATEGORY HEADER ── */
 .jury-cat-header { background: linear-gradient(135deg, rgba(139,47,201,.2), rgba(212,168,67,.08)); border: 1px solid var(--purple-light); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
-.jury-cat-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--purple-light); }
+.jury-cat-title { font-family: 'Inter', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--purple-light); }
 .jury-cat-desc  { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
 
 /* ── PROFILE FIELDS ── */
@@ -436,7 +436,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   margin-bottom: 5px;
 }
 .profile-row-label {
-  font-family: 'Oswald', sans-serif; font-size: 11px;
+  font-family: 'Inter', sans-serif; font-size: 11px;
   letter-spacing: 2px; text-transform: uppercase; color: var(--text2);
 }
 .profile-row-value {
@@ -498,18 +498,18 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .countdown-overlay[style*="flex"] { display: flex !important; }
 .countdown-box { text-align: center; padding: 32px; }
 .countdown-label {
-  font-family: 'Oswald', sans-serif; font-size: 16px;
+  font-family: 'Inter', sans-serif; font-size: 16px;
   letter-spacing: 3px; color: var(--gold); margin-bottom: 8px;
 }
 .countdown-number {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: clamp(100px, 25vw, 180px);
   color: var(--red);
   line-height: 1;
   animation: pulse-num .9s infinite;
 }
 .countdown-sub {
-  font-family: 'Oswald', sans-serif; font-size: 14px;
+  font-family: 'Inter', sans-serif; font-size: 14px;
   letter-spacing: 6px; color: var(--text2); margin-top: 4px;
 }
 @keyframes pulse-num { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
@@ -584,13 +584,13 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 .pub-vote-medal { font-size: 22px; min-width: 30px; text-align: center; }
 .pub-vote-info  { flex: 1; }
-.pub-vote-name  { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 14px; }
+.pub-vote-name  { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; }
 .pub-vote-song  { font-size: 11px; color: var(--text2); margin-top: 2px; }
 .pub-vote-pts   {
-  font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+  font-family: 'Inter', sans-serif; font-size: 22px;
   color: var(--gold); white-space: nowrap; text-align: right;
 }
-.pub-vote-pts small { font-family: 'Oswald', sans-serif; font-size: 10px; color: var(--text2); }
+.pub-vote-pts small { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--text2); }
 
 /* ── JURY VALIDATION ── */
 .criteria-unvoted {
@@ -661,7 +661,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 
 .column-category-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: clamp(26px, 3.2vw, 38px);
   font-weight: 700;
   line-height: 0.95;
@@ -673,7 +673,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 
 .column-source-tag {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -782,12 +782,12 @@ body, .rank-name, .vote-row-name, .jury-sel-name, .p-name, .show-name, input, se
 
 /* 3. Main Titles Gradient Text */
 .card-title, .hero-title, .show-title, .column-category-title, .modal-title,
-div[style*="font-family:'Bebas Neue'"],
-span[style*="font-family:'Bebas Neue'"],
-div[style*="font-family:'Oswald'"][style*="font-size:14px"],
-div[style*="font-family:'Oswald'"][style*="font-size:16px"],
-div[style*="font-family:'Oswald'"][style*="font-weight:700"]:not([style*="display:flex"]):not(button):not(a),
-div[style*="font-family:'Oswald'"][style*="font-weight:600"]:not([style*="display:flex"]):not(button):not(a) {
+div[style*="font-family:'Inter'"],
+span[style*="font-family:'Inter'"],
+div[style*="font-family:'Inter'"][style*="font-size:14px"],
+div[style*="font-family:'Inter'"][style*="font-size:16px"],
+div[style*="font-family:'Inter'"][style*="font-weight:700"]:not([style*="display:flex"]):not(button):not(a),
+div[style*="font-family:'Inter'"][style*="font-weight:600"]:not([style*="display:flex"]):not(button):not(a) {
   background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
@@ -798,8 +798,8 @@ div[style*="font-family:'Oswald'"][style*="font-weight:600"]:not([style*="displa
 
 /* 4. Subtitles Gradient Text */
 .card-sub, .hero-sub, .show-subtitle, .jury-cat-title,
-div[style*="font-family:'Oswald'"][style*="font-size:11px"]:not([style*="display:flex"]),
-div[style*="font-family:'Oswald'"][style*="font-size:12px"]:not([style*="display:flex"]) {
+div[style*="font-family:'Inter'"][style*="font-size:11px"]:not([style*="display:flex"]),
+div[style*="font-family:'Inter'"][style*="font-size:12px"]:not([style*="display:flex"]) {
   background: linear-gradient(90deg, #FFFFFF 0%, #92909C 100%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
@@ -1382,7 +1382,10 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 /* Responsive header layout for active event title and logo */
 .header-content-wrapper {
   display: grid;
-  grid-template-areas: "logo vote" "event event";
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 
+    "logo vote"
+    "event event";
   align-items: center;
   gap: 6px;
   width: 100%;
@@ -1394,7 +1397,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   flex-wrap: nowrap;
 }
 .logo-micclub {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 26px;
   letter-spacing: 1px;
   background: linear-gradient(135deg, var(--gold), #8a640f);
@@ -1403,7 +1406,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   display: inline-block;
 }
 .logo-sub {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   letter-spacing: 1.5px;
   color: #8e867a;
@@ -1412,14 +1415,14 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 .logo-separator {
   display: none;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   color: #8e867a;
   margin: 0 4px;
 }
 #dash-active-event-name {
   grid-area: event;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   color: #ffffff;
   letter-spacing: 0.5px;

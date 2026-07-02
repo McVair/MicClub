@@ -1630,17 +1630,17 @@ function updateDashboard() {
             <!-- 1. Botón / Badge ACTIVO (Izquierda) -->
             <div style="width:80px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">
               ${slot === currentActiveId ? `
-                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:#fff;font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
+                <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:#fff;font-size:12px;width:100%;height:100%;border-radius:8px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box">ACTIVO</span>
               ` : `
-                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:#fff;background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
+                <button onclick="setActiveEvent('${slot}')" class="btn btn-outline" style="width:100%;height:100%;min-height:54px;padding:0;font-size:12px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:#fff;background:transparent;margin:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box">ACTIVAR</button>
               `}
             </div>
 
             <!-- 2. Información del Evento (Centro-Izquierda) -->
             <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
               <div style="display:flex;align-items:center;line-height:1;color:#ffffff">
-                <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
-                <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1" title="${esc(name)}">${esc(name)}</span>
+                <span style="font-family:'Inter',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
+                <span style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1" title="${esc(name)}">${esc(name)}</span>
               </div>
               <div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(details)}">
                 ${esc(details)}
@@ -1655,7 +1655,7 @@ function updateDashboard() {
             </div>
 
             <!-- 4. Botón Terminar Evento (Derecha) -->
-            <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
+            <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Inter',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
               ${btnText}
             </button>
           </div>
@@ -1677,8 +1677,8 @@ function updateDashboard() {
             <!-- 2. Información del Evento Inactivo (Centro-Izquierda) -->
             <div style="display:flex;flex-direction:column;justify-content:center;height:54px;min-width:0;flex:1;gap:2px">
               <div style="color:var(--text2);display:flex;align-items:center;line-height:1">
-                <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
-                <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1">${eventText}</span>
+                <span style="font-family:'Inter',sans-serif;font-size:24px;margin-right:6px;line-height:1">${orderNum}.</span>
+                <span style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1">${eventText}</span>
               </div>
               <div style="font-size:11px;color:rgba(255,255,255,0.2)">Crea un evento para comenzar</div>
             </div>
@@ -1689,7 +1689,7 @@ function updateDashboard() {
             </div>
 
             <!-- 4. Botón Iniciar Evento (Derecha) -->
-            <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
+            <button onclick="dashToggleShow('${slot}')" class="btn" style="background:${btnBg};color:${btnColor};border:1px solid ${btnBorder};height:54px;min-height:54px;padding:0 12px;font-size:11px;font-family:'Inter',sans-serif;letter-spacing:1px;width:auto;border-radius:8px;cursor:pointer;margin:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;white-space:nowrap">
               ${btnText}
             </button>
           </div>
@@ -1823,7 +1823,7 @@ function updateEventInfoBanners() {
 
       el.innerHTML = `
         <div class="hero" style="padding: 14px 0 10px; text-align: center;">
-          <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">${esc(topText)}</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">${esc(topText)}</div>
           <div class="hero-title">${esc(mainTitle)}</div>
           ${subText ? `<div class="hero-sub" style="margin-top: 6px;">${esc(subText)}</div>` : ''}
         </div>
@@ -2108,7 +2108,7 @@ function renderHistoryPage() {
       const date  = h.closedDate || new Date(parseInt(key)).toLocaleDateString('es-AR');
       const det   = [date, ev.time, ev.venue].filter(Boolean).join(' · ');
       return `<button onclick="showHistoryDetail('${key}')" style="width:100%;text-align:left;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer;display:block">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--text);letter-spacing:2px;line-height:1.1">${esc(ev.name || 'Evento sin nombre')}</div>
+        <div style="font-family:'Inter',sans-serif;font-size:18px;color:var(--text);letter-spacing:2px;line-height:1.1">${esc(ev.name || 'Evento sin nombre')}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:3px">${esc(det)} · ${parts.length} participantes</div>
       </button>`;
     }).join('');
@@ -2151,7 +2151,7 @@ function showHistoryDetail(key) {
     const songLine = songTitleVal ? `<div style="font-size:11px;color:var(--text2);margin-bottom:2px">${esc(songTitleVal)}${songArtistVal ? ' · ' + esc(songArtistVal) : ''}</div>` : '';
     
     return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text2);min-width:28px">${medals[i] || (i+1)}</span>
+      <span style="font-family:'Inter',sans-serif;font-size:20px;color:var(--text2);min-width:28px">${medals[i] || (i+1)}</span>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
         ${songLine}
@@ -2159,7 +2159,7 @@ function showHistoryDetail(key) {
           🗳️ Votos: <strong>${votes}</strong> · ⭐ Jurado: <strong>${jury} pts</strong> · 🎤 MicClub: <strong>+${micclub} pts</strong>
         </div>
       </div>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold)">${micclub} pts</span>
+      <span style="font-family:'Inter',sans-serif;font-size:20px;color:var(--gold)">${micclub} pts</span>
     </div>`;
   }).join('');
 
@@ -2218,7 +2218,7 @@ function showHistoryDetail(key) {
   if (el) {
     el.innerHTML = `
       <div style="text-align:center;padding:8px 0 14px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--text)">${esc(ev.name || 'Evento')}</div>
+        <div style="font-family:'Inter',sans-serif;font-size:28px;letter-spacing:3px;color:var(--text)">${esc(ev.name || 'Evento')}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:2px">${esc(det)}</div>
       </div>
 
@@ -2312,25 +2312,25 @@ function dashToggleShow(slot) {
 function showEventStartForm(slot) {
   const formHtml = `
     <div style="margin-bottom:12px">
-      <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Nombre del evento</label>
+      <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Nombre del evento</label>
       <input id="ev-name" type="text" placeholder="Ej: Noche de Pop" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
     </div>
     <div style="margin-bottom:12px">
-      <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Fecha</label>
+      <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Fecha</label>
       <input id="ev-date" type="text" placeholder="Ej: 20/04/2025" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <div>
-        <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Hora</label>
+        <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Hora</label>
         <input id="ev-time" type="text" placeholder="Ej: 21:00" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
       </div>
       <div>
-        <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Lugar</label>
+        <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Lugar</label>
         <input id="ev-venue" type="text" placeholder="Ej: El Bar" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
       </div>
     </div>
     <div style="margin-bottom:4px">
-      <label style="display:block;font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Capacidad / Cupo de reservas (0 o vacío para ilimitado)</label>
+      <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Capacidad / Cupo de reservas (0 o vacío para ilimitado)</label>
       <input id="ev-capacity" type="number" placeholder="Ej: 50" min="0" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
     </div>`;
   showCustomModal({
@@ -2477,11 +2477,11 @@ function updateLeader() {
   const pct = Math.min(100, (L.score / META) * 100);
   const html = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:11px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--gold);line-height:1">🏆</div>
+      <div style="font-family:'Inter',sans-serif;font-size:44px;color:var(--gold);line-height:1">🏆</div>
       <div>
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:18px">${esc(L.name)}</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:18px">${esc(L.name)}</div>
         <div style="font-size:12px;color:var(--text2)">${esc(L.song || 'Sin canción')}</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold)">${L.score} pts</div>
+        <div style="font-family:'Inter',sans-serif;font-size:26px;color:var(--gold)">${L.score} pts</div>
       </div>
     </div>
     <div class="progress-wrap">
@@ -2677,7 +2677,7 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
   if (!revealedCategories[stateKey]) {
     el.innerHTML = `
       <div class="reveal-podium-card" style="text-align:center; padding: 35px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
-        <div style="font-family:'Bebas Neue',sans-serif; font-size: 26px; letter-spacing: 1px; background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; color: transparent; text-shadow: 0 0 12px rgba(223, 172, 74, 0.25); line-height: 1.2;">Los ganadores son...</div>
+        <div style="font-family:'Inter',sans-serif; font-size: 26px; letter-spacing: 1px; background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; color: transparent; text-shadow: 0 0 12px rgba(223, 172, 74, 0.25); line-height: 1.2;">Los ganadores son...</div>
         <button class="btn btn-outline" style="width: auto; padding: 10px 24px; min-height: 38px; font-size: 12px;" onclick="revealCategory('${stateKey}')">MOSTRAR</button>
       </div>`;
     return;
@@ -3122,7 +3122,7 @@ function renderRegistrationEventSelectorList(ev1, ev2) {
   listEl.innerHTML = `
     <div class="p-item" onclick="selectRegistrationEvent('event1', true)" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)">${esc(ev1.name)}</span>
+        <span style="font-family:'Inter',sans-serif;font-size:24px;color:var(--gold)">${esc(ev1.name)}</span>
         <span style="font-size:12px;color:var(--teal);font-weight:bold">${desc1}</span>
       </div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px">
@@ -3131,7 +3131,7 @@ function renderRegistrationEventSelectorList(ev1, ev2) {
     </div>
     <div class="p-item" onclick="selectRegistrationEvent('event2', true)" style="padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold)">${esc(ev2.name)}</span>
+        <span style="font-family:'Inter',sans-serif;font-size:24px;color:var(--gold)">${esc(ev2.name)}</span>
         <span style="font-size:12px;color:var(--teal);font-weight:bold">${desc2}</span>
       </div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px">
@@ -3338,7 +3338,7 @@ function loadPublicVoteOpts() {
       const ce = localState.settings?.currentEvent;
       if (showRunning && ce?.name) {
         msgEl.innerHTML = `¡Gracias por participar!<br><br>
-          <span style="color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px">${esc(ce.name)}</span><br>
+          <span style="color:var(--gold);font-family:'Inter',sans-serif;font-size:20px;letter-spacing:2px">${esc(ce.name)}</span><br>
           ${ce.date ? `<span style="font-size:13px">${esc(ce.date)}${ce.venue ? ' · ' + esc(ce.venue) : ''}</span>` : ''}`;
       } else {
         msgEl.textContent = '¡Gracias por participar! Te esperamos en nuestro próximo evento.';
@@ -3523,13 +3523,13 @@ function renderJurySelectors() {
   if (!showRunning) {
     if (hdr) hdr.innerHTML = `
       <div class="hero" style="padding: 8px 0 10px; text-align: center;">
-        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">PANEL JURADO</div>
+        <div style="font-family:'Inter',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">PANEL JURADO</div>
         <div class="hero-title">VOTACIÓN JURADO</div>
         <div class="hero-sub" style="margin-top: 6px;">Panel Jurado</div>
       </div>`;
     if (el) el.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text2)">
       <div style="font-size:32px;margin-bottom:12px">🎬</div>
-      <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text)">No hay evento activo</div>
+      <div style="font-family:'Inter',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text)">No hay evento activo</div>
       <div style="font-size:12px;margin-top:6px">La votación del jurado estará disponible cuando se inicie un evento.</div>
     </div>`;
     return;
@@ -3539,7 +3539,7 @@ function renderJurySelectors() {
   if (hdr) {
     hdr.innerHTML = `
       <div class="hero" style="padding: 8px 0 10px; text-align: center;">
-        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">PANEL JURADO</div>
+        <div style="font-family:'Inter',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">PANEL JURADO</div>
         <div class="hero-title">VOTACIÓN JURADO</div>
         ${det ? `<div class="hero-sub" style="margin-top: 6px;">${esc(det)}</div>` : ''}
       </div>
@@ -3879,7 +3879,7 @@ function renderAdminEventSelectorBar() {
   const currentActiveId = getCurrentEventId();
 
   let html = `
-    <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;display:flex;align-items:center;gap:6px">
+    <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;display:flex;align-items:center;gap:6px">
       <span>🛠️ Gestionar:</span>
     </div>
     <div style="display:flex;gap:8px;flex:1;min-width:0;justify-content:flex-start;flex-wrap:wrap">
@@ -3898,9 +3898,9 @@ function renderAdminEventSelectorBar() {
       <div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid ${isGlobalActive ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:6px 12px;box-sizing:border-box;min-height:38px">
         <span style="font-size:13px;color:var(--text);font-weight:600">${esc(name)}${dateText}</span>
         ${isGlobalActive ? `
-          <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:4px 10px;border-radius:6px;font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px;text-align:center">ACTIVO</span>
+          <span style="background:linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);color:var(--bg);font-size:10px;padding:4px 10px;border-radius:6px;font-weight:bold;font-family:'Inter',sans-serif;letter-spacing:1px;text-align:center">ACTIVO</span>
         ` : `
-          <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
+          <button onclick="setActiveEvent('${slotItem.id}')" class="btn btn-sm btn-outline" style="min-height:26px;padding:0 10px;font-size:10px;width:auto;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;border-color:var(--gold);color:var(--gold);background:transparent;margin:0">ACTIVO</button>
         `}
       </div>
     `;
@@ -4190,7 +4190,7 @@ function renderAdminMicClubParticipants() {
 
     return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px">${index + 1}. 🎤 ${esc(p.name)}</span>
+        <span style="font-weight:700;color:var(--gold);font-family:'Inter',sans-serif;font-size:14px">${index + 1}. 🎤 ${esc(p.name)}</span>
         <span style="font-size:11px;color:var(--text2)">${new Date(p.timestamp || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
       </div>
       <div style="font-size:13px;color:var(--text)">
@@ -4241,7 +4241,7 @@ function renderAdminJury() {
         return `<tr style="border-bottom:1px solid rgba(255,255,255,.03);background:${i === 0 ? 'rgba(212,168,67,.06)' : ''}">
           <td style="padding:7px;font-weight:600">${esc(r.name)}${i === 0 && r.total > 0 ? ' 👑' : ''}</td>
           ${criteria.map(c => `<td style="padding:7px;text-align:center;color:var(--text2)">${cv[c.key] || '—'}</td>`).join('')}
-          <td style="padding:7px;text-align:right;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">${r.total}</td>
+          <td style="padding:7px;text-align:right;font-family:'Inter',sans-serif;font-size:18px;color:var(--gold)">${r.total}</td>
         </tr>`;
       }).join('')}
     </table></div>`;
@@ -4268,7 +4268,7 @@ function renderAdminJury() {
       const leaderNote = juryLeader && juryLeader.score > 0
         ? `<div style="font-size:10px;color:var(--gold);margin-top:3px">👑 Líder jurado: <strong>${esc(juryLeader.name)}</strong> (${juryLeader.score} pts)</div>` : '';
       return `<div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid var(--border)">
-        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;margin-bottom:4px">${pr.label}</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;margin-bottom:4px">${pr.label}</div>
         ${leaderNote}
         <select id="prize-sel-${pr.key}" style="margin-top:8px;margin-bottom:6px">
           <option value="">— Sin asignar —</option>${opts}
@@ -4925,7 +4925,7 @@ function renderLinks() {
   ];
   el.innerHTML = links.map(l => `
     <div style="background:var(--bg3);border-radius:9px;padding:12px;margin-bottom:10px;border:1px solid var(--border)">
-      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;margin-bottom:3px">${l.icon} ${l.label}</div>
+      <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;margin-bottom:3px">${l.icon} ${l.label}</div>
       <div style="font-size:10px;color:var(--text2);margin-bottom:7px">${l.desc}</div>
       <div style="background:var(--bg4);border-radius:6px;padding:8px;font-size:10px;word-break:break-all;color:var(--teal);margin-bottom:7px">${esc(l.url)}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -4946,7 +4946,7 @@ function renderLinks() {
     qrDiv.innerHTML = `
       <div class="card-sub mb-8">QR Votación Pública</div>
       <div class="qr-box" style="display:inline-block"><div id="vote-qr-admin"></div></div>
-      <div style="font-size:10px;color:var(--text2);margin-top:8px;letter-spacing:2px;font-family:'Oswald',sans-serif">ESCANEÁ PARA VOTAR</div>`;
+      <div style="font-size:10px;color:var(--text2);margin-top:8px;letter-spacing:2px;font-family:'Inter',sans-serif">ESCANEÁ PARA VOTAR</div>`;
     el.appendChild(qrDiv);
     try {
       new QRCode(document.getElementById('vote-qr-admin'), {
@@ -5417,7 +5417,7 @@ function updateFreeKaraokePages() {
       
       return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:700;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px">&nbsp;${index + 1}. 🎤 ${esc(item.name)}</span>
+          <span style="font-weight:700;color:var(--gold);font-family:'Inter',sans-serif;font-size:14px">&nbsp;${index + 1}. 🎤 ${esc(item.name)}</span>
           <span style="font-size:11px;color:var(--text2)">${new Date(item.createdAt || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
         </div>
         <div style="font-size:13px;color:var(--text)">
@@ -5600,8 +5600,8 @@ function renderPantallaContent() {
         const song = typeof art === 'object' ? art.song : '';
         return `
           <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 28px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 20px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 28px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 20px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
           </div>
         `;
       }).join('')
@@ -5621,8 +5621,8 @@ function renderPantallaContent() {
         const songLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
         return `
           <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(p.name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${songLabel}</span>
           </div>
         `;
       }).join('')
@@ -5696,7 +5696,7 @@ function renderPantallaContent() {
     if (!imgUrl) {
       container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 60px 20px; gap: 20px; animation: fadeUp 0.5s ease-out forwards; height:100%; box-sizing:border-box">
         <div style="font-size: 48px;">📅</div>
-        <div style="font-family:'Bebas Neue',sans-serif; font-size: 32px; color: var(--gold); letter-spacing: 1px;">Próximo Evento</div>
+        <div style="font-family:'Inter',sans-serif; font-size: 32px; color: var(--gold); letter-spacing: 1px;">Próximo Evento</div>
         <div style="color: var(--text2); font-size: 15px; text-align: center; max-width: 500px; line-height: 1.6;">Estad atentos, próximamente confirmaremos la fecha del siguiente encuentro.</div>
       </div>`;
       return;
@@ -5719,8 +5719,8 @@ function renderPantallaContent() {
       sortedFreeItems.map((item, index) => {
         return `
           <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
           </div>
         `;
       }).join('')
@@ -5777,8 +5777,8 @@ ${
         const song = typeof art === 'object' ? art.song : '';
         return `
           <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 17px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 17px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
           </div>
         `;
       }).join('')
@@ -5811,8 +5811,8 @@ ${
       if (p) {
         upcomingHtml += `
           <div style="border-left:3px solid var(--gold); padding-left:16px">
-            <div style="font-family:'Bebas Neue',sans-serif; font-size:clamp(20px, 2.2vw, 36px); color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.5px">${esc(p.name)}</div>
-            <div style="font-family:'Oswald',sans-serif; font-size:clamp(14px, 1.4vw, 20px); color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:4px">${esc(p.songTitle || '—')}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:clamp(20px, 2.2vw, 36px); color:#ffffff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.5px">${esc(p.name)}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:clamp(14px, 1.4vw, 20px); color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:4px">${esc(p.songTitle || '—')}</div>
           </div>
         `;
       } else {
@@ -5832,18 +5832,18 @@ ${
           
           <!-- Bloque 1: Cantando Ahora (Dorado y Grande) -->
           <div class="card" style="border:2px solid var(--gold); background:rgba(201,154,66,0.06); padding:36px 40px; border-radius:16px; display:flex; flex-direction:column; justify-content:center; text-align:left; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-            <div style="font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:4px; color:var(--gold); font-weight:700; text-transform:uppercase; margin-bottom:12px">🎤 CANTANDO AHORA</div>
-            <div style="font-family:'Bebas Neue',sans-serif; font-size:clamp(60px, 6.5vw, 110px); color:var(--gold); letter-spacing:2px; line-height:1.0">${esc(currentSinger.name)}</div>
-            <div style="font-family:'Oswald',sans-serif; font-size:clamp(26px, 2.8vw, 44px); color:#ffffff; font-weight:400; margin-top:16px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:14px; letter-spacing:4px; color:var(--gold); font-weight:700; text-transform:uppercase; margin-bottom:12px">🎤 CANTANDO AHORA</div>
+            <div style="font-family:'Inter',sans-serif; font-size:clamp(60px, 6.5vw, 110px); color:var(--gold); letter-spacing:2px; line-height:1.0">${esc(currentSinger.name)}</div>
+            <div style="font-family:'Inter',sans-serif; font-size:clamp(26px, 2.8vw, 44px); color:#ffffff; font-weight:400; margin-top:16px; line-height:1.2">${esc(currentSinger.songTitle || '—')}</div>
             <div style="font-family:'Inter',sans-serif; font-size:clamp(16px, 1.6vw, 24px); color:#ffffff; margin-top:6px; opacity:0.8">${esc(currentSinger.songArtist || '')}</div>
           </div>
           
           <!-- Bloque 2: Por Cantar / Siguiente (Blanco/Plata y Mediano) -->
           <div class="card" style="border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.02); padding:36px 32px; border-radius:16px; display:flex; flex-direction:column; justify-content:center; text-align:left; box-shadow:0 8px 32px rgba(0,0,0,0.3)">
-            <div style="font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:4px; color:var(--text2); font-weight:700; text-transform:uppercase; margin-bottom:12px">⏭️ SIGUIENTE EN COLA</div>
+            <div style="font-family:'Inter',sans-serif; font-size:14px; letter-spacing:4px; color:var(--text2); font-weight:700; text-transform:uppercase; margin-bottom:12px">⏭️ SIGUIENTE EN COLA</div>
             ${nextSinger ? `
-              <div style="font-family:'Bebas Neue',sans-serif; font-size:clamp(40px, 4.5vw, 75px); color:#ffffff; letter-spacing:1px; line-height:1.0">${esc(nextSinger.name)}</div>
-              <div style="font-family:'Oswald',sans-serif; font-size:clamp(20px, 2.2vw, 32px); color:var(--gold); font-weight:400; margin-top:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
+              <div style="font-family:'Inter',sans-serif; font-size:clamp(40px, 4.5vw, 75px); color:#ffffff; letter-spacing:1px; line-height:1.0">${esc(nextSinger.name)}</div>
+              <div style="font-family:'Inter',sans-serif; font-size:clamp(20px, 2.2vw, 32px); color:var(--gold); font-weight:400; margin-top:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%">${esc(nextSinger.songTitle || '—')}</div>
               <div style="font-family:'Inter',sans-serif; font-size:clamp(14px, 1.4vw, 20px); color:#ffffff; margin-top:4px; opacity:0.7">${esc(nextSinger.songArtist || '')}</div>
             ` : `
               <div style="font-family:'Inter',sans-serif; font-size:16px; color:var(--text2); font-style:italic">Fin de la lista de participantes</div>
@@ -5854,7 +5854,7 @@ ${
         
         <!-- Bloque 3: Siguientes 3 (Lista compacta horizontal) -->
         <div class="card" style="padding:24px 32px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.01); border-radius:16px; text-align:left; box-shadow:0 4px 20px rgba(0,0,0,0.2)">
-          <div style="font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:3px; color:var(--text2); font-weight:600; text-transform:uppercase; margin-bottom:18px">📋 PRÓXIMOS EN LA LISTA</div>
+          <div style="font-family:'Inter',sans-serif; font-size:12px; letter-spacing:3px; color:var(--text2); font-weight:600; text-transform:uppercase; margin-bottom:18px">📋 PRÓXIMOS EN LA LISTA</div>
           <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:32px">
             ${upcomingHtml}
           </div>
@@ -5925,7 +5925,7 @@ ${
         </div>
         <!-- Columna de auspiciantes en la derecha -->
         <div id="pantalla-ranking-sponsors-col" style="display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; align-items: center; border-left: 1px solid rgba(255,255,255,0.05); padding-left: 14px;">
-          <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 4px; opacity: 0.8;">Auspiciantes</div>
+          <div style="font-family:'Inter',sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 4px; opacity: 0.8;">Auspiciantes</div>
           <div id="pantalla-ranking-sponsors-list" style="display: flex; flex-direction: column; gap: 8px; align-items: center;"></div>
         </div>
       </div>
@@ -5958,8 +5958,8 @@ ${
       sortedFreeItems.map((item, index) => {
         return `
           <div style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Bebas Neue',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
-            <span style="font-family:'Oswald',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
           </div>
         `;
       }).join('')

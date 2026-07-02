@@ -11,8 +11,8 @@
 <meta name="description" content="MIC CLUB · Las Alas de Mi Voz · Karaoke Gamificado">
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.37">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=1.38">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -30,13 +30,13 @@ if ('serviceWorker' in navigator) {
 
 <!-- ── BACK BAR (fixed bottom, shows when navigating from home) ── -->
 <div id="back-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px 18px;background:linear-gradient(0deg,var(--bg) 70%,transparent);z-index:200">
-  <button onclick="navBack()" style="width:100%;max-width:680px;margin:0 auto;display:block;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px;padding:11px;border-radius:8px;cursor:pointer;min-height:44px">← VOLVER</button>
+  <button onclick="navBack()" style="width:100%;max-width:680px;margin:0 auto;display:block;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;letter-spacing:1px;padding:11px;border-radius:8px;cursor:pointer;min-height:44px">← VOLVER</button>
 </div>
 
 <!-- ── CUSTOM MODAL (replaces confirm/alert/prompt) ── -->
 <div id="custom-modal" class="modal-overlay" style="display:none">
   <div class="modal">
-    <div id="cm-title" style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);margin-bottom:10px"></div>
+    <div id="cm-title" style="font-family:'Inter',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);margin-bottom:10px"></div>
     <div id="cm-msg" style="font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.6"></div>
     <div id="cm-input-wrap" style="display:none;margin-bottom:14px">
       <input id="cm-input" type="password" placeholder="" style="width:100%">
@@ -52,8 +52,8 @@ if ('serviceWorker' in navigator) {
 
     <!-- Gate de login -->
     <div id="home-login-gate" style="text-align:center;padding:32px 0">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
-      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:4px;color:var(--text2);margin-bottom:36px">LAS ALAS DE MI VOZ</div>
+      <div style="font-family:'Inter',sans-serif;font-size:56px;letter-spacing:4px;color:var(--gold);line-height:1">MIC CLUB</div>
+      <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:4px;color:var(--text2);margin-bottom:36px">LAS ALAS DE MI VOZ</div>
       <div class="form-group">
         <input type="password" id="home-pass" placeholder="Contraseña de acceso"
           onkeyup="if(event.key==='Enter')homeLogin()" style="text-align:center">
@@ -71,9 +71,9 @@ if ('serviceWorker' in navigator) {
           <div class="header-logo-event">
             <span class="logo-micclub">MIC CLUB</span>
             <span class="logo-sub">Las Alas de mi Voz</span>
-            <span class="logo-separator">·</span>
-            <div id="dash-active-event-name">Cargando evento...</div>
           </div>
+          <span class="logo-separator">·</span>
+          <div id="dash-active-event-name">Cargando evento...</div>
           <div class="header-vote-action">
             <button id="dash-vote-toggle-btn" onclick="toggleVoting()" class="btn btn-sm btn-outline" style="min-height:30px;height:30px;font-size:11px;padding:0 12px;width:auto;font-family:'Inter',sans-serif;letter-spacing:-0.2px;margin:0;flex-shrink:0;border-radius:6px;transition:all 0.2s">
               Abrir votación
@@ -124,7 +124,7 @@ if ('serviceWorker' in navigator) {
 
       <!-- Pruebas / Simulación -->
       <div id="dash-pruebas-card" class="card" style="display:none;margin-top:10px;margin-bottom:10px;border:1px dashed var(--purple-light);background:rgba(123, 97, 255, 0.03);padding:10px">
-        <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;margin-bottom:8px;font-weight:700">Simulación y Pruebas</div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;margin-bottom:8px;font-weight:700">Simulación y Pruebas</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <button onclick="simularEvento()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px">1. Crear Evento Demo</button>
           <button id="btn-sim-votos" onclick="simularVotacion()" class="btn btn-sm btn-outline" style="border-color:var(--purple-light);color:var(--purple-light);font-size:11px;min-height:auto;padding:8px" disabled>2. Simular Votos</button>
@@ -143,7 +143,7 @@ if ('serviceWorker' in navigator) {
   <div id="page-register" class="page">
     <!-- Auspiciantes Siempre Visibles Arriba -->
     <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 14px; text-align: center;">
-      <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; opacity: 0.8;">Auspiciantes Oficiales</div>
+      <div style="font-family:'Inter',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px; opacity: 0.8;">Auspiciantes Oficiales</div>
       <div class="sponsors-grid" id="register-sponsors" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;"></div>
     </div>
 
@@ -157,11 +157,11 @@ if ('serviceWorker' in navigator) {
     <div id="reg-cupo-banner" style="display:none;background:var(--bg2);border:1px solid var(--gold-dark);border-radius:10px;padding:12px;margin-bottom:14px;position:relative">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
         <div>
-          <div id="cupo-banner-event-name" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);line-height:1.15"></div>
+          <div id="cupo-banner-event-name" style="font-family:'Inter',sans-serif;font-size:22px;color:var(--gold);line-height:1.15"></div>
           <div id="cupo-banner-event-details" style="font-size:11px;color:var(--text2);margin-top:2px"></div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div id="cupo-banner-spots" style="font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);font-weight:700"></div>
+          <div id="cupo-banner-spots" style="font-family:'Inter',sans-serif;font-size:14px;color:var(--text);font-weight:700"></div>
           <button id="cupo-banner-change-btn" class="btn btn-outline btn-sm" onclick="resetRegisterPage()" style="margin-top:6px;min-height:auto;padding:2px 8px;font-size:10px;width:auto;display:none">Cambiar evento</button>
         </div>
       </div>
@@ -169,7 +169,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Selector de Evento Inicial (visible si hay 2 eventos activos) -->
     <div id="reg-event-selector" class="card" style="display:none;padding:16px;margin-bottom:14px">
-      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;text-align:center">Elegí tu evento</div>
+      <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:12px;text-align:center">Elegí tu evento</div>
       <div id="reg-event-selector-list" style="display:grid;grid-template-columns:1fr;gap:12px">
         <!-- Renderizado dinámico desde JS -->
       </div>
@@ -187,7 +187,7 @@ if ('serviceWorker' in navigator) {
       </div>
       <!-- Confirmación nuevo usuario (aparece si el email no existe) -->
       <div id="reg-email-confirm" style="display:none;background:rgba(212,168,67,.12);border:1px solid var(--gold);border-radius:10px;padding:16px;margin-bottom:14px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:6px">📧 Email no registrado</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:6px">📧 Email no registrado</div>
         <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.5" id="reg-email-confirm-msg">¿Querés crear un nuevo usuario con este email?</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <button class="btn btn-outline btn-sm" onclick="cancelEmailConfirm()">No, editar</button>
@@ -208,7 +208,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
           <span style="font-size:12px;color:var(--text2)">Asistencia +5 · Canción +3 · <span id="prev-ppl">Convocatoria +1</span></span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold)">BASE <span id="prev-total">9</span> pts</span>
+          <span style="font-family:'Inter',sans-serif;font-size:22px;color:var(--gold)">BASE <span id="prev-total">9</span> pts</span>
         </div>
         <span id="prev-duo" style="display:none"></span>
         <span id="prev-pts" style="display:none"></span>
@@ -276,7 +276,7 @@ if ('serviceWorker' in navigator) {
   <!-- ─────────── PROGRAMA (PORTAL PÚBLICO) ─────────── -->
   <div id="page-program" class="page" style="padding-bottom:100px">
     <div class="hero" style="padding-bottom:12px;text-align:center">
-      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">Las alas de mi voz Presenta:</div>
+      <div style="font-family:'Inter',sans-serif;font-size:12px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;opacity:0.9">Las alas de mi voz Presenta:</div>
       <div id="program-event-name" class="hero-title" style="font-size:clamp(30px,7vw,46px);line-height:1.1;margin-bottom:8px">MicClub</div>
       <div id="program-event-details" style="font-family:'Inter',sans-serif;font-size:11px;color:var(--text2);margin-top:6px;letter-spacing:1px;text-transform:uppercase;display:none"></div>
       <!-- Selector de evento para programa (visible si hay dos eventos activos) -->
@@ -290,7 +290,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Auspiciantes (Grilla Superior) -->
     <div style="margin-top:8px;margin-bottom:16px">
-      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
+      <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
       <div class="sponsors-grid" id="program-sponsors-top" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px"></div>
     </div>
 
@@ -310,52 +310,52 @@ if ('serviceWorker' in navigator) {
       
       <!-- 1. Apertura -->
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">1. APERTURA</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">1. APERTURA</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">Bienvenida oficial + presentación de la temática.</div>
       </div>
 
       <!-- 2. Show de Artistas Invitados -->
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">2. SHOW DE ARTISTAS INVITADOS</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">2. SHOW DE ARTISTAS INVITADOS</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:6px">Artistas que llegan para encender la noche y compartir su universo con la comunidad MIC CLUB.</div>
         <div id="program-guest-artists" style="margin-top:10px;background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
       </div>
 
       <!-- 3. Participantes Mic Club -->
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">3. PARTICIPANTES MIC CLUB</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">3. PARTICIPANTES MIC CLUB</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:8px">Llegó el momento más importante: la comunidad toma el escenario. Cada participante viene a dejar su huella, compartir su voz y vivir su momento. Porque en MIC CLUB no hay espectadores. Todos pueden convertirse en protagonistas.</div>
         
 
 
         <!-- Lista pública compacta -->
         <div id="program-participants-list-wrap" style="display:none">
-          <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-participants-count">0</span>)</div>
+          <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-participants-count">0</span>)</div>
           <div id="program-participants-list" style="background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
         </div>
       </div>
 
       <!-- 4. Votación -->
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">4. VOTACIÓN DEL PÚBLICO + DELIBERACIÓN</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">4. VOTACIÓN DEL PÚBLICO + DELIBERACIÓN</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">10 minutos donde cada voto puede cambiar la historia de la noche.</div>
       </div>
 
       <!-- 5. Premiación -->
       <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">5. PREMIACIÓN OFICIAL</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">5. PREMIACIÓN OFICIAL</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">Puntajes en pantalla, ganadores, actualización de Puntos MIC acumulados. Revelación de la próxima temática. Un cierre para celebrar a quienes se animaron a subir al escenario.</div>
       </div>
 
       <!-- 6. Karaoke Abierto -->
       <div style="padding-bottom:4px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--text)">6. KARAOKE ABIERTO</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">6. KARAOKE ABIERTO</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">El escenario se libera. Cantá, celebrá, improvisá y seguí compartiendo la música con esta comunidad que no para de crecer. Porque a veces las mejores canciones suceden después del final.</div>
         
         <!-- Contenedor dinámico de Karaoke Libre público -->
         <div id="program-free-karaoke-section" style="margin-top:14px;display:none;border-top:1px solid rgba(255,255,255,.04);padding-top:10px">
           <!-- Botón de inscripción (2 renglones: arriba texto, abajo fecha) -->
-          <button id="program-free-karaoke-reg-btn" onclick="navPush('karaoke-free-register')" class="btn btn-gold" style="width:100%;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;text-align:center;padding:8px 12px;margin-bottom:12px">
+          <button id="program-free-karaoke-reg-btn" onclick="navPush('karaoke-free-register')" class="btn btn-gold" style="width:100%;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;text-align:center;padding:8px 12px;margin-bottom:12px">
             <span style="font-size:13px;letter-spacing:0.5px">Inscribite para el karaoke libre</span>
             <span id="program-free-karaoke-date" style="font-size:11px;opacity:0.85;font-weight:400;margin-top:2px"></span>
           </button>
@@ -366,7 +366,7 @@ if ('serviceWorker' in navigator) {
           
           <!-- Lista pública compacta -->
           <div id="program-free-karaoke-list-wrap" style="display:none">
-            <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-free-karaoke-count">0/20</span>)</div>
+            <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-free-karaoke-count">0/20</span>)</div>
             <div id="program-free-karaoke-list" style="background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)">
               <!-- Canciones 1-20 inscriptas -->
             </div>
@@ -377,7 +377,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Auspiciantes (Grilla Inferior) -->
     <div style="margin-bottom:16px">
-      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
+      <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
       <div class="sponsors-grid" id="program-sponsors-bottom" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px"></div>
     </div>
 
@@ -391,7 +391,7 @@ if ('serviceWorker' in navigator) {
         <li>Invitá artistas y cantantes a esta comunidad</li>
       </ul>
       <div style="text-align:center;margin-top:16px">
-        <a href="https://www.instagram.com/lasalasdemivoz/" target="_blank" class="btn btn-outline" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;text-decoration:none;font-size:13px;width:100%;border-color:var(--gold);color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:0.5px">
+        <a href="https://www.instagram.com/lasalasdemivoz/" target="_blank" class="btn btn-outline" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;text-decoration:none;font-size:13px;width:100%;border-color:var(--gold);color:var(--gold);font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0.5px">
           📸 @lasalasdemivoz
         </a>
         <div style="font-size:11px;color:var(--text2);margin-top:8px">Escribinos en redes y animate a vivir tu momento.</div>
@@ -400,13 +400,13 @@ if ('serviceWorker' in navigator) {
 
     <!-- Footer -->
     <div style="text-align:center;padding:12px 0 20px;opacity:0.8">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)">MIC CLUB</div>
+      <div style="font-family:'Inter',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)">MIC CLUB</div>
       <div style="font-size:10px;color:var(--text2);margin-top:4px;letter-spacing:1px;text-transform:uppercase">Tu voz puede ser la próxima en hacer historia.</div>
     </div>
 
     <!-- Panel de Administración del Programa (solo visible si adminLoggedIn === true) -->
     <div id="program-admin-panel" class="card" style="display:none;margin-top:20px;padding:14px">
-      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px">⚙️ CONFIGURACIÓN DE PROGRAMA</div>
+      <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px">⚙️ CONFIGURACIÓN DE PROGRAMA</div>
       
       <!-- Cargar Auspiciante -->
       <div class="form-group" style="margin-bottom:16px">
@@ -437,7 +437,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Botón flotante para votar (estilo WhatsApp) -->
     <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:1000;pointer-events:none;padding:0 14px;box-sizing:border-box;display:flex;justify-content:flex-end">
-      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;color:#F4EAD0;letter-spacing:0.5px;width:150px;height:150px;border-radius:20px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
+      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Inter',sans-serif;font-weight:700;font-size:32px;color:#F4EAD0;letter-spacing:0.5px;width:150px;height:150px;border-radius:20px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
     </div>
   </div>
 
@@ -445,13 +445,13 @@ if ('serviceWorker' in navigator) {
   <div id="page-karaoke-free-register" class="page">
     <div class="hero" style="padding-bottom:6px">
       <div class="hero-title" style="font-size:clamp(30px,9vw,48px)" id="free-karaoke-title">QUIERO PARTICIPAR</div>
-      <div class="hero-sub" id="free-karaoke-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px">Quiero participar del karaoke</div>
+      <div class="hero-sub" id="free-karaoke-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:1px">Quiero participar del karaoke</div>
     </div>
 
     <!-- Mensaje de cupo completo -->
     <div id="free-karaoke-full-banner" class="card" style="display:none;background:rgba(212,168,67,.06);border:2px solid var(--gold);padding:24px 16px;text-align:center;margin-bottom:16px">
       <div style="font-size:38px;margin-bottom:10px">⚠️</div>
-      <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:var(--gold);line-height:1.4">El cupo del karaoke libre está completo.</div>
+      <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:16px;color:var(--gold);line-height:1.4">El cupo del karaoke libre está completo.</div>
     </div>
 
     <!-- Formulario de inscripción -->
@@ -476,12 +476,12 @@ if ('serviceWorker' in navigator) {
         </div>
       </div>
       <div id="free-karaoke-form-err" class="alert alert-error mt-12" style="display:none"></div>
-      <button class="btn btn-gold mt-12" onclick="submitFreeKaraoke()" style="width:100%;min-height:50px;font-size:15px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:0.5px">🚀 INSCRIBIRME</button>
+      <button class="btn btn-gold mt-12" onclick="submitFreeKaraoke()" style="width:100%;min-height:50px;font-size:15px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0.5px">🚀 INSCRIBIRME</button>
     </div>
 
     <!-- Lista pública de inscriptos -->
     <div class="card" style="padding:14px">
-      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between">
+      <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between">
         <span>📋 Lista de Inscriptos</span>
         <span id="free-karaoke-count-badge" style="background:var(--bg4);border:1px solid var(--border);padding:2px 8px;border-radius:10px">0/20</span>
       </div>
@@ -495,11 +495,11 @@ if ('serviceWorker' in navigator) {
   <div id="page-admin-free-karaoke" class="page">
     <div class="hero" style="padding-bottom:6px">
       <div class="hero-title" style="font-size:clamp(30px,9vw,48px)">KARAOKE LIBRE</div>
-      <div class="hero-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px">Moderación e Inscripciones</div>
+      <div class="hero-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:1px">Moderación e Inscripciones</div>
     </div>
 
     <div class="card" style="padding:14px">
-      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center">
         <span>⚙️ CONTROL DE INSCRIPCIONES</span>
         <span id="admin-free-karaoke-count" style="font-size:11px;background:var(--bg4);padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--text1)">0/20</span>
       </div>
@@ -514,11 +514,11 @@ if ('serviceWorker' in navigator) {
   <div id="page-admin-micclub-participants" class="page">
     <div class="hero" style="padding-bottom:6px">
       <div class="hero-title" style="font-size:clamp(30px,9vw,48px)">PARTICIPANTES</div>
-      <div class="hero-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px">Moderación e Inscripciones</div>
+      <div class="hero-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:1px">Moderación e Inscripciones</div>
     </div>
 
     <div class="card" style="padding:14px">
-      <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center">
         <span>⚙️ CONTROL DE PARTICIPANTES</span>
         <span id="admin-micclub-participants-count" style="font-size:11px;background:var(--bg4);padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--text1)">0</span>
       </div>
@@ -536,7 +536,7 @@ if ('serviceWorker' in navigator) {
     <!-- Votación cerrada -->
     <div id="vote-closed-banner" style="display:none;text-align:center;padding:24px 16px">
       <div style="font-size:38px;margin-bottom:10px">🎤</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:#e8a0ac;margin-bottom:6px">LA VOTACIÓN ESTÁ CERRADA</div>
+      <div style="font-family:'Inter',sans-serif;font-size:26px;letter-spacing:3px;color:#e8a0ac;margin-bottom:6px">LA VOTACIÓN ESTÁ CERRADA</div>
       <div id="vote-closed-msg" style="font-size:14px;color:var(--text2);line-height:1.6"></div>
     </div>
 
@@ -621,7 +621,7 @@ if ('serviceWorker' in navigator) {
       <div class="pantalla-sidebar">
         <!-- Botones de Navegación del Panel -->
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px;">PANELES DE PANTALLA</div>
+          <div style="font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-bottom: 8px;">PANELES DE PANTALLA</div>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('artistas')">Artistas Invitados</button>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('participantes')">Participantes MC</button>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('votos')">Resultados Votación</button>
@@ -632,7 +632,7 @@ if ('serviceWorker' in navigator) {
         
         <!-- Auspiciantes (Siempre visibles abajo en el sidebar) -->
         <div>
-          <div style="font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1.5px; color: var(--gold); border-bottom: 1px solid rgba(223, 172, 74, 0.25); padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase;">AUSPICIANTES</div>
+          <div style="font-family: 'Inter', sans-serif; font-size: 20px; letter-spacing: 1.5px; color: var(--gold); border-bottom: 1px solid rgba(223, 172, 74, 0.25); padding-bottom: 4px; margin-bottom: 12px; text-transform: uppercase;">AUSPICIANTES</div>
           <div id="pantalla-sponsors" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px;"></div>
         </div>
       </div>
@@ -641,7 +641,7 @@ if ('serviceWorker' in navigator) {
       <div class="pantalla-content">
         <!-- Nombre del Evento (Siempre visible arriba) -->
         <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 8px; position: relative; width: 100%;">
-          <div id="pantalla-event-name" style="font-family:'Bebas Neue',sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--gold); line-height: 1.1;">-</div>
+          <div id="pantalla-event-name" style="font-family:'Inter',sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--gold); line-height: 1.1;">-</div>
           <div id="pantalla-event-details" style="font-size: 11px; color: var(--text2); margin-top: 2px; letter-spacing: 0.5px;">-</div>
           
           <!-- Canvas de fuegos artificiales dedicado para pantalla de resultados -->
@@ -655,7 +655,7 @@ if ('serviceWorker' in navigator) {
 
         <!-- Auspiciantes de la Pantalla de Proyección (Siempre visibles abajo) -->
         <div id="pantalla-sponsors-footer" style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; width: 100%; text-align: center; z-index: 2;">
-          <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; opacity: 0.8;">Auspiciantes Oficiales</div>
+          <div style="font-family:'Inter',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; opacity: 0.8;">Auspiciantes Oficiales</div>
           <div id="pantalla-sponsors-list" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px;"></div>
         </div>
       </div>
@@ -747,7 +747,7 @@ if ('serviceWorker' in navigator) {
             <!-- Bonus -->
             <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:8px;padding:13px;border:1px solid var(--border)">
               <div>
-                <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px">Bonus Temática</div>
+                <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:14px">Bonus Temática</div>
                 <div style="font-size:11px;color:var(--text2)">Doble puntaje en premios</div>
               </div>
               <label style="position:relative;display:inline-block;width:50px;height:26px;margin:0">
@@ -760,7 +760,7 @@ if ('serviceWorker' in navigator) {
 
             <!-- Terminar Evento -->
             <div style="background:rgba(212,168,67,.06);border:2px solid var(--gold);border-radius:8px;padding:13px">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Terminar Evento</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Terminar Evento</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Borra canciones, puntajes del jurado y votos del público. <strong style="color:var(--gold)">Los participantes y sus puntos MicClub se conservan</strong> para el próximo evento.</div>
               <div style="display:flex;gap:8px">
                 <button class="btn btn-gold btn-sm" onclick="endShow()" style="flex:1">TERMINAR EVENTO</button>
@@ -773,7 +773,7 @@ if ('serviceWorker' in navigator) {
 
             <!-- Cargar Flyer del Próximo Evento -->
             <div style="background:rgba(212,168,67,.06);border:1px solid var(--gold-dark);border-radius:8px;padding:13px;margin-top:10px">
-              <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Flyer Próximo Evento</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">Flyer Próximo Evento</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Cargá el flyer o imagen promocional para el próximo evento. Se mostrará en la pantalla del público.</div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <input type="file" id="next-event-file" accept="image/*" style="width:100%;font-size:12px;color:var(--text2)">
@@ -787,12 +787,12 @@ if ('serviceWorker' in navigator) {
             </div>
             <hr class="divider">
             <div id="admin-clear-db-card" style="background:rgba(255,61,107,.06);border:1px solid var(--red);border-radius:8px;padding:12px;display:none">
-              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">Vaciar Base de Datos</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;color:var(--red);margin-bottom:4px">Vaciar Base de Datos</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Elimina TODOS los participantes y deja el sistema vacío. No se puede deshacer.</div>
               <button class="btn btn-danger btn-sm" onclick="clearAllParticipants()" style="width:100%">BORRAR TODO Y EMPEZAR DE CERO</button>
             </div>
             <div style="background:rgba(139,47,201,.08);border:1px solid var(--purple-light);border-radius:8px;padding:12px">
-              <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--purple-light);margin-bottom:4px">Datos de Prueba</div>
+              <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:13px;color:var(--purple-light);margin-bottom:4px">Datos de Prueba</div>
               <div style="font-size:11px;color:var(--text2);margin-bottom:9px">Borra todos los participantes actuales y carga 16 nuevos con canciones ya confirmadas, listos para votar.</div>
               <button id="seed-btn" class="btn btn-sm" onclick="seedTestData()" style="width:100%;background:linear-gradient(135deg,var(--purple-light),var(--purple));color:#fff">CARGAR 16 PARTICIPANTES DE PRUEBA</button>
             </div>
@@ -882,7 +882,7 @@ if ('serviceWorker' in navigator) {
             </div>
 
             <!-- Título dinámico del listado de cola -->
-            <div id="yt-playlist-list-name" style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Cola de Participantes Mic Club</div>
+            <div id="yt-playlist-list-name" style="font-family:'Inter',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Cola de Participantes Mic Club</div>
 
             <div id="yt-playlist-items" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
               <!-- Renderizado dinámico -->
@@ -900,12 +900,12 @@ if ('serviceWorker' in navigator) {
     <div id="bar-fixed-header" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:12px;margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%">
         <div>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">MIC CLUB</span>
-          <span style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1.5px;color:#8e867a;display:inline-block;margin-left:4px">Las Alas de mi Voz</span>
+          <span style="font-family:'Inter',sans-serif;font-size:26px;letter-spacing:1px;background:linear-gradient(135deg,var(--gold),#8a640f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block">MIC CLUB</span>
+          <span style="font-family:'Inter',sans-serif;font-size:15px;letter-spacing:1.5px;color:#8e867a;display:inline-block;margin-left:4px">Las Alas de mi Voz</span>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;gap:12px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" id="bar-active-event-name">
+        <div style="font-family:'Inter',sans-serif;font-size:22px;color:#ffffff;letter-spacing:0.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" id="bar-active-event-name">
           CARGANDO EVENTO...
         </div>
       </div>
@@ -913,7 +913,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
     <div class="card no-gold-border" style="padding:14px;margin-bottom:14px">
-      <div style="font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">📺 Control de Emisión</div>
+      <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">📺 Control de Emisión</div>
       <div id="bar-screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <button id="bar-cast-btn-emitir" class="btn btn-gold" onclick="openProjectionWindow()" style="width:100%;margin:0">📺 EMITIR</button>
         <button id="bar-screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">✨ SALVAPANTALLAS</button>
@@ -938,7 +938,7 @@ if ('serviceWorker' in navigator) {
   <!-- ─────────── CONFIG PARTICIPANTES ─────────── -->
   <div id="page-config" class="page">
     <div style="text-align:center;padding:6px 0 8px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gold)">PARTICIPANTES</div>
+      <div style="font-family:'Inter',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gold)">PARTICIPANTES</div>
     </div>
     <div id="event-banner-config" class="event-banner" style="display:none"></div>
     <div id="config-parts-list"><div style="text-align:center;color:var(--text2);padding:20px">Cargando...</div></div>
@@ -947,7 +947,7 @@ if ('serviceWorker' in navigator) {
   <!-- ─────────── HISTORIAL ─────────── -->
   <div id="page-history" class="page">
     <div style="text-align:center;padding:6px 0 8px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gold)">HISTORIAL</div>
+      <div style="font-family:'Inter',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gold)">HISTORIAL</div>
     </div>
     <div id="event-banner-history" class="event-banner" style="display:none"></div>
     <div id="history-list"><div style="text-align:center;color:var(--text2);padding:20px">Sin eventos anteriores</div></div>
@@ -1022,7 +1022,7 @@ if ('serviceWorker' in navigator) {
 <!-- Modal para Agregar Canción Manual -->
 <div class="modal-overlay" id="modal-add-song" style="display:none">
   <div class="modal" style="max-width:400px">
-    <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:16px;color:var(--gold);margin-bottom:12px">Agregar Canción</div>
+    <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:16px;color:var(--gold);margin-bottom:12px">Agregar Canción</div>
     <div id="add-song-err" class="alert alert-error" style="display:none;margin-bottom:12px"></div>
     <div class="modal-field-group">
       <div class="modal-row"><label style="width:90px">Cantante *</label><input type="text" id="add-song-singer" placeholder="Nombre del cantante" maxlength="50" style="flex:1"></div>
@@ -1044,6 +1044,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.37" defer></script>
+<script src="js/app.js?v=1.38" defer></script>
 </body>
 </html>
