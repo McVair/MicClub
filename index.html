@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.39">
+<link rel="stylesheet" href="css/styles.css?v=1.41">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -407,8 +407,8 @@ if ('serviceWorker' in navigator) {
       <div style="font-size:10px;color:var(--text2);margin-top:4px;letter-spacing:1px;text-transform:uppercase">Tu voz puede ser la próxima en hacer historia.</div>
     </div>
 
-    <!-- Panel de Administración del Programa (solo visible si adminLoggedIn === true) -->
-    <div id="program-admin-panel" class="card" style="display:none;margin-top:20px;padding:14px">
+    <!-- Panel de Administración del Programa (solo visible si adminLoggedIn === true) ---->
+    <div id="program-admin-panel" class="card" style="display:none;margin-top:4px;padding:14px">
       <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:var(--gold);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px">⚙️ CONFIGURACIÓN DE PROGRAMA</div>
       
       <!-- Cargar Auspiciante -->
@@ -430,6 +430,8 @@ if ('serviceWorker' in navigator) {
         <input type="text" id="artist-name-input" placeholder="Nombre del artista" style="width:100%;margin-bottom:8px;box-sizing:border-box">
         <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Canciones / Repertorio</label>
         <input type="text" id="artist-songs-input" placeholder="Ej: Canción A, Canción B (dejar vacío para 'repertorio selecto')" style="width:100%;margin-bottom:8px;box-sizing:border-box">
+        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Enlace de YouTube / Karaoke (Opcional)</label>
+        <input type="text" id="artist-link-input" placeholder="Ej: https://www.youtube.com/watch?..." style="width:100%;margin-bottom:8px;box-sizing:border-box">
         <button class="btn btn-gold btn-sm" onclick="addGuestArtistAdmin()">Agregar Artista</button>
       </div>
 
@@ -845,16 +847,17 @@ if ('serviceWorker' in navigator) {
           
           <!-- Unificado: Playlist -->
           <div class="card no-gold-border" style="padding:14px">
-            <div class="card-title" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-              <div style="display:flex;align-items:center;gap:8px">
+            <div class="card-title" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:6px">
                 <span>Playlist</span>
                 <button class="btn btn-sm btn-outline" onclick="downloadCombinedSongLinks()" style="font-size:10px;padding:2px 8px;min-height:auto;display:inline-flex;align-items:center;gap:4px;border-color:rgba(255,255,255,0.12);color:var(--text);margin:0;width:auto">Descargar</button>
+                <button class="btn btn-sm btn-outline" id="playback-mode-btn" onclick="togglePlaybackMode()" style="font-size:10px;padding:2px 8px;min-height:auto;margin:0;width:auto">Por tema</button>
               </div>
               <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
             </div>
 
             <!-- Fila de Canción Activa + Controles de Reproducción -->
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:10px;border:1px solid var(--border)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;background:var(--bg3);border-radius:8px;padding:10px;border:1px solid var(--border)">
               <div style="min-width:0;flex:1">
                 <div id="yt-remote-title" style="font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">Ningún video activo</div>
                 <div id="yt-remote-singer" style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">Cargá una canción para iniciar</div>
@@ -867,7 +870,7 @@ if ('serviceWorker' in navigator) {
             </div>
 
             <!-- Barra de Progreso y Tiempo -->
-            <div style="margin-bottom:12px">
+            <div style="margin-bottom:8px">
               <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px">
                 <span id="yt-remote-time-current">00:00</span>
                 <span id="yt-remote-time-duration">00:00</span>
@@ -875,17 +878,22 @@ if ('serviceWorker' in navigator) {
               <input type="range" id="yt-remote-progress" min="0" max="100" value="0" oninput="ytRemoteProgressInput(this.value)" onchange="ytRemoteProgressChange(this.value)" style="width:100%;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
             </div>
 
-            <!-- Botón Agregar Canción -->
-            <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin-bottom:12px;font-size:11px;padding:8px 0;min-height:34px">Agregar Canción</button>
+            <!-- Botones Agregar / Subir Canción -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin:0;font-size:11px;padding:8px 0;min-height:34px">Agregar Canción</button>
+              <button class="btn btn-sm btn-outline" onclick="triggerUploadPlaylist()" style="width:100%;margin:0;font-size:11px;padding:8px 0;min-height:34px">Subir Playlist</button>
+            </div>
+            <input type="file" id="playlist-file-input" accept=".txt" style="display:none" onchange="handlePlaylistUpload(event)">
 
-            <!-- Selector de filtro de lista (Participantes vs Karaoke) -->
-            <div style="display:flex;gap:4px;margin-bottom:10px;background:var(--bg3);border-radius:8px;padding:3px;border:1px solid var(--border)">
-              <button class="btn btn-sm btn-outline active" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">Participantes</button>
-              <button class="btn btn-sm btn-outline" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:9px;padding:4px 0;min-height:26px;border:none;width:auto">Karaoke</button>
+            <!-- Selector de filtro de lista (Participantes vs Karaoke vs Invitados) -->
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button class="btn btn-sm pl-filter-btn active" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Participantes</button>
+              <button class="btn btn-sm pl-filter-btn" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Karaoke</button>
+              <button class="btn btn-sm pl-filter-btn" id="pl-filter-guest" onclick="setPlaylistFilter('guest')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Invitados</button>
             </div>
 
             <!-- Título dinámico del listado de cola -->
-            <div id="yt-playlist-list-name" style="font-family:'Inter',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Cola de Participantes Mic Club</div>
+            <div id="yt-playlist-list-name" style="font-family:'Inter',sans-serif;font-size:10px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;margin-bottom:6px">Cola de Participantes Mic Club</div>
 
             <div id="yt-playlist-items" style="max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
               <!-- Renderizado dinámico -->
@@ -1047,6 +1055,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.38" defer></script>
+<script src="js/app.js?v=1.41" defer></script>
 </body>
 </html>

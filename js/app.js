@@ -519,10 +519,10 @@ function initFirebase() {
       }
 
       if (MODE === 'admin') {
+        updatePlaybackModeUI();
         if (s.playerState) {
           isYtPlaying = (s.playerState === 'playing');
-          const playBtn = document.getElementById('yt-remote-play-btn');
-          if (playBtn) playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+          updatePlayBtnIcon();
         }
         
         const progressEl = document.getElementById('yt-remote-progress');
@@ -586,7 +586,11 @@ function initFirebase() {
         if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
           lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
           if (projectionPlayer && projectionPlayerReady) {
-            projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+            if (s.castYtVideo.autoPlay !== false) {
+              projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+            } else {
+              projectionPlayer.cueVideoById(s.castYtVideo.ytId);
+            }
             applyProyectorLayout('video');
           }
         }
@@ -1167,6 +1171,7 @@ function updateUI() {
   }
   renderLinks();
   updateFreeKaraokePages();
+  updatePlaybackModeUI();
 
   // Renderizar auspiciantes en la página de reserva
   const sponsors = localState.settings?.sponsors || [];
@@ -1436,8 +1441,10 @@ async function deleteSponsorAdmin(idx) {
 async function addGuestArtistAdmin() {
   const nameInp = document.getElementById('artist-name-input');
   const songInp = document.getElementById('artist-songs-input');
+  const linkInp = document.getElementById('artist-link-input');
   const name = (nameInp?.value || '').trim();
   const song = (songInp?.value || '').trim();
+  const link = (linkInp?.value || '').trim();
   if (!name) return;
   
   const eventId = programSelectedEventId || getCurrentEventId();
@@ -1446,7 +1453,7 @@ async function addGuestArtistAdmin() {
   if (!ev) return;
   
   const artists = ev.guestArtists || [];
-  artists.push({ name, song });
+  artists.push({ name, song, link });
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, `settings/events/${eventId}`), { guestArtists: artists });
@@ -1456,6 +1463,7 @@ async function addGuestArtistAdmin() {
     }
     nameInp.value = '';
     if (songInp) songInp.value = '';
+    if (linkInp) linkInp.value = '';
     updateProgramPage();
     mcAlert('Artista agregado.');
   } catch(err) {
@@ -1931,7 +1939,11 @@ function downloadCombinedSongLinks() {
   const freeItems = Object.values(currentEventFreeList)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-  if (!parts.length && !freeItems.length) {
+  // 3. Artistas Invitados
+  const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || {}) : {};
+  const guestArtists = ev.guestArtists || [];
+
+  if (!parts.length && !freeItems.length && !guestArtists.length) {
     mcAlert('No hay canciones cargadas aún.');
     return;
   }
@@ -1961,6 +1973,18 @@ function downloadCombinedSongLinks() {
       lines.push('');
     });
   }
+
+  if (guestArtists.length) {
+    lines.push('========================================');
+    lines.push('🌟 ARTISTAS INVITADOS');
+    lines.push('========================================');
+    guestArtists.forEach(art => {
+      lines.push(`${art.name || '(sin nombre)'}`);
+      lines.push(`  Canción: ${art.song || 'Repertorio Especial'}`);
+      if (art.link || art.url) lines.push(`  Link: ${art.link || art.url}`);
+      lines.push('');
+    });
+  }
   
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
   const a    = document.createElement('a');
@@ -1969,6 +1993,188 @@ function downloadCombinedSongLinks() {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+function triggerUploadPlaylist() {
+  const input = document.getElementById('playlist-file-input');
+  if (input) input.click();
+}
+
+async function handlePlaylistUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const text = e.target.result;
+    const lines = text.split('\n');
+    
+    let currentSection = null; // 'participants', 'libre', 'guest'
+    let currentItem = { name: '', song: '', link: '' };
+    
+    const parsedParticipants = [];
+    const parsedLibre = [];
+    const parsedGuest = [];
+    
+    function commitItem() {
+      if (currentItem.name || currentItem.song || currentItem.link) {
+        if (currentSection === 'participants') {
+          parsedParticipants.push({ ...currentItem });
+        } else if (currentSection === 'libre') {
+          parsedLibre.push({ ...currentItem });
+        } else if (currentSection === 'guest') {
+          parsedGuest.push({ ...currentItem });
+        }
+      }
+      currentItem = { name: '', song: '', link: '' };
+    }
+    
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      
+      const upperLine = line.toUpperCase();
+      if (upperLine.includes('PARTICIPANTES') || upperLine.includes('MIC CLUB')) {
+        commitItem();
+        currentSection = 'participants';
+        continue;
+      } else if (upperLine.includes('KARAOKE LIBRE') || upperLine.includes('TEMAS DE KARAOKE')) {
+        commitItem();
+        currentSection = 'libre';
+        continue;
+      } else if (upperLine.includes('ARTISTAS INVITADOS') || upperLine.includes('INVITADOS')) {
+        commitItem();
+        currentSection = 'guest';
+        continue;
+      } else if (line.startsWith('===')) {
+        continue;
+      }
+      
+      if (line.startsWith('Canción:') || line.startsWith('Cancion:')) {
+        currentItem.song = line.replace(/Canció?n:\s*/i, '').trim();
+      } else if (line.startsWith('Link:')) {
+        currentItem.link = line.replace(/Link:\s*/i, '').trim();
+      } else {
+        commitItem();
+        currentItem.name = line;
+      }
+    }
+    commitItem();
+    
+    const eventId = getCurrentEventId();
+    if (!eventId) {
+      mcAlert('No hay un evento activo seleccionado.');
+      return;
+    }
+    
+    try {
+      // 1. Participantes
+      for (const item of parsedParticipants) {
+        let foundKey = null;
+        for (const [key, part] of Object.entries(allParticipants)) {
+          if ((part.name || '').trim().toLowerCase() === item.name.toLowerCase()) {
+            foundKey = key;
+            break;
+          }
+        }
+        
+        let splitSong = item.song.split(' — ');
+        let title = splitSong[0] || '';
+        let artist = splitSong[1] || '';
+        
+        if (foundKey) {
+          if (firebaseOk) {
+            await dbUpdate(dbRef(db, `events/${eventId}/participants/${foundKey}`), {
+              songTitle: title,
+              songArtist: artist,
+              karaokeLink: item.link
+            });
+          } else {
+            allParticipants[foundKey].songTitle = title;
+            allParticipants[foundKey].songArtist = artist;
+            allParticipants[foundKey].karaokeLink = item.link;
+          }
+        } else {
+          const newId = 'imported_' + Math.random().toString(36).substr(2, 9);
+          const newPart = {
+            name: item.name,
+            people: 1,
+            attended: true,
+            songTitle: title,
+            songArtist: artist,
+            karaokeLink: item.link,
+            points: 0,
+            hasVoted: false
+          };
+          if (firebaseOk) {
+            await dbUpdate(dbRef(db, `events/${eventId}/participants/${newId}`), newPart);
+          } else {
+            allParticipants[newId] = newPart;
+          }
+        }
+      }
+      
+      // 2. Karaoke Libre
+      for (const item of parsedLibre) {
+        let splitSong = item.song.split(' — ');
+        let title = splitSong[0] || '';
+        let artist = splitSong[1] || '';
+        const newId = 'free_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const freeItemObj = {
+          id: newId,
+          name: item.name,
+          songTitle: title,
+          songArtist: artist,
+          link: item.link,
+          played: false
+        };
+        if (firebaseOk) {
+          await dbUpdate(dbRef(db, `events/${eventId}/freeKaraokeList/${newId}`), freeItemObj);
+        } else {
+          if (!freeKaraokeList[eventId]) freeKaraokeList[eventId] = {};
+          freeKaraokeList[eventId][newId] = freeItemObj;
+        }
+      }
+      
+      // 3. Artistas Invitados
+      const evObj = localState.settings?.events?.[eventId];
+      if (evObj) {
+        const existingGuests = evObj.guestArtists || [];
+        for (const item of parsedGuest) {
+          let splitSong = item.song.split(' — ');
+          let title = splitSong[0] || '';
+          let artist = splitSong[1] || '';
+          const exists = existingGuests.some(g => g.name.toLowerCase() === item.name.toLowerCase() && (g.song || '').toLowerCase() === title.toLowerCase());
+          if (!exists) {
+            existingGuests.push({
+              name: item.name,
+              song: title || 'Repertorio Especial',
+              link: item.link
+            });
+          }
+        }
+        if (firebaseOk) {
+          await dbUpdate(dbRef(db, `settings/events/${eventId}`), { guestArtists: existingGuests });
+        } else {
+          evObj.guestArtists = existingGuests;
+        }
+      }
+      
+      if (!firebaseOk) {
+        saveLocal();
+      }
+      
+      mcAlert(`Playlist subida con éxito:\n- ${parsedParticipants.length} Participantes\n- ${parsedLibre.length} Karaoke Libre\n- ${parsedGuest.length} Artistas Invitados`);
+      updateUI();
+    } catch (err) {
+      console.error(err);
+      mcAlert('Error al guardar la playlist: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+window.triggerUploadPlaylist = triggerUploadPlaylist;
+window.handlePlaylistUpload = handlePlaylistUpload;
 
 function downloadReservations() {
   const parts = Object.values(allParticipants)
@@ -6122,6 +6328,23 @@ function getConsolidatedQueue(eventId = null) {
   }));
   list.push(...manualItems);
 
+  // 4. Artistas Invitados (Invitados)
+  const event = activeEventId ? (localState.settings?.events?.[activeEventId] || {}) : {};
+  const guestArtists = event.guestArtists || [];
+  const guestItems = guestArtists
+    .filter(art => art.link || art.url)
+    .map((art, idx) => ({
+      source: 'guest',
+      id: `guest-${idx}`,
+      name: art.name,
+      song: art.song || 'Repertorio Especial',
+      songTitle: art.song || 'Repertorio Especial',
+      songArtist: art.name,
+      url: art.link || art.url,
+      ytId: getYouTubeId(art.link || art.url)
+    }));
+  list.push(...guestItems);
+
   // Filtrar solo los ítems que tengan un ID de YouTube válido
   const validItems = list.filter(item => item.ytId);
 
@@ -6146,10 +6369,23 @@ let currentPlaylistFilter = 'micclub';
 function setPlaylistFilter(filter) {
   currentPlaylistFilter = filter;
   // Actualizar clases activas de los botones de filtro
-  ['micclub', 'libre'].forEach(f => {
+  ['micclub', 'libre', 'guest'].forEach(f => {
     const btn = document.getElementById(`pl-filter-${f}`);
     if (btn) btn.classList.toggle('active', f === filter);
   });
+  
+  // Actualizar título dinámico de la cola
+  const nameEl = document.getElementById('yt-playlist-list-name');
+  if (nameEl) {
+    if (filter === 'micclub') {
+      nameEl.textContent = 'Cola de Participantes Mic Club';
+    } else if (filter === 'libre') {
+      nameEl.textContent = 'Cola de Karaoke Libre';
+    } else if (filter === 'guest') {
+      nameEl.textContent = 'Cola de Artistas Invitados';
+    }
+  }
+  
   renderPlaylistQueue();
 }
 
@@ -6182,6 +6418,8 @@ function renderPlaylistQueue() {
     queue = queue.filter(item => item.source === 'micclub' || (item.source === 'manual' && item.targetList === 'micclub'));
   } else if (currentPlaylistFilter === 'libre') {
     queue = queue.filter(item => item.source === 'libre' || (item.source === 'manual' && item.targetList === 'libre'));
+  } else if (currentPlaylistFilter === 'guest') {
+    queue = queue.filter(item => item.source === 'guest' || (item.source === 'manual' && item.targetList === 'guest'));
   }
 
   if (countEl) countEl.textContent = `${queue.length} temas`;
@@ -6193,8 +6431,8 @@ function renderPlaylistQueue() {
 
   itemsContainer.innerHTML = queue.map((item, idx) => {
     const isCurrent = activeYtVideo && activeYtVideo.source === item.source && activeYtVideo.id === item.id;
-    const badgeText = item.source === 'micclub' ? 'MC' : (item.source === 'libre' ? 'LIBRE' : 'MANUAL');
-    const badgeColorClass = item.source === 'micclub' ? 'badge-gold' : (item.source === 'libre' ? 'badge-teal' : 'badge-purple');
+    const badgeText = item.source === 'micclub' ? 'MC' : (item.source === 'libre' ? 'LIBRE' : (item.source === 'guest' ? 'INVITADOS' : 'MANUAL'));
+    const badgeColorClass = item.source === 'micclub' ? 'badge-gold' : (item.source === 'libre' ? 'badge-teal' : (item.source === 'guest' ? 'badge-purple' : 'badge-purple'));
     const badgeHtml = item.source === 'micclub' ? '' : `<span class="badge ${badgeColorClass}" style="font-size:8px;padding:2px 4px">${badgeText}</span>`;
     
     return `
@@ -6363,7 +6601,7 @@ async function submitAddSongModal() {
 }
 
 // Reproducir ítem específico de la cola
-function playQueueItem(source, id) {
+function playQueueItem(source, id, autoPlay = true) {
   const queue = getConsolidatedQueue();
   const item = queue.find(x => x.source === source && x.id === id);
   if (!item) return;
@@ -6375,7 +6613,7 @@ function playQueueItem(source, id) {
   }
 
   activeYtVideo = item;
-  isYtPlaying = true;
+  isYtPlaying = autoPlay;
   
   // Actualizar el UI del reproductor remoto
   const titleEl = document.getElementById('yt-remote-title');
@@ -6388,12 +6626,14 @@ function playQueueItem(source, id) {
   if (thumbEl) {
     thumbEl.innerHTML = `<img src="https://img.youtube.com/vi/${item.ytId}/default.jpg" style="width:100%;height:100%;object-fit:cover">`;
   }
-  if (playBtn) playBtn.textContent = '⏸';
+  if (playBtn) {
+    updatePlayBtnIcon();
+  }
 
   // Enviar comando de carga a la pantalla de proyección
   if (castChannel) {
     castChannel.postMessage({
-      type: 'yt_load',
+      type: autoPlay ? 'yt_load' : 'yt_cue',
       ytId: item.ytId,
       title: item.name,
       song: item.song
@@ -6404,6 +6644,7 @@ function playQueueItem(source, id) {
       ytId: item.ytId,
       title: item.name,
       song: item.song,
+      autoPlay: autoPlay,
       timestamp: Date.now()
     });
   }
@@ -6470,8 +6711,7 @@ function ytRemoteTogglePlay() {
   }
 
   isYtPlaying = !isYtPlaying;
-  const playBtn = document.getElementById('yt-remote-play-btn');
-  if (playBtn) playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+  updatePlayBtnIcon();
 
   if (castChannel) {
     castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
@@ -6485,7 +6725,7 @@ function ytRemoteTogglePlay() {
 }
 
 // Siguiente tema
-function ytRemoteNext() {
+function ytRemoteNext(autoPlay = true) {
   const queue = getConsolidatedQueue();
   if (!queue.length) return;
   
@@ -6497,7 +6737,7 @@ function ytRemoteNext() {
     }
   }
   
-  playQueueItem(queue[nextIdx].source, queue[nextIdx].id);
+  playQueueItem(queue[nextIdx].source, queue[nextIdx].id, autoPlay);
 }
 
 // Tema anterior
@@ -6716,8 +6956,12 @@ function onPlayerStateChange(event) {
     if (castChannel) {
       castChannel.postMessage({ type: 'yt_ended' });
     }
-    // El proyector avanza automáticamente a la siguiente canción
-    ytRemoteNext();
+    const mode = localState.settings?.playbackMode || 'theme';
+    if (mode === 'continuous') {
+      ytRemoteNext(true);
+    } else {
+      ytRemoteNext(false);
+    }
   }
 }
 
@@ -6758,6 +7002,11 @@ function handleProyectorMessage(data) {
       projectionPlayer.loadVideoById(data.ytId);
       applyProyectorLayout('video');
     }
+  } else if (data.type === 'yt_cue') {
+    if (projectionPlayer && projectionPlayerReady) {
+      projectionPlayer.cueVideoById(data.ytId);
+      applyProyectorLayout('video');
+    }
   } else if (data.type === 'yt_play') {
     if (projectionPlayer && projectionPlayerReady) {
       projectionPlayer.playVideo();
@@ -6794,14 +7043,12 @@ function handleCastMessage(data) {
     const progressEl = document.getElementById('yt-remote-progress');
     const timeCurrentEl = document.getElementById('yt-remote-time-current');
     const timeDurationEl = document.getElementById('yt-remote-time-duration');
-    const playBtn = document.getElementById('yt-remote-play-btn');
 
     const activeStates = ['playing', 'buffering'];
     const isActive = activeStates.includes(data.state);
 
-    if (playBtn) {
-      playBtn.textContent = isActive ? '⏸' : '▶';
-    }
+    isYtPlaying = isActive;
+    updatePlayBtnIcon();
 
     if (!isSeeking && progressEl) {
       progressEl.max = Math.floor(data.duration || 0);
@@ -6811,13 +7058,16 @@ function handleCastMessage(data) {
     if (timeCurrentEl) timeCurrentEl.textContent = formatTime(data.currentTime);
     if (timeDurationEl) timeDurationEl.textContent = formatTime(data.duration);
     
-    isYtPlaying = isActive;
   } else if (data.type === 'yt_ended') {
     isYtPlaying = false;
-    const playBtn = document.getElementById('yt-remote-play-btn');
-    if (playBtn) playBtn.textContent = '▶';
+    updatePlayBtnIcon();
     if (!firebaseOk) {
-      ytRemoteNext();
+      const mode = localState.settings?.playbackMode || 'theme';
+      if (mode === 'continuous') {
+        ytRemoteNext(true);
+      } else {
+        ytRemoteNext(false);
+      }
     }
   } else if (data.type === 'sync_request') {
     if (MODE === 'pantalla') {
@@ -6839,8 +7089,7 @@ function handleCastMessage(data) {
       updateCastButtonsHighlight(data.layout);
       
       isYtPlaying = data.isPlaying;
-      const playBtn = document.getElementById('yt-remote-play-btn');
-      if (playBtn) playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+      updatePlayBtnIcon();
       
       const volEl = document.getElementById('yt-remote-volume');
       if (volEl) volEl.value = data.volume;
