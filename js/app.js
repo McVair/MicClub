@@ -6324,6 +6324,13 @@ let lastCastYtVideoTimestamp = 0;
 let lastCastYtCommandTimestamp = 0;
 let lastCastYtVolume = 100;
 
+function updatePlayBtnIcon() {
+  const playBtn = document.getElementById('yt-remote-play-btn');
+  if (playBtn) {
+    playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+  }
+}
+
 // Extractor robusto de ID de video de YouTube
 function getYouTubeId(url) {
   if (!url) return '';
