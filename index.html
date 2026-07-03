@@ -102,18 +102,38 @@ if ('serviceWorker' in navigator) {
 
       <!-- Panel de Emisión / Proyección -->
       <div class="card" style="padding:14px;margin-bottom:14px">
-        <div id="screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <button id="cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>
-          <button id="screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">Salvapantallas</button>
-        </div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">Control de Emisión</div>
         
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">Video</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">Ranking</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">Votación</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">Participantes</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">Karaoke</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">Próximo Evento</button>
+        <!-- Fila 1: Emitir, Video -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <button id="cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:100%">Video</button>
+        </div>
+
+        <!-- Segundo Renglon: Votación -->
+        <div style="margin-bottom:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:100%">Votación</button>
+        </div>
+
+        <!-- Tercer Renglon: 5 botones de Votación (2 renglones de alto) -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-pubSong" onclick="toggleVotingColumn('pubSong')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Canción<br>Público</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-pubPerf" onclick="toggleVotingColumn('pubPerf')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Perfo<br>Público</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-jurySong" onclick="toggleVotingColumn('jurySong')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Canción<br>Jurado</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-juryPerf" onclick="toggleVotingColumn('juryPerf')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Perfo<br>Jurado</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-juryHinchada" onclick="toggleVotingColumn('juryHinchada')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Mejor<br>Hinchada</button>
+        </div>
+
+        <!-- Cuarta Fila: Ranking -->
+        <div style="margin-bottom:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:100%">Ranking</button>
+        </div>
+
+        <!-- Quinta Fila: Invitados, Participantes, Karaoke -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-guests" onclick="setCastLayout('guests')" style="font-size:11px;padding:8px 0;width:100%">Invitados</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:100%">Participantes</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
         </div>
       </div>
 
@@ -925,18 +945,30 @@ if ('serviceWorker' in navigator) {
     <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
     <div class="card" style="padding:14px;margin-bottom:14px">
       <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">Control de Emisión</div>
-      <div id="bar-screensaver-toggle-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      
+      <!-- Primera Fila: Emitir, Salvapantallas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <button id="bar-cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>
         <button id="bar-screensaver-toggle-btn" class="btn btn-outline" onclick="toggleScreensaver()" style="width:100%;margin:0">Salvapantallas</button>
       </div>
       
+      <!-- Segunda Fila: Invitados, Participantes, Karaoke -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-guests" onclick="setCastLayout('guests')" style="font-size:11px;padding:8px 0;width:100%">Invitados</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:100%">Participantes</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
+      </div>
+
+      <!-- Tercera Fila: Ranking, Votación -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:100%">Ranking</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:100%">Votación</button>
+      </div>
+
+      <!-- Cuarta Fila: Video, Próximo evento -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:auto">Video</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:auto">Ranking</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:auto">Votación</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:auto">Participantes</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:auto">Karaoke</button>
-        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:auto">Próximo Evento</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:100%">Video</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:100%">Próximo Evento</button>
       </div>
     </div>
 

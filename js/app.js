@@ -1170,6 +1170,7 @@ function updateRegistrationPageUI() {
 
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
 function updateUI() {
+  updateVotingVisibleColumnsButtonsUI();
   updateDashboard();
   updateProgramPage();
   updateStats();
@@ -5856,118 +5857,48 @@ function renderPantallaContent() {
     const activeEventId = getCurrentEventId();
     const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
     const artists = ev?.guestArtists || [];
-    if (!artists.length) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay artistas invitados cargados aún para este evento.</div>`;
-      return;
-    }
-    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
-      artists.map((art, idx) => {
-        const name = typeof art === 'object' ? art.name : art;
-        const song = typeof art === 'object' ? art.song : '';
-        return `
-          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Inter',sans-serif; font-size: 28px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
-            <span style="font-family:'Inter',sans-serif; font-size: 20px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
-          </div>
-        `;
-      }).join('')
-    }</div>`;
+    container.innerHTML = renderProjectionQueueLayout('En Escena', artists, 'No hay artistas invitados cargados aún para este evento.');
   }
   else if (pantallaTab === 'participantes') {
     const activeEventId = getCurrentEventId();
     const parts = getEnrichedParticipantsList(activeEventId)
       .filter(p => p.songConfirmed)
       .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    if (!parts.length) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">Esperando confirmación de participantes...</div>`;
-      return;
-    }
-    
-    const activeSinger = parts[0];
-    const songLabel = activeSinger.songTitle ? `${esc(activeSinger.songTitle)}${activeSinger.songArtist ? ' — ' + esc(activeSinger.songArtist) : ''}` : '—';
-    
-    let html = `
-      <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; box-sizing: border-box; animation: fadeUp 0.5s ease-out forwards;">
-        
-        <!-- Cantando Ahora Block -->
-        <div style="width: 100%; text-align: center; margin-bottom: 20px;">
-          <div style="font-size: 14px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">
-            🎤 En Escena
-          </div>
-          <div style="font-family: 'Oswald', sans-serif; font-size: 100px; font-weight: 700; color: #ffffff; text-shadow: 0 0 24px rgba(223, 172, 74, 0.5); line-height: 1.1; width: 80%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            ${esc(activeSinger.name)}
-          </div>
-          <div style="font-family: 'Inter', sans-serif; font-size: 28px; color: var(--gold); font-weight: 500; margin-top: 12px; margin-bottom: 12px; letter-spacing: 0.5px; opacity: 0.9;">
-            ${songLabel}
-          </div>
-        </div>
-    `;
-    
-    const nextList = parts.slice(1);
-    if (nextList.length > 0) {
-      html += `
-        <!-- Divisor -->
-        <div style="width: 80%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 20px 0 30px 0;"></div>
-        
-        <!-- Siguientes en la cola -->
-        <div style="width: 100%; max-width: 800px; margin: 0 auto;">
-          <div style="font-size: 12px; letter-spacing: 3px; color: var(--text2); font-weight: bold; margin-bottom: 16px; text-transform: uppercase; text-align: center;">
-            A Continuación...
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 6px;">
-            ${nextList.map((p, idx) => {
-              const pSongLabel = p.songTitle ? `${esc(p.songTitle)}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}` : '—';
-              return `
-                <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-family:'Inter',sans-serif; font-size: 18px; color: #ffffff; letter-spacing: 0.5px; font-weight: 500;">
-                    ${idx + 2}. ${esc(p.name)}
-                  </span>
-                  <span style="font-family:'Inter',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55%;">
-                    ${pSongLabel}
-                  </span>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
-      `;
-    }
-    
-    html += `</div>`;
-    container.innerHTML = html;
+    container.innerHTML = renderProjectionQueueLayout('En Escena', parts, 'Esperando confirmación de participantes...');
   }
   else if (pantallaTab === 'votos') {
+    const visibleCols = localState.settings?.votingVisibleColumns || {};
     container.innerHTML = `
       <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
-        <div class="result-column-card" style="margin:0">
+        <div class="result-column-card" style="margin:0; display: ${visibleCols.pubSong ? 'block' : 'none'}">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>CANCIÓN</div>
             <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
           </div>
           <div id="pantalla-rank-pub-song"></div>
         </div>
-        <div class="result-column-card" style="margin:0">
+        <div class="result-column-card" style="margin:0; display: ${visibleCols.pubPerf ? 'block' : 'none'}">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
             <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
           </div>
           <div id="pantalla-rank-pub-perf"></div>
         </div>
-        <div class="result-column-card" style="margin:0">
+        <div class="result-column-card" style="margin:0; display: ${visibleCols.jurySong ? 'block' : 'none'}">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>CANCIÓN</div>
             <div class="column-source-tag source-jury">⭐ JURADO</div>
           </div>
           <div id="pantalla-rank-jury-song"></div>
         </div>
-        <div class="result-column-card" style="margin:0">
+        <div class="result-column-card" style="margin:0; display: ${visibleCols.juryPerf ? 'block' : 'none'}">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
             <div class="column-source-tag source-jury">⭐ JURADO</div>
           </div>
           <div id="pantalla-rank-jury-perf"></div>
         </div>
-        <div class="result-column-card" style="margin:0">
+        <div class="result-column-card" style="margin:0; display: ${visibleCols.juryHinchada ? 'block' : 'none'}">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>HINCHADA</div>
             <div class="column-source-tag source-jury">📣 JURADO</div>
@@ -6019,20 +5950,7 @@ function renderPantallaContent() {
     const sortedFreeItems = Object.entries(currentEventFreeList)
       .map(([id, p]) => ({ ...p, id }))
       .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    if (!sortedFreeItems.length) {
-      container.innerHTML = `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">No hay inscriptos en Karaoke Libre aún.</div>`;
-      return;
-    }
-    container.innerHTML = `<div style="max-width: 800px; margin: 0 auto; animation: fadeUp 0.5s ease-out forwards;">${
-      sortedFreeItems.map((item, index) => {
-        return `
-          <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
-            <span style="font-family:'Inter',sans-serif; font-size: 18px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
-          </div>
-        `;
-      }).join('')
-    }</div>`;
+    container.innerHTML = renderProjectionQueueLayout('En Escena', sortedFreeItems, 'No hay inscriptos en Karaoke Libre aún.');
   }
 }
 
@@ -6904,14 +6822,14 @@ function setCastLayout(layout) {
   if (castChannel) {
     castChannel.postMessage({ type: 'cast_layout', layout: layout });
   }
-  if (firebaseOk) {
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings'), { castLayout: layout });
   }
 }
 
 // Destacar el botón del diseño activo en el admin
 function updateCastButtonsHighlight(layout) {
-  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote'];
+  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote', 'guests'];
   layouts.forEach(l => {
     const btn = document.getElementById(`cast-btn-${l}`);
     if (btn) btn.classList.toggle('active', l === layout);
@@ -7380,8 +7298,8 @@ function openProjectionWindow() {
     projectionWindowRef = window.open(url, '_blank');
   }
   
-  if (firebaseOk && !lastProjectionActive) {
-    dbUpdate(dbRef(db, 'settings'), { projectionActive: true });
+  if (firebaseOk && !lastProjectionActive && MODE !== 'bar') {
+    dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: 'video' });
   }
   
   if (projectionCheckInterval) clearInterval(projectionCheckInterval);
@@ -7391,7 +7309,7 @@ window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
   if (lastProjectionActive) {
-    if (firebaseOk) {
+    if (firebaseOk && MODE !== 'bar') {
       dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
     } else {
       lastProjectionActive = false;
@@ -7406,10 +7324,12 @@ function toggleProjectionState() {
       projectionCheckInterval = null;
     }
   } else {
-    if (firebaseOk) {
-      dbUpdate(dbRef(db, 'settings'), { projectionActive: true });
+    if (firebaseOk && MODE !== 'bar') {
+      dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: 'video' });
     } else {
+      const startLayout = (MODE === 'bar') ? 'ranking' : 'video';
       openProjectionWindow();
+      setCastLayout(startLayout);
       lastProjectionActive = true;
       updateProjectionButtonUI();
     }
@@ -7517,7 +7437,7 @@ window.addEventListener('resize', () => {
 });
 
 // Lógica de Salvapantallas
-let screensaverIntervalId = null;
+let screensaverTimeoutId = null;
 let screensaverActive = false;
 let screensaverCurrentView = 'ranking';
 
@@ -7558,46 +7478,179 @@ function toggleScreensaver() {
 window.toggleScreensaver = toggleScreensaver;
 
 function startScreensaverTimer() {
-  if (screensaverIntervalId) clearInterval(screensaverIntervalId);
+  if (screensaverTimeoutId) clearTimeout(screensaverTimeoutId);
   runScreensaverStep();
-  screensaverIntervalId = setInterval(runScreensaverStep, 60000);
 }
 
 function stopScreensaverTimer() {
-  if (screensaverIntervalId) {
-    clearInterval(screensaverIntervalId);
-    screensaverIntervalId = null;
+  if (screensaverTimeoutId) {
+    clearTimeout(screensaverTimeoutId);
+    screensaverTimeoutId = null;
   }
 }
 
 function runScreensaverStep() {
   if (!screensaverActive) return;
   
-  // Determinar modo automáticamente basado en si hay algún voto en base de datos
-  const activeEventId = getCurrentEventId();
-  let hasVotes = false;
+  const isFreeMode = (localState.settings?.playbackMode === 'free');
+  const isVotingClosed = !localState.settings?.votingOpen;
   
-  if (allParticipants) {
-    hasVotes = Object.keys(allParticipants).some(p => {
-      const res = allParticipants[p]?.reservations?.[activeEventId] || {};
-      return (res.votesCount || 0) > 0;
-    });
-  }
+  // Instancia 2: Votación cerrada y Karaoke libre activo
+  const isInstance2 = isVotingClosed && isFreeMode;
   
-  const isAfterVoting = votingOpen || hasVotes;
+  let nextLayout = 'ranking';
+  let nextDuration = 20000;
   
-  if (isAfterVoting) {
-    // Después de votar: alternar entre ranking y votos
-    screensaverCurrentView = (screensaverCurrentView === 'ranking') ? 'vote' : 'ranking';
+  if (isInstance2) {
+    const sequence = ['free', 'vote', 'ranking', 'flyer'];
+    let idx = sequence.indexOf(screensaverCurrentView);
+    if (idx === -1) idx = 0;
+    
+    idx = (idx + 1) % sequence.length;
+    nextLayout = sequence[idx];
+    nextDuration = 20000; // 20s para todos
   } else {
-    // Antes de votar: alternar entre ranking y participantes
-    screensaverCurrentView = (screensaverCurrentView === 'ranking') ? 'parts' : 'ranking';
+    // Instancia 1: Cantante (según modo) -> ranking -> cantante...
+    let singerLayout = 'parts';
+    const currentMode = localState.settings?.playbackMode || 'theme';
+    if (currentMode === 'guests') singerLayout = 'guests';
+    else if (currentMode === 'free') singerLayout = 'free';
+    
+    if (screensaverCurrentView === singerLayout) {
+      nextLayout = 'ranking';
+      nextDuration = 10000; // 10s para ranking
+    } else {
+      nextLayout = singerLayout;
+      nextDuration = 20000; // 20s para cantante
+    }
   }
+  
+  screensaverCurrentView = nextLayout;
   
   if (MODE === 'pantalla') {
-    applyProyectorLayout(screensaverCurrentView);
+    applyProyectorLayout(nextLayout);
   } else if (!firebaseOk) {
-    setCastLayout(screensaverCurrentView);
+    setCastLayout(nextLayout);
+  }
+  
+  if (screensaverActive) {
+    screensaverTimeoutId = setTimeout(runScreensaverStep, nextDuration);
   }
 }
+
+// ── CONTROL DE REVELADO DE COLUMNAS DE VOTACIÓN ──
+function toggleVotingColumn(columnKey) {
+  const currentCols = localState.settings?.votingVisibleColumns || {};
+  const nextVal = !currentCols[columnKey];
+  
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings/votingVisibleColumns'), { [columnKey]: nextVal });
+  } else {
+    if (!localState.settings) localState.settings = {};
+    if (!localState.settings.votingVisibleColumns) localState.settings.votingVisibleColumns = {};
+    localState.settings.votingVisibleColumns[columnKey] = nextVal;
+    updateUI();
+    if (projectionWindowRef && !projectionWindowRef.closed) {
+      try {
+        projectionWindowRef.applyProyectorLayout(currentCastLayout || 'vote');
+      } catch (err) { console.error('Error applying proyector layout offline:', err); }
+    }
+  }
+}
+window.toggleVotingColumn = toggleVotingColumn;
+
+function updateVotingVisibleColumnsButtonsUI() {
+  const cols = localState.settings?.votingVisibleColumns || {};
+  const map = {
+    pubSong: 'btn-vote-col-pubSong',
+    pubPerf: 'btn-vote-col-pubPerf',
+    jurySong: 'btn-vote-col-jurySong',
+    juryPerf: 'btn-vote-col-juryPerf',
+    juryHinchada: 'btn-vote-col-juryHinchada'
+  };
+  
+  Object.entries(map).forEach(([key, id]) => {
+    const isVisible = !!cols[key];
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.classList.toggle('active', isVisible);
+    }
+  });
+}
+window.updateVotingVisibleColumnsButtonsUI = updateVotingVisibleColumnsButtonsUI;
+
+// ── LAYOUT UNIFICADO DE COLA DE REPRODUCCIÓN ──
+function renderProjectionQueueLayout(title, items, emptyText) {
+  if (!items || !items.length) {
+    return `<div style="color:var(--text2);font-style:italic;text-align:center;padding:40px;font-size:15px">${esc(emptyText)}</div>`;
+  }
+  
+  const activeItem = items[0];
+  let songLabel = '';
+  if (activeItem.songTitle || activeItem.song) {
+    const sTitle = activeItem.songTitle || activeItem.song || '';
+    const sArtist = activeItem.songArtist || '';
+    songLabel = sTitle + (sArtist ? ' — ' + sArtist : '');
+  } else {
+    songLabel = 'Repertorio Especial';
+  }
+  
+  let html = `
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; box-sizing: border-box; animation: fadeUp 0.5s ease-out forwards;">
+      
+      <!-- Cantando Ahora Block -->
+      <div style="width: 100%; text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 14px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">
+          🎤 ${esc(title)}
+        </div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 80px; font-weight: 700; color: #ffffff; text-shadow: 0 0 24px rgba(223, 172, 74, 0.5); line-height: 1.1; width: 80%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${esc(activeItem.name)}
+        </div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 24px; color: var(--gold); font-weight: 500; margin-top: 12px; margin-bottom: 12px; letter-spacing: 0.5px; opacity: 0.9;">
+          ${esc(songLabel)}
+        </div>
+      </div>
+  `;
+  
+  const nextList = items.slice(1);
+  if (nextList.length > 0) {
+    html += `
+      <!-- Divisor -->
+      <div style="width: 80%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 20px 0 30px 0;"></div>
+      
+      <!-- Siguientes en la cola -->
+      <div style="width: 100%; max-width: 800px; margin: 0 auto;">
+        <div style="font-size: 12px; letter-spacing: 3px; color: var(--text2); font-weight: bold; margin-bottom: 16px; text-transform: uppercase; text-align: center;">
+          A Continuación...
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 6px;">
+          ${nextList.map((p, idx) => {
+            let pSongLabel = '';
+            if (p.songTitle || p.song) {
+              const psTitle = p.songTitle || p.song || '';
+              const psArtist = p.songArtist || '';
+              pSongLabel = psTitle + (psArtist ? ' — ' + psArtist : '');
+            } else {
+              pSongLabel = 'Repertorio Especial';
+            }
+            return `
+              <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-family:'Inter',sans-serif; font-size: 18px; color: #ffffff; letter-spacing: 0.5px; font-weight: 500;">
+                  ${idx + 2}. ${esc(p.name)}
+                </span>
+                <span style="font-family:'Inter',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55%;">
+                  ${esc(pSongLabel)}
+                </span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  html += `</div>`;
+  return html;
+}
+window.renderProjectionQueueLayout = renderProjectionQueueLayout;
 
