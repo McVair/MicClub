@@ -7311,69 +7311,35 @@ function openProjectionWindow() {
     projectionWindowRef = window.open(url, '_blank');
   }
   
-  if (firebaseOk && !lastProjectionActive && MODE !== 'bar') {
-    dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: 'video' });
-  }
-  
   if (projectionCheckInterval) clearInterval(projectionCheckInterval);
   projectionCheckInterval = setInterval(checkProjectionWindowClosed, 1000);
 }
 window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
-  const isClosed = !projectionWindowRef || projectionWindowRef.closed;
+  const startLayout = (MODE === 'bar') ? 'ranking' : 'video';
+  openProjectionWindow();
+  setCastLayout(startLayout);
   
-  if (lastProjectionActive && !isClosed) {
-    if (firebaseOk && MODE !== 'bar') {
-      dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
-    } else {
-      lastProjectionActive = false;
-      if (projectionWindowRef && !projectionWindowRef.closed) {
-        projectionWindowRef.close();
-      }
-      projectionWindowRef = null;
-      updateProjectionButtonUI();
-    }
-    if (projectionCheckInterval) {
-      clearInterval(projectionCheckInterval);
-      projectionCheckInterval = null;
-    }
+  if (firebaseOk && MODE !== 'bar') {
+    dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: startLayout });
   } else {
-    if (isClosed) {
-      lastProjectionActive = false;
-      projectionWindowRef = null;
-    }
-    if (firebaseOk && MODE !== 'bar') {
-      dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: 'video' });
-    } else {
-      const startLayout = (MODE === 'bar') ? 'ranking' : 'video';
-      openProjectionWindow();
-      setCastLayout(startLayout);
-      lastProjectionActive = true;
-      updateProjectionButtonUI();
-    }
+    lastProjectionActive = true;
+    updateProjectionButtonUI();
   }
 }
 window.toggleProjectionState = toggleProjectionState;
 
 function updateProjectionButtonUI() {
-  const active = lastProjectionActive;
   const btn = document.getElementById('cast-btn-emitir');
   const btnBar = document.getElementById('bar-cast-btn-emitir');
   const btns = [btn, btnBar].filter(Boolean);
   
   btns.forEach(b => {
-    if (active) {
-      b.textContent = 'Cerrar';
-      b.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
-      b.style.borderColor = '#aa3d50';
-      b.style.color = '#fff';
-    } else {
-      b.textContent = 'Emitir';
-      b.style.background = '';
-      b.style.borderColor = '';
-      b.style.color = '';
-    }
+    b.textContent = 'Emitir';
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.color = '';
   });
 }
 window.updateProjectionButtonUI = updateProjectionButtonUI;
