@@ -1008,19 +1008,40 @@ function enrichHistorySnapshot(snap) {
   return snap;
 }
 
+let lastScoresCache = {};
+let lastScoresCacheTime = 0;
+
+function getCachedEventScores(eventId) {
+  const now = Date.now();
+  const cacheKey = eventId + '_' + Object.keys(allParticipants || {}).length;
+  if (lastScoresCache[cacheKey] && now - lastScoresCacheTime < 100) {
+    return lastScoresCache[cacheKey];
+  }
+  const parts = getEnrichedParticipantsList(eventId);
+  const scores = getEventScores(parts);
+  lastScoresCache[cacheKey] = scores;
+  lastScoresCacheTime = now;
+  return scores;
+}
+
 function calcScore(p, eventId = null) {
   const pid = p.id || Object.keys(allParticipants).find(k => allParticipants[k] === p);
   if (!pid) return calcBaseScore(p);
   const activeEventId = eventId || getCurrentEventId();
   if (!activeEventId) return calcBaseScore(p);
-  const parts = getEnrichedParticipantsList(activeEventId);
-  const scores = getEventScores(parts);
+  const scores = getCachedEventScores(activeEventId);
   return scores[pid]?.total ?? calcBaseScore(p);
 }
 
-function calcMicclubScore(p, eventId = null) {
-  const eventPts = showRunning ? calcScore(p, eventId) : 0;
-  return eventPts + (parseInt(p.micclubPts) || 0);
+function calcMicclubScore(p) {
+  let score = parseInt(p.micclubPts) || 0;
+  if (localState.settings?.events?.event1) {
+    score += calcScore(p, 'event1');
+  }
+  if (localState.settings?.events?.event2) {
+    score += calcScore(p, 'event2');
+  }
+  return score;
 }
 
 function sorted(eventId = null) {
