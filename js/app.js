@@ -1149,17 +1149,6 @@ function updateRegistrationPageUI() {
 
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
 function updateUI() {
-  const badges = document.querySelectorAll('.conn-status-badge');
-  badges.forEach(b => {
-    if (firebaseOk) {
-      b.textContent = 'NUBE';
-      b.style.background = '#4d9e6a';
-    } else {
-      b.textContent = 'LOCAL';
-      b.style.background = '#aa3d50';
-    }
-  });
-
   updateDashboard();
   updateProgramPage();
   updateStats();
