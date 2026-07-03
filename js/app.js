@@ -475,6 +475,7 @@ function initFirebase() {
       updateUI();
     });
     dbOnValue(dbRef(db, 'settings'), snap => {
+      window._lastSettingsSnap = snap.val();
       const s = snap.val() || {};
       firebaseSettingsLoaded = true;
       const ce = s.currentEvent || {};
@@ -1596,7 +1597,10 @@ function updateDashboard() {
 
   const dbg = document.getElementById('debug-settings');
   if (dbg) {
-    dbg.textContent = "DEBUG settings: " + JSON.stringify(localState.settings || {});
+    dbg.innerHTML = `
+      <div style="margin-bottom:4px"><strong>Internal State:</strong> ${JSON.stringify(localState.settings || {})}</div>
+      <div><strong>Firebase Snap:</strong> ${JSON.stringify(window._lastSettingsSnap === undefined ? "NOT_RECEIVED_YET" : window._lastSettingsSnap)}</div>
+    `;
   }
 
   const ev1 = localState.settings?.events?.event1;
