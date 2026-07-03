@@ -1594,6 +1594,11 @@ window.deleteNextEventImage = deleteNextEventImage;
 function updateDashboard() {
   if (!document.getElementById('home-dashboard')) return;
 
+  const dbg = document.getElementById('debug-settings');
+  if (dbg) {
+    dbg.textContent = "DEBUG settings: " + JSON.stringify(localState.settings || {});
+  }
+
   const ev1 = localState.settings?.events?.event1;
   const ev2 = localState.settings?.events?.event2;
   const closest = getClosestEvent(ev1, ev2);
