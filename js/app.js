@@ -492,7 +492,7 @@ function initFirebase() {
 
       const projectionActive = !!s.projectionActive;
       const isPC = window.innerWidth >= 992;
-      if (isPC) {
+      if (isPC && MODE !== 'bar') {
         if (projectionActive && !lastProjectionActive) {
           if (!projectionWindowRef || projectionWindowRef.closed) {
             openProjectionWindow();
@@ -508,8 +508,10 @@ function initFirebase() {
           }
         }
       }
-      lastProjectionActive = projectionActive;
-      updateProjectionButtonUI();
+      if (MODE !== 'bar') {
+        lastProjectionActive = projectionActive;
+        updateProjectionButtonUI();
+      }
       if (s.castYtVideo) {
         activeYtVideo = s.castYtVideo;
         if (MODE === 'admin' || MODE === 'home') {
@@ -1194,6 +1196,7 @@ function updateUI() {
   if (currentPage === 'admin-micclub-participants') renderAdminMicClubParticipants();
   if (currentPage === 'pantalla' || MODE === 'pantalla') {
     updatePantallaContent();
+    renderPantallaContent();
     updatePantallaSponsors();
   }
   renderLinks();
@@ -6819,6 +6822,16 @@ function ytRemoteVolumeChange(val) {
 function setCastLayout(layout) {
   currentCastLayout = layout;
   updateCastButtonsHighlight(layout);
+  
+  if (screensaverActive) {
+    screensaverActive = false;
+    updateScreensaverUIState();
+    stopScreensaverTimer();
+    if (firebaseOk && MODE !== 'bar') {
+      dbUpdate(dbRef(db, 'settings'), { screensaverActive: false });
+    }
+  }
+
   if (castChannel) {
     castChannel.postMessage({ type: 'cast_layout', layout: layout });
   }
@@ -7268,7 +7281,7 @@ window.activateAutoplay = activateAutoplay;
 function checkProjectionWindowClosed() {
   if (projectionWindowRef && projectionWindowRef.closed) {
     projectionWindowRef = null;
-    if (firebaseOk) {
+    if (firebaseOk && MODE !== 'bar') {
       dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
     } else {
       lastProjectionActive = false;
@@ -7308,7 +7321,9 @@ function openProjectionWindow() {
 window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
-  if (lastProjectionActive) {
+  const isClosed = !projectionWindowRef || projectionWindowRef.closed;
+  
+  if (lastProjectionActive && !isClosed) {
     if (firebaseOk && MODE !== 'bar') {
       dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
     } else {
@@ -7324,6 +7339,10 @@ function toggleProjectionState() {
       projectionCheckInterval = null;
     }
   } else {
+    if (isClosed) {
+      lastProjectionActive = false;
+      projectionWindowRef = null;
+    }
     if (firebaseOk && MODE !== 'bar') {
       dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: 'video' });
     } else {
@@ -7463,7 +7482,7 @@ window.updateScreensaverUIState = updateScreensaverUIState;
 
 function toggleScreensaver() {
   const targetState = !screensaverActive;
-  if (firebaseOk) {
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings'), { screensaverActive: targetState });
   } else {
     screensaverActive = targetState;
@@ -7529,7 +7548,7 @@ function runScreensaverStep() {
   
   if (MODE === 'pantalla') {
     applyProyectorLayout(nextLayout);
-  } else if (!firebaseOk) {
+  } else if (!firebaseOk || MODE === 'bar') {
     setCastLayout(nextLayout);
   }
   
@@ -7545,11 +7564,13 @@ function toggleVotingColumn(columnKey) {
   
   if (firebaseOk) {
     dbUpdate(dbRef(db, 'settings/votingVisibleColumns'), { [columnKey]: nextVal });
+    setCastLayout('vote');
   } else {
     if (!localState.settings) localState.settings = {};
     if (!localState.settings.votingVisibleColumns) localState.settings.votingVisibleColumns = {};
     localState.settings.votingVisibleColumns[columnKey] = nextVal;
     updateUI();
+    setCastLayout('vote');
     if (projectionWindowRef && !projectionWindowRef.closed) {
       try {
         projectionWindowRef.applyProyectorLayout(currentCastLayout || 'vote');
