@@ -23,6 +23,33 @@ if ('serviceWorker' in navigator) {
     keys.forEach(k => caches.delete(k));
   });
 }
+// Captura de errores globales para depuración
+window._globalErrors = [];
+window.addEventListener('error', function(e) {
+  const msg = 'ERR: ' + e.message + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')';
+  window._globalErrors.push(msg);
+  updateDebugBox();
+});
+window.addEventListener('unhandledrejection', function(e) {
+  const msg = 'REJ: ' + e.reason;
+  window._globalErrors.push(msg);
+  updateDebugBox();
+});
+function updateDebugBox() {
+  const dbg = document.getElementById('debug-settings');
+  if (dbg) {
+    let errContainer = document.getElementById('debug-errors-list');
+    if (!errContainer) {
+      errContainer = document.createElement('div');
+      errContainer.id = 'debug-errors-list';
+      errContainer.style.borderBottom = '1px dashed #ff4d4d';
+      errContainer.style.paddingBottom = '6px';
+      errContainer.style.marginBottom = '6px';
+      dbg.insertBefore(errContainer, dbg.firstChild);
+    }
+    errContainer.innerHTML = window._globalErrors.map(err => `<div style="color:#ff4d4d;font-weight:bold">${err}</div>`).join('');
+  }
+}
 </script>
 <script type="module" src="js/firebase.js"></script>
 </head>
