@@ -95,6 +95,7 @@ let MODE        = urlParams.get('mode') || 'home';
 if (window.location.pathname === '/pantalla') {
   MODE = 'pantalla';
 }
+const IS_BAR_PROJECTION = (urlParams.get('source') === 'bar');
 const URL_CODE  = (urlParams.get('code') || '').toUpperCase();
 let currentPage = 'home';
 
@@ -572,7 +573,7 @@ function initFirebase() {
         screensaverActive = !!s.screensaverActive;
         if (changed) {
           updateScreensaverUIState();
-          if (MODE === 'pantalla') {
+          if (MODE === 'pantalla' && !IS_BAR_PROJECTION) {
             if (screensaverActive) {
               startScreensaverTimer();
             } else {
@@ -586,7 +587,7 @@ function initFirebase() {
       }
 
       // Fallback de Sincronización para Monitor Extendido (Pantalla)
-      if (MODE === 'pantalla') {
+      if (MODE === 'pantalla' && !IS_BAR_PROJECTION) {
         if (s.castLayout && s.castLayout !== currentCastLayout) {
           currentCastLayout = s.castLayout;
           applyProyectorLayout(s.castLayout);
@@ -6937,16 +6938,20 @@ function onPlayerReady(event) {
   if (castChannel) {
     castChannel.postMessage({ type: 'projection_ready' });
   }
-  // Auto-sincronizar al estar listo leyendo de Firebase
+  // Auto-sincronizar al estar listo leyendo de Firebase (solo si no es proyeccion de bar)
   const s = localState.settings || {};
-  if (s.castLayout) {
-    applyProyectorLayout(s.castLayout);
-  }
-  if (s.castYtVolume !== undefined) {
-    projectionPlayer.setVolume(s.castYtVolume);
-  }
-  if (s.castYtCommand && s.castYtCommand.type === 'yt_play') {
-    projectionPlayer.playVideo();
+  if (IS_BAR_PROJECTION) {
+    applyProyectorLayout('ranking');
+  } else {
+    if (s.castLayout) {
+      applyProyectorLayout(s.castLayout);
+    }
+    if (s.castYtVolume !== undefined) {
+      projectionPlayer.setVolume(s.castYtVolume);
+    }
+    if (s.castYtCommand && s.castYtCommand.type === 'yt_play') {
+      projectionPlayer.playVideo();
+    }
   }
 }
 
@@ -7149,7 +7154,7 @@ function handleCastMessage(data) {
       }
     }
   } else if (data.type === 'sync_response') {
-    if (MODE === 'admin' || MODE === 'home') {
+    if (MODE === 'admin' || MODE === 'home' || MODE === 'bar') {
       currentCastLayout = data.layout;
       updateCastButtonsHighlight(data.layout);
       
@@ -7160,7 +7165,7 @@ function handleCastMessage(data) {
       if (volEl) volEl.value = data.volume;
     }
   } else if (data.type === 'projection_ready') {
-    if (MODE === 'admin' || MODE === 'home') {
+    if (MODE === 'admin' || MODE === 'home' || MODE === 'bar') {
       setCastLayout(currentCastLayout);
       if (activeYtVideo) {
         if (castChannel) {
@@ -7178,7 +7183,8 @@ function handleCastMessage(data) {
 
 // Inicializar el canal de comunicación
 if (window.BroadcastChannel) {
-  castChannel = new BroadcastChannel('micclub_cast');
+  const channelName = (MODE === 'bar' || (MODE === 'pantalla' && IS_BAR_PROJECTION)) ? 'micclub_cast_bar' : 'micclub_cast';
+  castChannel = new BroadcastChannel(channelName);
   castChannel.onmessage = (event) => {
     if (MODE === 'pantalla') {
       handleProyectorMessage(event.data);
@@ -7295,8 +7301,8 @@ function checkProjectionWindowClosed() {
 }
 
 function openProjectionWindow() {
-  const url = '?mode=pantalla';
-  const name = 'micclub_projection';
+  const url = (MODE === 'bar') ? '?mode=pantalla&source=bar' : '?mode=pantalla';
+  const name = (MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection';
   const w = window.screen.width || 1920;
   const h = window.screen.height || 1080;
   
