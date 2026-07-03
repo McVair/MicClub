@@ -475,7 +475,6 @@ function initFirebase() {
       updateUI();
     });
     dbOnValue(dbRef(db, 'settings'), snap => {
-      window._lastSettingsSnap = snap.val();
       const s = snap.val() || {};
       firebaseSettingsLoaded = true;
       const ce = s.currentEvent || {};
@@ -1594,19 +1593,6 @@ window.deleteNextEventImage = deleteNextEventImage;
 // ── DASHBOARD HOME ────────────────────────────────────────────────────────────
 function updateDashboard() {
   if (!document.getElementById('home-dashboard')) return;
-
-  const dbg = document.getElementById('debug-settings');
-  if (dbg) {
-    let errHtml = '';
-    if (window._globalErrors && window._globalErrors.length > 0) {
-      errHtml = `<div style="border-bottom:1px dashed #ff4d4d;padding-bottom:6px;margin-bottom:6px">${window._globalErrors.map(err => `<div style="color:#ff4d4d;font-weight:bold">${err}</div>`).join('')}</div>`;
-    }
-    dbg.innerHTML = `
-      ${errHtml}
-      <div style="margin-bottom:4px"><strong>Internal State:</strong> ${JSON.stringify(localState.settings || {})}</div>
-      <div><strong>Firebase Snap:</strong> ${JSON.stringify(window._lastSettingsSnap === undefined ? "NOT_RECEIVED_YET" : window._lastSettingsSnap)}</div>
-    `;
-  }
 
   const ev1 = localState.settings?.events?.event1;
   const ev2 = localState.settings?.events?.event2;
