@@ -102,7 +102,6 @@ if ('serviceWorker' in navigator) {
 
       <!-- Panel de Emisión / Proyección -->
       <div class="card" style="padding:14px;margin-bottom:14px">
-        <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">Control de Emisión</div>
         
         <!-- Fila 1: Emitir, Video -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -116,7 +115,7 @@ if ('serviceWorker' in navigator) {
         </div>
 
         <!-- Tercer Renglon: 5 botones de Votación (2 renglones de alto) -->
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+        <div id="voting-reveal-buttons-container" style="display:none;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-pubSong" onclick="toggleVotingColumn('pubSong')">Canción<br>Público</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-pubPerf" onclick="toggleVotingColumn('pubPerf')">Perfo<br>Público</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-jurySong" onclick="toggleVotingColumn('jurySong')">Canción<br>Jurado</button>
@@ -944,7 +943,6 @@ if ('serviceWorker' in navigator) {
 
     <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
     <div class="card" style="padding:14px;margin-bottom:14px">
-      <div style="font-family:'Inter',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:12px">Control de Emisión</div>
       
       <!-- Primera Fila: Emitir, Salvapantallas -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">

@@ -1466,9 +1466,11 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 
 /* Cast layouts button selection styles */
 .cast-btn.active {
-  background: #0d0c10 !important;
-  color: var(--gold) !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
+  color: #ffffff !important;
   border-color: var(--gold) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 12px rgba(223, 172, 74, 0.4) !important;
 }
 
 
@@ -1695,7 +1697,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 
 .btn-vote-reveal {
-  font-size: 9px !important;
+  font-size: 11px !important;
   padding: 4px 0 !important;
   height: 48px !important;
   line-height: 1.2 !important;
@@ -1709,6 +1711,14 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 
 @media (max-width: 768px) {
   .btn-vote-reveal {
-    font-size: 6.75px !important; /* 25% smaller than 9px */
+    font-size: 6.75px !important; /* 25% smaller than 9px, preserved as 6.75px on mobile */
   }
+}
+
+.btn-green-emitting {
+  background: linear-gradient(135deg, #2ecc71 0%, #1b5e20 100%) !important;
+  color: var(--bg) !important;
+  border-color: #2ecc71 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 12px rgba(46, 204, 113, 0.4) !important;
 }

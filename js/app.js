@@ -4326,8 +4326,30 @@ function toggleVoting() {
   if (votingOpen) { closeVoting(); } else { openVoting(); }
 }
 
+function resetVotingVisibleColumns() {
+  if (!localState.settings) localState.settings = {};
+  localState.settings.votingVisibleColumns = {
+    pubSong: false,
+    pubPerf: false,
+    jurySong: false,
+    juryPerf: false,
+    juryHinchada: false
+  };
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings'), { votingVisibleColumns: localState.settings.votingVisibleColumns });
+  }
+  if (castChannel) {
+    castChannel.postMessage({
+      type: 'sync_voting_columns',
+      votingVisibleColumns: localState.settings.votingVisibleColumns
+    });
+  }
+  updateUI();
+}
+
 async function openVoting() {
   try {
+    resetVotingVisibleColumns();
     if (firebaseOk) {
       await dbUpdate(dbRef(db, 'settings'), { votingOpen: true, votingCloseAt: null });
     } else {
@@ -4994,6 +5016,15 @@ async function endShow(slot) {
       updates['settings/showRunning'] = false;
       updates['settings/votingOpen'] = false;
       updates['settings/votingCloseAt'] = null;
+    }
+    updates['settings/votingVisibleColumns'] = null;
+    if (!localState.settings) localState.settings = {};
+    localState.settings.votingVisibleColumns = null;
+    if (castChannel) {
+      castChannel.postMessage({
+        type: 'sync_voting_columns',
+        votingVisibleColumns: {}
+      });
     }
     
     if (firebaseOk) {
@@ -6958,6 +6989,15 @@ function updateCastButtonsHighlight(layout) {
     const btnBar = document.getElementById(`bar-cast-btn-${l}`);
     if (btnBar) btnBar.classList.toggle('active', l === layout);
   });
+  
+  const votingContainer = document.getElementById('voting-reveal-buttons-container');
+  if (votingContainer) {
+    if (layout === 'vote') {
+      votingContainer.style.setProperty('display', 'grid', 'important');
+    } else {
+      votingContainer.style.setProperty('display', 'none', 'important');
+    }
+  }
 }
 
 // Dar formato de mm:ss a un número de segundos
@@ -7481,6 +7521,24 @@ function openProjectionWindow() {
 window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
+  if (lastProjectionActive) {
+    if (projectionWindowRef && !projectionWindowRef.closed) {
+      projectionWindowRef.close();
+      projectionWindowRef = null;
+    }
+    if (firebaseOk && MODE !== 'bar') {
+      dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
+    } else {
+      lastProjectionActive = false;
+      updateProjectionButtonUI();
+    }
+    if (projectionCheckInterval) {
+      clearInterval(projectionCheckInterval);
+      projectionCheckInterval = null;
+    }
+    return;
+  }
+
   const startLayout = (MODE === 'bar') ? 'ranking' : 'video';
   openProjectionWindow();
   setCastLayout(startLayout);
@@ -7500,10 +7558,15 @@ function updateProjectionButtonUI() {
   const btns = [btn, btnBar].filter(Boolean);
   
   btns.forEach(b => {
-    b.textContent = 'Emitir';
-    b.style.background = '';
-    b.style.borderColor = '';
-    b.style.color = '';
+    if (lastProjectionActive) {
+      b.textContent = 'Emitiendo';
+      b.classList.add('btn-green-emitting');
+      b.classList.remove('btn-gold');
+    } else {
+      b.textContent = 'Emitir';
+      b.classList.remove('btn-green-emitting');
+      b.classList.add('btn-gold');
+    }
   });
 }
 window.updateProjectionButtonUI = updateProjectionButtonUI;
