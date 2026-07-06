@@ -6402,6 +6402,9 @@ let lastCastYtVolume = 100;
 function updatePlayBtnIcon() {
   const playBtn = document.getElementById('yt-remote-play-btn');
   if (playBtn) {
+    if (localState.settings?.playerState !== undefined) {
+      isYtPlaying = (localState.settings.playerState === 'playing');
+    }
     const mode = localState.settings?.playbackMode || 'theme';
     playBtn.classList.remove('play-btn-continuous', 'play-btn-theme-paused', 'play-btn-theme-playing');
     
@@ -6782,7 +6785,7 @@ function playQueueItem(source, id, autoPlay = true) {
   }
 
   activeYtVideo = item;
-  isYtPlaying = autoPlay;
+  isYtPlaying = false; // Inicializar en falso (mostrar play), esperar a que el proyector reporte reproducción activa
   
   // Actualizar el UI del reproductor remoto
   const titleEl = document.getElementById('yt-remote-title');
@@ -6891,13 +6894,19 @@ function updatePlaybackModeUI() {
   btn.classList.add('btn-gold');
   btn.style.setProperty('border', 'none', 'important');
   btn.style.setProperty('background', 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)', 'important');
+  btn.style.setProperty('font-size', '11px', 'important');
+  btn.style.setProperty('font-weight', '800', 'important');
+  btn.style.setProperty('text-transform', 'uppercase', 'important');
+  btn.style.setProperty('letter-spacing', '0.5px', 'important');
   
   if (mode === 'continuous') {
     btn.textContent = 'Lista';
     btn.style.setProperty('color', '#000000', 'important');
+    btn.style.setProperty('text-shadow', 'none', 'important');
   } else {
     btn.textContent = 'Tema';
     btn.style.setProperty('color', '#ffffff', 'important');
+    btn.style.setProperty('text-shadow', '0 1px 3px rgba(0,0,0,0.8)', 'important');
   }
   updatePlayBtnIcon();
 }
