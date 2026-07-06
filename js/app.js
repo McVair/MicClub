@@ -4284,13 +4284,13 @@ function renderVotingToggleBtn() {
   if (cfgBtn) {
     if (votingOpen) {
       cfgBtn.textContent = 'Cerrar votación';
-      cfgBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
-      cfgBtn.style.borderColor = '#aa3d50';
+      cfgBtn.style.background = 'linear-gradient(135deg,#e74c3c,#9a1f15)';
+      cfgBtn.style.borderColor = '#e74c3c';
       cfgBtn.style.color = '#fff';
     } else {
       cfgBtn.textContent = 'Abrir votación';
-      cfgBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
-      cfgBtn.style.borderColor = '#4d9e6a';
+      cfgBtn.style.background = 'linear-gradient(135deg,#2ecc71,#157f3c)';
+      cfgBtn.style.borderColor = '#2ecc71';
       cfgBtn.style.color = '#fff';
     }
   }
@@ -4302,14 +4302,14 @@ function renderVotingToggleBtn() {
       dashBtn.style.pointerEvents = 'auto';
       if (votingOpen) {
         dashBtn.textContent      = openLabel;
-        dashBtn.style.background = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+        dashBtn.style.background = 'linear-gradient(135deg,#e74c3c,#9a1f15)';
         dashBtn.style.color      = '#fff';
-        dashBtn.style.borderColor = '#aa3d50';
+        dashBtn.style.borderColor = '#e74c3c';
       } else {
         dashBtn.textContent      = closedLabel;
-        dashBtn.style.background = 'linear-gradient(135deg,#4d9e6a,#2d6642)';
+        dashBtn.style.background = 'linear-gradient(135deg,#2ecc71,#157f3c)';
         dashBtn.style.color      = '#fff';
-        dashBtn.style.borderColor = '#4d9e6a';
+        dashBtn.style.borderColor = '#2ecc71';
       }
     } else {
       dashBtn.textContent         = closedLabel;

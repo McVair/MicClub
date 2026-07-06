@@ -1472,7 +1472,23 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   font-weight: 700 !important;
   box-shadow: 0 0 12px rgba(223, 172, 74, 0.4) !important;
 }
+.cast-btn.active:hover {
+  filter: brightness(1.25) !important;
+  color: #000000 !important;
+  box-shadow: 0 0 16px rgba(223, 172, 74, 0.6) !important;
+}
 
+@media (max-width: 991px) {
+  .logo-sub {
+    display: none !important;
+  }
+  .header-vote-action {
+    padding-right: 4px !important;
+  }
+  #dash-vote-toggle-btn {
+    margin-right: 4px !important;
+  }
+}
 
 @media (min-width: 992px) {
   .header-content-wrapper {
@@ -1635,7 +1651,8 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   border: none !important;
 }
 .btn-gold:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.25) !important;
+  color: #000000 !important;
 }
 
 .btn-outline, .btn-dash {
