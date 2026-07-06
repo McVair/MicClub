@@ -1289,6 +1289,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     border-radius: 12px !important;
     margin-bottom: 16px !important;
     box-sizing: border-box !important;
+    width: 100% !important;
   }
 }
 
@@ -1550,6 +1551,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     flex: 1 !important;
     min-height: 0 !important;
     height: auto !important;
+    width: 100% !important;
     max-width: 100%;
     margin: 0 auto;
     overflow: hidden !important;
