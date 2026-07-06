@@ -6896,22 +6896,27 @@ function updatePlaybackModeUI() {
   if (!btn) return;
   
   const mode = localState.settings?.playbackMode || 'theme';
-  // Siempre verse dorado con degrade
-  btn.classList.remove('btn-outline');
-  btn.classList.add('btn-gold');
-  btn.style.setProperty('border', 'none', 'important');
-  btn.style.setProperty('background', 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)', 'important');
+  
+  // Limpiar clases previas
+  btn.classList.remove('btn-outline', 'btn-gold', 'btn-playback-lista', 'btn-playback-tema');
+  
+  // Limpiar propiedades inline que interfieren con las clases de fondo y color
+  btn.style.removeProperty('background');
+  btn.style.removeProperty('color');
+  btn.style.removeProperty('border');
+  
   btn.style.setProperty('font-size', '11px', 'important');
   btn.style.setProperty('font-weight', '700', 'important');
   btn.style.setProperty('text-transform', 'none', 'important');
   btn.style.setProperty('letter-spacing', '0.5px', 'important');
-  btn.style.setProperty('color', '#121212', 'important');
   btn.style.setProperty('text-shadow', 'none', 'important');
   
   if (mode === 'continuous') {
     btn.textContent = 'lista';
+    btn.classList.add('btn-playback-lista');
   } else {
     btn.textContent = 'tema';
+    btn.classList.add('btn-playback-tema');
   }
   updatePlayBtnIcon();
 }
