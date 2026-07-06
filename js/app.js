@@ -40,6 +40,7 @@ const JURY_ID = (() => {
 // ── ESTADO GLOBAL ─────────────────────────────────────────────────────────────
 let db, dbRef, dbSet, dbGet, dbOnValue, dbPush, dbUpdate, dbRemove;
 let firebaseOk      = false;
+let firebaseInitialized = false;
 let firebaseSettingsLoaded = false;
 let firebaseParticipantsLoaded = false;
 let allParticipants = {};
@@ -460,7 +461,9 @@ function renderNav() { /* nav removed — navigation via buttons + back bar */ }
 
 // ── FIREBASE ─────────────────────────────────────────────────────────────────
 function initFirebase() {
+  if (firebaseInitialized) return;
   if (window._db) {
+    firebaseInitialized = true;
     db = window._db; dbRef = window._dbRef; dbSet = window._dbSet;
     dbGet = window._dbGet; dbOnValue = window._dbOnValue;
     dbPush = window._dbPush; dbUpdate = window._dbUpdate; dbRemove = window._dbRemove;
@@ -595,10 +598,8 @@ function initFirebase() {
         if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
           lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
           if (projectionPlayer && projectionPlayerReady) {
-            const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
-              ? projectionPlayer.getVideoData()?.video_id
-              : null;
-            if (currentVideoId !== s.castYtVideo.ytId) {
+            if (lastLoadedVideoId !== s.castYtVideo.ytId) {
+              lastLoadedVideoId = s.castYtVideo.ytId;
               if (s.castYtVideo.autoPlay !== false) {
                 projectionPlayer.loadVideoById(s.castYtVideo.ytId);
               } else {
@@ -633,10 +634,8 @@ function initFirebase() {
           if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
             lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
             if (projectionPlayer && projectionPlayerReady) {
-              const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
-                ? projectionPlayer.getVideoData()?.video_id
-                : null;
-              if (currentVideoId !== s.castYtVideo.ytId) {
+              if (lastLoadedVideoId !== s.castYtVideo.ytId) {
+                lastLoadedVideoId = s.castYtVideo.ytId;
                 projectionPlayer.loadVideoById(s.castYtVideo.ytId);
                 projectionPlayer.mute();
               }
@@ -6344,6 +6343,8 @@ let castChannel = null;
 let currentCastLayout = 'blank';
 let projectionPlayer = null;
 let projectionPlayerReady = false;
+let projectionPlayerInitialized = false;
+let lastLoadedVideoId = null;
 let isSeeking = false;
 let lastCastYtVideoTimestamp = 0;
 let lastCastYtCommandTimestamp = 0;
@@ -7019,7 +7020,10 @@ function stopProyectorStatusLoop() {
 }
 
 function initProjectionPlayer() {
+  if (projectionPlayerInitialized) return;
+  projectionPlayerInitialized = true;
   const startVideoId = localState.settings?.castYtVideo?.ytId || 'M7lc1UVf-VE';
+  lastLoadedVideoId = startVideoId;
   projectionPlayer = new YT.Player('pantalla-player', {
     width: '100%',
     height: '100%',
@@ -7144,8 +7148,11 @@ function applyProyectorLayout(layout) {
     if (IS_BAR_PROJECTION && projectionPlayer && projectionPlayerReady) {
       const activeVideo = localState.settings?.castYtVideo;
       if (activeVideo) {
-        projectionPlayer.loadVideoById(activeVideo.ytId);
-        projectionPlayer.mute();
+        if (lastLoadedVideoId !== activeVideo.ytId) {
+          lastLoadedVideoId = activeVideo.ytId;
+          projectionPlayer.loadVideoById(activeVideo.ytId);
+          projectionPlayer.mute();
+        }
         const progress = localState.settings?.playerTime || 0;
         if (progress > 0) {
           projectionPlayer.seekTo(progress, true);
@@ -7202,21 +7209,23 @@ function handleProyectorMessage(data) {
   if (data.type === 'cast_layout') {
     currentCastLayout = data.layout;
     applyProyectorLayout(data.layout);
+  } else if (data.type === 'sync_voting_columns') {
+    if (!localState.settings) localState.settings = {};
+    localState.settings.votingVisibleColumns = data.votingVisibleColumns;
+    if (pantallaTab === 'votos') {
+      renderPantallaContent();
+    }
   } else if (data.type === 'yt_load') {
     if (projectionPlayer && projectionPlayerReady) {
-      const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
-        ? projectionPlayer.getVideoData()?.video_id
-        : null;
-      if (currentVideoId !== data.ytId) {
+      if (lastLoadedVideoId !== data.ytId) {
+        lastLoadedVideoId = data.ytId;
         projectionPlayer.loadVideoById(data.ytId);
       }
     }
   } else if (data.type === 'yt_cue') {
     if (projectionPlayer && projectionPlayerReady) {
-      const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
-        ? projectionPlayer.getVideoData()?.video_id
-        : null;
-      if (currentVideoId !== data.ytId) {
+      if (lastLoadedVideoId !== data.ytId) {
+        lastLoadedVideoId = data.ytId;
         projectionPlayer.cueVideoById(data.ytId);
       }
     }
@@ -7310,6 +7319,12 @@ function handleCastMessage(data) {
   } else if (data.type === 'projection_ready') {
     if (MODE === 'admin' || MODE === 'home' || MODE === 'bar') {
       setCastLayout(currentCastLayout);
+      if (castChannel) {
+        castChannel.postMessage({
+          type: 'sync_voting_columns',
+          votingVisibleColumns: localState.settings?.votingVisibleColumns || {}
+        });
+      }
       if (activeYtVideo) {
         if (castChannel) {
           castChannel.postMessage({
@@ -7674,16 +7689,17 @@ function runScreensaverStep() {
 
 // ── CONTROL DE REVELADO DE COLUMNAS DE VOTACIÓN ──
 function toggleVotingColumn(columnKey) {
-  const currentCols = localState.settings?.votingVisibleColumns || {};
+  if (!localState.settings) localState.settings = {};
+  if (!localState.settings.votingVisibleColumns) localState.settings.votingVisibleColumns = {};
+  
+  const currentCols = localState.settings.votingVisibleColumns;
   const nextVal = !currentCols[columnKey];
+  currentCols[columnKey] = nextVal;
   
   if (firebaseOk) {
     dbUpdate(dbRef(db, 'settings/votingVisibleColumns'), { [columnKey]: nextVal });
     setCastLayout('vote');
   } else {
-    if (!localState.settings) localState.settings = {};
-    if (!localState.settings.votingVisibleColumns) localState.settings.votingVisibleColumns = {};
-    localState.settings.votingVisibleColumns[columnKey] = nextVal;
     updateUI();
     setCastLayout('vote');
     if (projectionWindowRef && !projectionWindowRef.closed) {
@@ -7691,6 +7707,13 @@ function toggleVotingColumn(columnKey) {
         projectionWindowRef.applyProyectorLayout(currentCastLayout || 'vote');
       } catch (err) { console.error('Error applying proyector layout offline:', err); }
     }
+  }
+  
+  if (castChannel) {
+    castChannel.postMessage({
+      type: 'sync_voting_columns',
+      votingVisibleColumns: localState.settings.votingVisibleColumns
+    });
   }
 }
 window.toggleVotingColumn = toggleVotingColumn;
