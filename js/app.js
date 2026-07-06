@@ -6414,7 +6414,7 @@ function updatePlayBtnIcon() {
         playBtn.textContent = '⏸';
       } else {
         playBtn.classList.add('play-btn-theme-paused');
-        playBtn.textContent = '⏭';
+        playBtn.textContent = '▶|';
       }
     }
   }
@@ -6890,10 +6890,16 @@ function updatePlaybackModeUI() {
     btn.textContent = 'Lista';
     btn.classList.remove('btn-outline');
     btn.classList.add('btn-gold');
+    btn.style.setProperty('border', 'none', 'important');
+    btn.style.setProperty('color', '#000000', 'important');
+    btn.style.setProperty('background', 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)', 'important');
   } else {
     btn.textContent = 'Tema';
     btn.classList.remove('btn-gold');
     btn.classList.add('btn-outline');
+    btn.style.setProperty('border', '1px solid rgba(160, 144, 112, 0.35)', 'important');
+    btn.style.setProperty('color', 'var(--text2)', 'important');
+    btn.style.setProperty('background', 'transparent', 'important');
   }
   updatePlayBtnIcon();
 }
