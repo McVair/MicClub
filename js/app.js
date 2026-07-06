@@ -6880,13 +6880,15 @@ function togglePlaybackMode() {
   const currentMode = localState.settings?.playbackMode || 'theme';
   const newMode = (currentMode === 'theme') ? 'continuous' : 'theme';
   
-  if (firebaseOk) {
+  if (!localState.settings) localState.settings = {};
+  localState.settings.playbackMode = newMode;
+  saveLocal();
+
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings'), { playbackMode: newMode });
-  } else {
-    if (!localState.settings) localState.settings = {};
-    localState.settings.playbackMode = newMode;
-    saveLocal();
   }
+  
+  updatePlaybackModeUI();
 }
 
 function updatePlaybackModeUI() {
@@ -6900,18 +6902,16 @@ function updatePlaybackModeUI() {
   btn.style.setProperty('border', 'none', 'important');
   btn.style.setProperty('background', 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%)', 'important');
   btn.style.setProperty('font-size', '11px', 'important');
-  btn.style.setProperty('font-weight', '800', 'important');
-  btn.style.setProperty('text-transform', 'uppercase', 'important');
+  btn.style.setProperty('font-weight', '700', 'important');
+  btn.style.setProperty('text-transform', 'none', 'important');
   btn.style.setProperty('letter-spacing', '0.5px', 'important');
+  btn.style.setProperty('color', '#121212', 'important');
+  btn.style.setProperty('text-shadow', 'none', 'important');
   
   if (mode === 'continuous') {
-    btn.textContent = 'Lista';
-    btn.style.setProperty('color', '#000000', 'important');
-    btn.style.setProperty('text-shadow', 'none', 'important');
+    btn.textContent = 'lista';
   } else {
-    btn.textContent = 'Tema';
-    btn.style.setProperty('color', '#ffffff', 'important');
-    btn.style.setProperty('text-shadow', '0 1px 3px rgba(0,0,0,0.8)', 'important');
+    btn.textContent = 'tema';
   }
   updatePlayBtnIcon();
 }
