@@ -1739,3 +1739,25 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   font-weight: 700 !important;
   box-shadow: 0 0 12px rgba(46, 204, 113, 0.4) !important;
 }
+
+.btn-vote-open {
+  background: linear-gradient(135deg, #e74c3c, #9a1f15) !important;
+  border-color: #e74c3c !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+.btn-vote-closed {
+  background: linear-gradient(135deg, #2ecc71, #157f3c) !important;
+  border-color: #2ecc71 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+.btn-vote-disabled {
+  background: linear-gradient(135deg, #1a3324, #101e16) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  opacity: 0.55 !important;
+  pointer-events: none !important;
+}

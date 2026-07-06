@@ -4282,42 +4282,30 @@ function renderVotingToggleBtn() {
   // Botón config
   const cfgBtn = document.getElementById('config-vote-toggle-btn');
   if (cfgBtn) {
+    cfgBtn.classList.remove('btn-teal', 'btn-vote-open', 'btn-vote-closed', 'btn-vote-disabled');
     if (votingOpen) {
       cfgBtn.textContent = 'Cerrar votación';
-      cfgBtn.style.background = 'linear-gradient(135deg,#e74c3c,#9a1f15)';
-      cfgBtn.style.borderColor = '#e74c3c';
-      cfgBtn.style.color = '#fff';
+      cfgBtn.classList.add('btn-vote-open');
     } else {
       cfgBtn.textContent = 'Abrir votación';
-      cfgBtn.style.background = 'linear-gradient(135deg,#2ecc71,#157f3c)';
-      cfgBtn.style.borderColor = '#2ecc71';
-      cfgBtn.style.color = '#fff';
+      cfgBtn.classList.add('btn-vote-closed');
     }
   }
   // Botón del dashboard
   const dashBtn = document.getElementById('dash-vote-toggle-btn');
   if (dashBtn) {
+    dashBtn.classList.remove('btn-outline', 'btn-vote-open', 'btn-vote-closed', 'btn-vote-disabled');
     if (showRunning) {
-      dashBtn.style.opacity       = '1';
-      dashBtn.style.pointerEvents = 'auto';
       if (votingOpen) {
-        dashBtn.textContent      = openLabel;
-        dashBtn.style.background = 'linear-gradient(135deg,#e74c3c,#9a1f15)';
-        dashBtn.style.color      = '#fff';
-        dashBtn.style.borderColor = '#e74c3c';
+        dashBtn.textContent = openLabel;
+        dashBtn.classList.add('btn-vote-open');
       } else {
-        dashBtn.textContent      = closedLabel;
-        dashBtn.style.background = 'linear-gradient(135deg,#2ecc71,#157f3c)';
-        dashBtn.style.color      = '#fff';
-        dashBtn.style.borderColor = '#2ecc71';
+        dashBtn.textContent = closedLabel;
+        dashBtn.classList.add('btn-vote-closed');
       }
     } else {
-      dashBtn.textContent         = closedLabel;
-      dashBtn.style.background    = 'linear-gradient(135deg,#1a3324,#101e16)';
-      dashBtn.style.color         = '#fff';
-      dashBtn.style.borderColor   = 'transparent';
-      dashBtn.style.opacity       = '0.55';
-      dashBtn.style.pointerEvents = 'none';
+      dashBtn.textContent = closedLabel;
+      dashBtn.classList.add('btn-vote-disabled');
     }
   }
 }
