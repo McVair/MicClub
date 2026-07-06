@@ -1715,10 +1715,11 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   transition: all 0.2s ease !important;
 }
 .pl-filter-btn.active {
-  background: #FFCC00 !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
   color: #ffffff !important;
-  border-color: #FFCC00 !important;
+  border-color: var(--gold) !important;
   font-weight: bold !important;
+  box-shadow: 0 0 12px rgba(223, 172, 74, 0.4) !important;
 }
 
 .btn-vote-reveal {

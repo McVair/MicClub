@@ -867,10 +867,9 @@ if ('serviceWorker' in navigator) {
           <!-- Unificado: Playlist -->
           <div class="card no-gold-border" style="padding:14px">
             <div class="card-title" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
-              <div style="display:flex;align-items:center;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px">
                 <span>Playlist</span>
-                <button class="btn btn-sm btn-outline" onclick="downloadCombinedSongLinks()" style="font-size:10px;padding:2px 8px;min-height:auto;display:inline-flex;align-items:center;gap:4px;border-color:rgba(255,255,255,0.12);color:var(--text);margin:0;width:auto">Descargar</button>
-                <button class="btn btn-sm btn-outline" id="playback-mode-btn" onclick="togglePlaybackMode()" style="font-size:10px;padding:2px 8px;min-height:auto;margin:0;width:auto">Por tema</button>
+                <button class="btn btn-sm btn-gold" id="playback-mode-btn" onclick="togglePlaybackMode()" style="font-size:10px;padding:2px 8px;min-height:auto;margin:0;width:auto">Tema</button>
               </div>
               <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
             </div>
@@ -897,18 +896,19 @@ if ('serviceWorker' in navigator) {
               <input type="range" id="yt-remote-progress" min="0" max="100" value="0" oninput="ytRemoteProgressInput(this.value)" onchange="ytRemoteProgressChange(this.value)" style="width:100%;height:5px;outline:none;border-radius:5px;cursor:pointer;background:var(--bg4)">
             </div>
 
-            <!-- Botones Agregar / Subir Canción -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <!-- Botones Agregar / Subir Canción / Descargar -->
+            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-bottom:8px">
               <button class="btn btn-sm btn-outline" onclick="openAddSongModal()" style="width:100%;margin:0;font-size:11px;padding:8px 0;min-height:34px">Agregar Canción</button>
               <button class="btn btn-sm btn-outline" onclick="triggerUploadPlaylist()" style="width:100%;margin:0;font-size:11px;padding:8px 0;min-height:34px">Subir Playlist</button>
+              <button class="btn btn-sm btn-outline" onclick="downloadCombinedSongLinks()" style="width:100%;margin:0;font-size:11px;padding:8px 0;min-height:34px">Descargar</button>
             </div>
             <input type="file" id="playlist-file-input" accept=".txt" style="display:none" onchange="handlePlaylistUpload(event)">
 
-            <!-- Selector de filtro de lista (Participantes vs Karaoke vs Invitados) -->
+            <!-- Selector de filtro de lista (Invitados vs Participantes vs Karaoke) -->
             <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button class="btn btn-sm pl-filter-btn" id="pl-filter-guest" onclick="setPlaylistFilter('guest')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Invitados</button>
               <button class="btn btn-sm pl-filter-btn active" id="pl-filter-micclub" onclick="setPlaylistFilter('micclub')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Participantes</button>
               <button class="btn btn-sm pl-filter-btn" id="pl-filter-libre" onclick="setPlaylistFilter('libre')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Karaoke</button>
-              <button class="btn btn-sm pl-filter-btn" id="pl-filter-guest" onclick="setPlaylistFilter('guest')" style="flex:1;font-size:10px;padding:6px 0;min-height:30px;width:auto">Invitados</button>
             </div>
 
             <!-- Título dinámico del listado de cola -->
