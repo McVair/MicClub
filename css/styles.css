@@ -1274,10 +1274,16 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   right: 0;
   height: 95px;
   background: var(--bg);
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 1000;
   box-sizing: border-box;
+}
+@media (min-width: 600px) and (max-width: 991px) {
+  #admin-fixed-header, #bar-fixed-header {
+    padding-left: 22px !important;
+    padding-right: 22px !important;
+  }
 }
 @media (min-width: 992px) {
   #admin-fixed-header, #bar-fixed-header {
@@ -1484,10 +1490,10 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
     display: none !important;
   }
   .header-vote-action {
-    padding-right: 4px !important;
+    padding-right: 0 !important;
   }
   #dash-vote-toggle-btn {
-    margin-right: 4px !important;
+    margin-right: 0 !important;
   }
 }
 
