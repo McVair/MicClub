@@ -595,10 +595,15 @@ function initFirebase() {
         if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
           lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
           if (projectionPlayer && projectionPlayerReady) {
-            if (s.castYtVideo.autoPlay !== false) {
-              projectionPlayer.loadVideoById(s.castYtVideo.ytId);
-            } else {
-              projectionPlayer.cueVideoById(s.castYtVideo.ytId);
+            const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
+              ? projectionPlayer.getVideoData()?.video_id
+              : null;
+            if (currentVideoId !== s.castYtVideo.ytId) {
+              if (s.castYtVideo.autoPlay !== false) {
+                projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+              } else {
+                projectionPlayer.cueVideoById(s.castYtVideo.ytId);
+              }
             }
           }
         }
@@ -628,8 +633,13 @@ function initFirebase() {
           if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
             lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
             if (projectionPlayer && projectionPlayerReady) {
-              projectionPlayer.loadVideoById(s.castYtVideo.ytId);
-              projectionPlayer.mute();
+              const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
+                ? projectionPlayer.getVideoData()?.video_id
+                : null;
+              if (currentVideoId !== s.castYtVideo.ytId) {
+                projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+                projectionPlayer.mute();
+              }
             }
           }
           if (s.castYtCommand && s.castYtCommand.timestamp !== lastCastYtCommandTimestamp) {
@@ -3013,7 +3023,7 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
     'rank-jury-hinchada': 'juryHinchada'
   };
   const configKey = mapStateKeyToConfig[stateKey] || stateKey;
-  const isRevealed = !!localState.settings?.votingVisibleColumns?.[configKey];
+  const isRevealed = !elId.startsWith('pantalla-') || !!localState.settings?.votingVisibleColumns?.[configKey];
 
   if (!isRevealed) {
     el.innerHTML = `
@@ -3024,7 +3034,7 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
   }
   
   if (!podiumData.length) {
-    el.innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:10px 0">Sin votos aún</div>';
+    el.innerHTML = '<div style="color:#ffffff; font-size:12px; font-family:\'Inter\',sans-serif; text-align:center; padding:15px 0; opacity:0.85; letter-spacing:0.5px">Esperando la votación</div>';
     return;
   }
   
@@ -7194,11 +7204,21 @@ function handleProyectorMessage(data) {
     applyProyectorLayout(data.layout);
   } else if (data.type === 'yt_load') {
     if (projectionPlayer && projectionPlayerReady) {
-      projectionPlayer.loadVideoById(data.ytId);
+      const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
+        ? projectionPlayer.getVideoData()?.video_id
+        : null;
+      if (currentVideoId !== data.ytId) {
+        projectionPlayer.loadVideoById(data.ytId);
+      }
     }
   } else if (data.type === 'yt_cue') {
     if (projectionPlayer && projectionPlayerReady) {
-      projectionPlayer.cueVideoById(data.ytId);
+      const currentVideoId = typeof projectionPlayer.getVideoData === 'function'
+        ? projectionPlayer.getVideoData()?.video_id
+        : null;
+      if (currentVideoId !== data.ytId) {
+        projectionPlayer.cueVideoById(data.ytId);
+      }
     }
   } else if (data.type === 'yt_play') {
     if (projectionPlayer && projectionPlayerReady) {
