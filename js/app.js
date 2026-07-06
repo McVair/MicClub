@@ -623,6 +623,33 @@ function initFirebase() {
         }
       }
 
+      if (MODE === 'pantalla' && IS_BAR_PROJECTION) {
+        if (currentCastLayout === 'video') {
+          if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
+            lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
+            if (projectionPlayer && projectionPlayerReady) {
+              projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+              projectionPlayer.mute();
+            }
+          }
+          if (s.castYtCommand && s.castYtCommand.timestamp !== lastCastYtCommandTimestamp) {
+            lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
+            const cmd = s.castYtCommand;
+            if (projectionPlayer && projectionPlayerReady) {
+              if (cmd.type === 'yt_play') {
+                projectionPlayer.playVideo();
+                projectionPlayer.mute();
+              } else if (cmd.type === 'yt_pause') {
+                projectionPlayer.pauseVideo();
+              } else if (cmd.type === 'yt_seek') {
+                projectionPlayer.seekTo(cmd.time, true);
+                projectionPlayer.mute();
+              }
+            }
+          }
+        }
+      }
+
       if (!showRunning) enforceNoShowState();
       checkAndMigrate();
       updateBonusBanners();
@@ -1171,8 +1198,41 @@ function updateRegistrationPageUI() {
   }
 }
 
+let lastPantallaStateHash = '';
+function getPantallaStateHash() {
+  const activeEventId = getCurrentEventId();
+  const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+  const guestArtists = ev?.guestArtists || [];
+  
+  // Participantes del evento actual con sus votos e información
+  const parts = getEnrichedParticipantsList(activeEventId)
+    .map(p => `${p.id}:${p.name}:${p.song}:${p.songConfirmed}:${p.micclubPts}:${JSON.stringify(p.votes || {})}:${JSON.stringify(p.juryVotes || {})}`);
+
+  // Ranking general (participantes y sus puntos acumulados)
+  const allParts = Object.values(allParticipants || {})
+    .map(p => `${p.id}:${p.name}:${calcMicclubScore(p)}`)
+    .sort()
+    .join('|');
+  
+  const votingCols = JSON.stringify(localState.settings?.votingVisibleColumns || {});
+  const nextEventImg = localState.settings?.nextEventImage || '';
+  const freeList = JSON.stringify(activeEventId ? (freeKaraokeList[activeEventId] || {}) : {});
+  
+  return [
+    pantallaTab,
+    JSON.stringify(guestArtists),
+    parts.join('|'),
+    allParts,
+    votingCols,
+    nextEventImg,
+    freeList,
+    screensaverActive
+  ].join('##');
+}
+
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
 function updateUI() {
+  updateCastButtonsHighlight(currentCastLayout);
   updateVotingVisibleColumnsButtonsUI();
   updateDashboard();
   updateProgramPage();
@@ -1196,9 +1256,12 @@ function updateUI() {
   if (currentPage === 'register') updateRegistrationPageUI();
   if (currentPage === 'admin-micclub-participants') renderAdminMicClubParticipants();
   if (currentPage === 'pantalla' || MODE === 'pantalla') {
-    updatePantallaContent();
-    renderPantallaContent();
-    updatePantallaSponsors();
+    const currentHash = getPantallaStateHash();
+    if (currentHash !== lastPantallaStateHash) {
+      lastPantallaStateHash = currentHash;
+      renderPantallaContent();
+      updatePantallaSponsors();
+    }
   }
   renderLinks();
   updateFreeKaraokePages();
@@ -2942,11 +3005,20 @@ function renderPodiumList(podiumData, elId, scoreSuffix) {
   if (!el) return;
   
   const stateKey = elId.replace('pantalla-', '');
-  if (!revealedCategories[stateKey]) {
+  const mapStateKeyToConfig = {
+    'rank-pub-song': 'pubSong',
+    'rank-pub-perf': 'pubPerf',
+    'rank-jury-song': 'jurySong',
+    'rank-jury-perf': 'juryPerf',
+    'rank-jury-hinchada': 'juryHinchada'
+  };
+  const configKey = mapStateKeyToConfig[stateKey] || stateKey;
+  const isRevealed = !!localState.settings?.votingVisibleColumns?.[configKey];
+
+  if (!isRevealed) {
     el.innerHTML = `
       <div class="reveal-podium-card" style="text-align:center; padding: 35px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
         <div style="font-family:'Inter',sans-serif; font-size: 26px; letter-spacing: 1px; background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; color: transparent; text-shadow: 0 0 12px rgba(223, 172, 74, 0.25); line-height: 1.2;">Los ganadores son...</div>
-        <button class="btn btn-outline" style="width: auto; padding: 10px 24px; min-height: 38px; font-size: 12px;" onclick="revealCategory('${stateKey}')">MOSTRAR</button>
       </div>`;
     return;
   }
@@ -5857,52 +5929,77 @@ function renderPantallaContent() {
   const container = document.getElementById('pantalla-tab-content');
   if (!container) return;
   
+  const activeEventId = getCurrentEventId();
+  const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+
+  // Actualizar cabecera con el título de la vista activa en el proyector
+  const elName = document.getElementById('pantalla-event-name');
+  const elDetails = document.getElementById('pantalla-event-details');
+  if (pantallaTab === 'ranking') {
+    if (elName) elName.textContent = 'Mic Club';
+    if (elDetails) elDetails.textContent = 'Puntos Acumulados';
+  } else if (pantallaTab === 'votos') {
+    if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
+    if (elDetails) elDetails.textContent = 'resultados de la votacion';
+  } else {
+    const layoutTitles = {
+      artistas: 'ARTISTAS INVITADOS',
+      participantes: 'PARTICIPANTES',
+      proximo: 'PRÓXIMO EVENTO',
+      karaoke: 'KARAOKE'
+    };
+    if (elName) elName.textContent = layoutTitles[pantallaTab] || 'MIC CLUB';
+    if (elDetails) elDetails.textContent = ev ? `${ev.name} · ${ev.date || ''}` : '';
+  }
+
+  // Ocultar auspiciantes en pie de página si es ranking (se muestran a la derecha en columna)
+  const sponsorsFooter = document.getElementById('pantalla-sponsors-footer');
+  if (sponsorsFooter) {
+    sponsorsFooter.style.display = (pantallaTab === 'ranking') ? 'none' : 'block';
+  }
+  
   if (pantallaTab === 'artistas') {
-    const activeEventId = getCurrentEventId();
-    const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
     const artists = ev?.guestArtists || [];
     container.innerHTML = renderProjectionQueueLayout('En Escena', artists, 'No hay artistas invitados cargados aún para este evento.');
   }
   else if (pantallaTab === 'participantes') {
-    const activeEventId = getCurrentEventId();
     const parts = getEnrichedParticipantsList(activeEventId)
       .filter(p => p.songConfirmed)
       .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
     container.innerHTML = renderProjectionQueueLayout('En Escena', parts, 'Esperando confirmación de participantes...');
   }
   else if (pantallaTab === 'votos') {
-    const visibleCols = localState.settings?.votingVisibleColumns || {};
     container.innerHTML = `
       <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
-        <div class="result-column-card" style="margin:0; display: ${visibleCols.pubSong ? 'block' : 'none'}">
+        <div class="result-column-card" style="margin:0;">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>CANCIÓN</div>
             <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
           </div>
           <div id="pantalla-rank-pub-song"></div>
         </div>
-        <div class="result-column-card" style="margin:0; display: ${visibleCols.pubPerf ? 'block' : 'none'}">
+        <div class="result-column-card" style="margin:0;">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
             <div class="column-source-tag source-public">🗳️ PÚBLICO</div>
           </div>
           <div id="pantalla-rank-pub-perf"></div>
         </div>
-        <div class="result-column-card" style="margin:0; display: ${visibleCols.jurySong ? 'block' : 'none'}">
+        <div class="result-column-card" style="margin:0;">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>CANCIÓN</div>
             <div class="column-source-tag source-jury">⭐ JURADO</div>
           </div>
           <div id="pantalla-rank-jury-song"></div>
         </div>
-        <div class="result-column-card" style="margin:0; display: ${visibleCols.juryPerf ? 'block' : 'none'}">
+        <div class="result-column-card" style="margin:0;">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>PERFORMANCE</div>
             <div class="column-source-tag source-jury">⭐ JURADO</div>
           </div>
           <div id="pantalla-rank-jury-perf"></div>
         </div>
-        <div class="result-column-card" style="margin:0; display: ${visibleCols.juryHinchada ? 'block' : 'none'}">
+        <div class="result-column-card" style="margin:0;">
           <div class="result-column-header">
             <div class="column-category-title">MEJOR<br>HINCHADA</div>
             <div class="column-source-tag source-jury">📣 JURADO</div>
@@ -6637,7 +6734,7 @@ function playQueueItem(source, id, autoPlay = true) {
       song: item.song
     });
   }
-  if (firebaseOk) {
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings/castYtVideo'), {
       ytId: item.ytId,
       title: item.name,
@@ -6746,7 +6843,7 @@ function ytRemoteTogglePlay() {
   if (castChannel) {
     castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
   }
-  if (firebaseOk) {
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings/castYtCommand'), {
       type: isYtPlaying ? 'yt_play' : 'yt_pause',
       timestamp: Date.now()
@@ -6798,7 +6895,7 @@ function ytRemoteProgressChange(val) {
   if (castChannel) {
     castChannel.postMessage({ type: 'yt_seek', time: parseFloat(val) });
   }
-  if (firebaseOk) {
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings/castYtCommand'), {
       type: 'yt_seek',
       time: parseFloat(val),
@@ -6812,7 +6909,7 @@ function ytRemoteVolumeChange(val) {
   if (castChannel) {
     castChannel.postMessage({ type: 'yt_set_volume', volume: parseInt(val, 10) });
   }
-  if (firebaseOk) {
+  if (firebaseOk && MODE !== 'bar') {
     dbUpdate(dbRef(db, 'settings'), {
       castYtVolume: parseInt(val, 10)
     });
@@ -6935,6 +7032,9 @@ function initProjectionPlayer() {
 
 function onPlayerReady(event) {
   projectionPlayerReady = true;
+  if (IS_BAR_PROJECTION && projectionPlayer && typeof projectionPlayer.mute === 'function') {
+    projectionPlayer.mute();
+  }
   if (castChannel) {
     castChannel.postMessage({ type: 'projection_ready' });
   }
@@ -6964,9 +7064,13 @@ function onPlayerStateChange(event) {
   };
   const st = stateMap[event.data] || 'unknown';
 
+  if (IS_BAR_PROJECTION && projectionPlayer && projectionPlayerReady && typeof projectionPlayer.mute === 'function') {
+    projectionPlayer.mute();
+  }
+
   if (event.data === YT.PlayerState.PLAYING) {
     startProyectorStatusLoop();
-    if (firebaseOk) {
+    if (firebaseOk && !IS_BAR_PROJECTION) {
       dbUpdate(dbRef(db, 'settings'), {
         playerState: 'playing',
         playerTime: projectionPlayer.getCurrentTime(),
@@ -6985,7 +7089,7 @@ function onPlayerStateChange(event) {
           duration: projectionPlayer.getDuration()
         });
       }
-      if (firebaseOk) {
+      if (firebaseOk && !IS_BAR_PROJECTION) {
         dbUpdate(dbRef(db, 'settings'), {
           playerState: st,
           playerTime: projectionPlayer.getCurrentTime(),
@@ -7026,6 +7130,24 @@ function applyProyectorLayout(layout) {
       ytContainer.style.pointerEvents = 'auto';
     }
     if (layoutContainer) layoutContainer.style.display = 'none';
+
+    if (IS_BAR_PROJECTION && projectionPlayer && projectionPlayerReady) {
+      const activeVideo = localState.settings?.castYtVideo;
+      if (activeVideo) {
+        projectionPlayer.loadVideoById(activeVideo.ytId);
+        projectionPlayer.mute();
+        const progress = localState.settings?.playerTime || 0;
+        if (progress > 0) {
+          projectionPlayer.seekTo(progress, true);
+        }
+        const isPlaying = localState.settings?.playerState === 'playing';
+        if (isPlaying) {
+          projectionPlayer.playVideo();
+        } else {
+          projectionPlayer.pauseVideo();
+        }
+      }
+    }
   } else if (layout === 'blank') {
     if (ytContainer) {
       ytContainer.style.display = 'block';
@@ -7060,6 +7182,7 @@ function applyProyectorLayout(layout) {
     else if (layout === 'free') setPantallaTab('karaoke');
     else if (layout === 'flyer') setPantallaTab('proximo');
     else if (layout === 'vote') setPantallaTab('votos');
+    else if (layout === 'guests') setPantallaTab('artistas');
   }
 }
 

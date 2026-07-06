@@ -117,11 +117,11 @@ if ('serviceWorker' in navigator) {
 
         <!-- Tercer Renglon: 5 botones de Votación (2 renglones de alto) -->
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
-          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-pubSong" onclick="toggleVotingColumn('pubSong')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Canción<br>Público</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-pubPerf" onclick="toggleVotingColumn('pubPerf')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Perfo<br>Público</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-jurySong" onclick="toggleVotingColumn('jurySong')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Canción<br>Jurado</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-juryPerf" onclick="toggleVotingColumn('juryPerf')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Perfo<br>Jurado</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="btn-vote-col-juryHinchada" onclick="toggleVotingColumn('juryHinchada')" style="font-size:9px;padding:4px 0;height:48px;line-height:1.2;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">Mejor<br>Hinchada</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-pubSong" onclick="toggleVotingColumn('pubSong')">Canción<br>Público</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-pubPerf" onclick="toggleVotingColumn('pubPerf')">Perfo<br>Público</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-jurySong" onclick="toggleVotingColumn('jurySong')">Canción<br>Jurado</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-juryPerf" onclick="toggleVotingColumn('juryPerf')">Perfo<br>Jurado</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-juryHinchada" onclick="toggleVotingColumn('juryHinchada')">Mejor<br>Hinchada</button>
         </div>
 
         <!-- Cuarta Fila: Ranking -->

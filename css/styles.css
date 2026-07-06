@@ -1693,3 +1693,22 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   border-color: #FFCC00 !important;
   font-weight: bold !important;
 }
+
+.btn-vote-reveal {
+  font-size: 9px !important;
+  padding: 4px 0 !important;
+  height: 48px !important;
+  line-height: 1.2 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+@media (max-width: 768px) {
+  .btn-vote-reveal {
+    font-size: 6.75px !important; /* 25% smaller than 9px */
+  }
+}
