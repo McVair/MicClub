@@ -6949,12 +6949,6 @@ function ytRemoteVolumeChange(val) {
 
 // Seleccionar diseño de emisión a pantalla secundaria
 function setCastLayout(layout) {
-  if (layout === 'vote' && currentCastLayout === 'vote') {
-    layout = lastCastLayoutBeforeVote || 'video';
-  } else if (layout !== 'vote') {
-    lastCastLayoutBeforeVote = layout;
-  }
-
   currentCastLayout = layout;
   updateCastButtonsHighlight(layout);
   
