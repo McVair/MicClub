@@ -571,6 +571,17 @@ function initFirebase() {
 
       localState.settings = { ...localState.settings, ...s };
 
+      if (s.castLayout !== undefined) {
+        const layoutChanged = (currentCastLayout !== s.castLayout);
+        currentCastLayout = s.castLayout;
+        if (MODE === 'admin' || MODE === 'home') {
+          updateCastButtonsHighlight(s.castLayout);
+        }
+        if (MODE === 'pantalla' && !IS_BAR_PROJECTION && layoutChanged) {
+          applyProyectorLayout(s.castLayout);
+        }
+      }
+
       if (s.screensaverActive !== undefined) {
         const changed = (screensaverActive !== !!s.screensaverActive);
         screensaverActive = !!s.screensaverActive;
@@ -591,10 +602,6 @@ function initFirebase() {
 
       // Fallback de Sincronización para Monitor Extendido (Pantalla)
       if (MODE === 'pantalla' && !IS_BAR_PROJECTION) {
-        if (s.castLayout && s.castLayout !== currentCastLayout) {
-          currentCastLayout = s.castLayout;
-          applyProyectorLayout(s.castLayout);
-        }
         if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
           lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
           if (projectionPlayer && projectionPlayerReady) {
@@ -6081,6 +6088,28 @@ function renderPantallaContent() {
       .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
     container.innerHTML = renderProjectionQueueLayout('En Escena', sortedFreeItems, 'No hay inscriptos en Karaoke Libre aún.');
   }
+  else if (pantallaTab === 'intro_tema') {
+    const singer = activeYtVideo?.name || 'Mic Club';
+    const song = activeYtVideo?.song || 'Siguiente Tema';
+    container.innerHTML = `
+      <div class="intro-tema-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: calc(100vh - 240px); padding: 40px 20px; box-sizing: border-box; text-align: center; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+        <div class="intro-tema-disc-wrapper" style="position: relative; width: 180px; height: 180px; margin-bottom: 40px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; width: 220px; height: 220px; background: radial-gradient(circle, rgba(212, 168, 67, 0.15) 0%, rgba(212, 168, 67, 0) 70%); filter: blur(20px); animation: pulseGlow 4s ease-in-out infinite;"></div>
+          <div class="spinning-disc" style="width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #1e1d24 0%, #0d0c10 100%); border: 6px solid #d4a843; box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(212, 168, 67, 0.2); display: flex; align-items: center; justify-content: center; animation: spin 20s linear infinite; position: relative;">
+            <div style="position: absolute; width: 80%; height: 80%; border-radius: 50%; border: 1px dashed rgba(212, 168, 67, 0.15);"></div>
+            <div style="position: absolute; width: 60%; height: 60%; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.05);"></div>
+            <div style="position: absolute; width: 40%; height: 40%; border-radius: 50%; border: 1px dashed rgba(212, 168, 67, 0.1);"></div>
+            <div style="width: 50px; height: 50px; border-radius: 50%; background: #d4a843; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); z-index: 2;">
+              <span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🎵</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-family: 'Inter', sans-serif; text-transform: uppercase; font-size: 14px; color: rgba(252, 224, 173, 0.6); letter-spacing: 4px; margin-bottom: 16px; font-weight: 600;">A continuación en escena</div>
+        <h1 style="font-family: 'Inter', sans-serif; font-size: clamp(36px, 5vw, 64px); font-weight: 800; color: #d4a843; margin: 0 0 12px 0; letter-spacing: 0.5px; text-shadow: 0 0 30px rgba(212, 168, 67, 0.25); line-height: 1.1;">${esc(singer)}</h1>
+        <p style="font-family: 'Inter', sans-serif; font-size: clamp(20px, 2.5vw, 32px); font-weight: 500; color: rgba(255, 255, 255, 0.85); margin: 0; letter-spacing: 0.5px; max-width: 800px; line-height: 1.3;">${esc(song)}</p>
+      </div>
+    `;
+  }
 }
 
 function updatePantallaContent() {
@@ -6373,7 +6402,21 @@ let lastCastYtVolume = 100;
 function updatePlayBtnIcon() {
   const playBtn = document.getElementById('yt-remote-play-btn');
   if (playBtn) {
-    playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+    const mode = localState.settings?.playbackMode || 'theme';
+    playBtn.classList.remove('play-btn-continuous', 'play-btn-theme-paused', 'play-btn-theme-playing');
+    
+    if (mode === 'continuous') {
+      playBtn.classList.add('play-btn-continuous');
+      playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+    } else {
+      if (isYtPlaying) {
+        playBtn.classList.add('play-btn-theme-playing');
+        playBtn.textContent = '⏸';
+      } else {
+        playBtn.classList.add('play-btn-theme-paused');
+        playBtn.textContent = '⏭';
+      }
+    }
   }
 }
 
@@ -6775,8 +6818,8 @@ function playQueueItem(source, id, autoPlay = true) {
     });
   }
 
-  // Auto-seleccionar y emitir la vista de Video en la proyección
-  setCastLayout('video');
+  // Auto-seleccionar y emitir la vista 'intro_tema' en la proyección al cargar un tema
+  setCastLayout('intro_tema');
   
   renderPlaylistQueue();
 }
@@ -6844,14 +6887,15 @@ function updatePlaybackModeUI() {
   
   const mode = localState.settings?.playbackMode || 'theme';
   if (mode === 'continuous') {
-    btn.textContent = 'Continuo';
+    btn.textContent = 'Lista';
     btn.classList.remove('btn-outline');
     btn.classList.add('btn-gold');
   } else {
-    btn.textContent = 'Por tema';
+    btn.textContent = 'Tema';
     btn.classList.remove('btn-gold');
     btn.classList.add('btn-outline');
   }
+  updatePlayBtnIcon();
 }
 
 window.togglePlaybackMode = togglePlaybackMode;
@@ -6870,6 +6914,10 @@ function ytRemoteTogglePlay() {
 
   isYtPlaying = !isYtPlaying;
   updatePlayBtnIcon();
+
+  if (isYtPlaying && currentCastLayout === 'intro_tema') {
+    setCastLayout('video');
+  }
 
   if (castChannel) {
     castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
@@ -7113,6 +7161,19 @@ function onPlayerStateChange(event) {
 
   if (event.data === YT.PlayerState.PLAYING) {
     startProyectorStatusLoop();
+    
+    if (currentCastLayout === 'intro_tema') {
+      if (firebaseOk && !IS_BAR_PROJECTION) {
+        dbUpdate(dbRef(db, 'settings'), { castLayout: 'video' });
+      } else {
+        currentCastLayout = 'video';
+        applyProyectorLayout('video');
+        if (castChannel) {
+          castChannel.postMessage({ type: 'cast_layout', layout: 'video' });
+        }
+      }
+    }
+
     if (firebaseOk && !IS_BAR_PROJECTION) {
       dbUpdate(dbRef(db, 'settings'), {
         playerState: 'playing',
@@ -7229,6 +7290,7 @@ function applyProyectorLayout(layout) {
     else if (layout === 'flyer') setPantallaTab('proximo');
     else if (layout === 'vote') setPantallaTab('votos');
     else if (layout === 'guests') setPantallaTab('artistas');
+    else if (layout === 'intro_tema') setPantallaTab('intro_tema');
   }
 }
 

@@ -1769,3 +1769,28 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   opacity: 0.55 !important;
   pointer-events: none !important;
 }
+
+/* Play/Pause Button States for Playlist Modes */
+.play-btn-continuous {
+  background: linear-gradient(135deg, #2ecc71 0%, #157f3c 100%) !important;
+  border-color: #2ecc71 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(46, 204, 113, 0.4) !important;
+}
+.play-btn-theme-paused {
+  background: linear-gradient(135deg, #f1c40f 0%, #d68910 100%) !important;
+  border-color: #f1c40f !important;
+  color: #000000 !important;
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.4) !important;
+}
+.play-btn-theme-playing {
+  background: linear-gradient(135deg, #e74c3c 0%, #9a1f15 100%) !important;
+  border-color: #e74c3c !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(231, 76, 60, 0.4) !important;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.15; }
+  50% { transform: scale(1.15); opacity: 0.35; }
+}
