@@ -1751,9 +1751,9 @@ function updateDashboard() {
         const name = ev.name || '';
         const details = `${ev.date}, ${ev.time} y ${ev.venue}`;
         const btnText = 'Terminar';
-        const btnBg = 'linear-gradient(135deg,#aa3d50,#7a2535)';
+        const btnBg = 'linear-gradient(135deg,#e74c3c,#9a1f15)';
         const btnColor = '#fff';
-        const btnBorder = '#aa3d50';
+        const btnBorder = '#e74c3c';
         
         const currentActiveId = getCurrentEventId();
         const spots = getEventSpots(slot);
@@ -6360,6 +6360,7 @@ let activeYtVideo = null;
 let isYtPlaying = false;
 let castChannel = null;
 let currentCastLayout = 'blank';
+let lastCastLayoutBeforeVote = 'video';
 let projectionPlayer = null;
 let projectionPlayerReady = false;
 let projectionPlayerInitialized = false;
@@ -6948,6 +6949,12 @@ function ytRemoteVolumeChange(val) {
 
 // Seleccionar diseño de emisión a pantalla secundaria
 function setCastLayout(layout) {
+  if (layout === 'vote' && currentCastLayout === 'vote') {
+    layout = lastCastLayoutBeforeVote || 'video';
+  } else if (layout !== 'vote') {
+    lastCastLayoutBeforeVote = layout;
+  }
+
   currentCastLayout = layout;
   updateCastButtonsHighlight(layout);
   
@@ -7509,6 +7516,7 @@ function openProjectionWindow() {
 window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
+  if (window.innerWidth < 992) return; // Prevent projection toggling on mobile
   if (lastProjectionActive) {
     if (projectionWindowRef && !projectionWindowRef.closed) {
       projectionWindowRef.close();
@@ -7545,15 +7553,28 @@ function updateProjectionButtonUI() {
   const btnBar = document.getElementById('bar-cast-btn-emitir');
   const btns = [btn, btnBar].filter(Boolean);
   
+  const isMobile = window.innerWidth < 992;
+  
   btns.forEach(b => {
-    if (lastProjectionActive) {
-      b.textContent = 'Emitiendo';
-      b.classList.add('btn-green-emitting');
-      b.classList.remove('btn-gold');
+    b.classList.remove('btn-gold', 'btn-green-emitting', 'btn-emit-mobile-active', 'btn-emit-mobile-inactive');
+    b.style.pointerEvents = '';
+    
+    if (isMobile) {
+      if (lastProjectionActive) {
+        b.textContent = 'Emitiendo';
+        b.classList.add('btn-emit-mobile-active');
+      } else {
+        b.textContent = 'Sin emisión';
+        b.classList.add('btn-emit-mobile-inactive');
+      }
     } else {
-      b.textContent = 'Emitir';
-      b.classList.remove('btn-green-emitting');
-      b.classList.add('btn-gold');
+      if (lastProjectionActive) {
+        b.textContent = 'Emitiendo';
+        b.classList.add('btn-green-emitting');
+      } else {
+        b.textContent = 'Emitir';
+        b.classList.add('btn-gold');
+      }
     }
   });
 }
@@ -7863,4 +7884,8 @@ function renderProjectionQueueLayout(title, items, emptyText) {
   return html;
 }
 window.renderProjectionQueueLayout = renderProjectionQueueLayout;
+
+window.addEventListener('resize', () => {
+  updateProjectionButtonUI();
+});
 
