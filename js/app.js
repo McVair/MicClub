@@ -535,6 +535,7 @@ function initFirebase() {
         if (s.playerState) {
           isYtPlaying = (s.playerState === 'playing');
           updatePlayBtnIcon();
+          renderPlaylistQueue();
         }
         
         const progressEl = document.getElementById('yt-remote-progress');
@@ -6406,18 +6407,19 @@ function updatePlayBtnIcon() {
       isYtPlaying = (localState.settings.playerState === 'playing');
     }
     const mode = localState.settings?.playbackMode || 'theme';
-    playBtn.classList.remove('play-btn-continuous', 'play-btn-theme-paused', 'play-btn-theme-playing');
+    playBtn.classList.remove('play-btn-continuous', 'play-btn-theme-paused', 'play-btn-paused-state');
     
-    if (mode === 'continuous') {
-      playBtn.classList.add('play-btn-continuous');
-      playBtn.textContent = isYtPlaying ? '⏸' : '▶';
+    if (isYtPlaying) {
+      // Estado de pausa (reproduciendo, botón naranja con ícono de pausa SVG)
+      playBtn.classList.add('play-btn-paused-state');
+      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>';
     } else {
-      if (isYtPlaying) {
-        playBtn.classList.add('play-btn-theme-playing');
-        playBtn.textContent = '⏸';
+      if (mode === 'continuous') {
+        playBtn.classList.add('play-btn-continuous');
+        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M8 5V19L19 12L8 5Z"/></svg>';
       } else {
         playBtn.classList.add('play-btn-theme-paused');
-        playBtn.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;gap:1px;line-height:1">▶<span style="font-weight:bold;margin-left:-1px">|</span></span>';
+        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19L17 12L6 5V19Z M18 5H20V19H18V5Z"/></svg>';
       }
     }
   }
@@ -6625,8 +6627,11 @@ function renderPlaylistQueue() {
         </div>
         <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
           <!-- Tocar -->
-          <button class="playlist-item-btn" onclick="playQueueItem('${item.source}', '${item.id}')">
-            ${isCurrent ? '⏸' : '▶'}
+          <button class="playlist-item-btn ${isCurrent && isYtPlaying ? 'paused-state' : ''}" onclick="playQueueItem('${item.source}', '${item.id}')">
+            ${isCurrent && isYtPlaying 
+              ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>' 
+              : '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M8 5V19L19 12L8 5Z"/></svg>'
+            }
           </button>
           
           <!-- Borrar -->
@@ -7375,6 +7380,7 @@ function handleCastMessage(data) {
 
     isYtPlaying = isActive;
     updatePlayBtnIcon();
+    renderPlaylistQueue();
 
     if (!isSeeking && progressEl) {
       progressEl.max = Math.floor(data.duration || 0);
@@ -7387,6 +7393,7 @@ function handleCastMessage(data) {
   } else if (data.type === 'yt_ended') {
     isYtPlaying = false;
     updatePlayBtnIcon();
+    renderPlaylistQueue();
     if (!firebaseOk) {
       const mode = localState.settings?.playbackMode || 'theme';
       if (mode === 'continuous') {
