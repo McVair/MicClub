@@ -6913,6 +6913,8 @@ function updatePlaybackModeUI() {
   btn.style.setProperty('letter-spacing', '0.5px', 'important');
   btn.style.setProperty('text-shadow', 'none', 'important');
   btn.style.setProperty('color', '#ffffff', 'important');
+  btn.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+  btn.style.setProperty('text-fill-color', '#ffffff', 'important');
   btn.style.setProperty('border', 'none', 'important');
   btn.style.setProperty('padding', '3px 8px', 'important');
   btn.style.setProperty('display', 'inline-block', 'important');
