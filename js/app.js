@@ -6410,16 +6410,16 @@ function updatePlayBtnIcon() {
     playBtn.classList.remove('play-btn-continuous', 'play-btn-theme-paused', 'play-btn-paused-state');
     
     if (isYtPlaying) {
-      // Estado de pausa (reproduciendo, botón naranja con ícono de pausa SVG)
+      // Estado de pausa (reproduciendo, botón ROJO con ícono de pausa SVG)
       playBtn.classList.add('play-btn-paused-state');
-      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>';
+      playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>';
     } else {
       if (mode === 'continuous') {
         playBtn.classList.add('play-btn-continuous');
-        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M8 5V19L19 12L8 5Z"/></svg>';
+        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M8 5V19L19 12L8 5Z"/></svg>';
       } else {
         playBtn.classList.add('play-btn-theme-paused');
-        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19L17 12L6 5V19Z M18 5H20V19H18V5Z"/></svg>';
+        playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19L17 12L6 5V19Z M18 5H20V19H18V5Z"/></svg>';
       }
     }
   }
@@ -6629,13 +6629,13 @@ function renderPlaylistQueue() {
           <!-- Tocar -->
           <button class="playlist-item-btn ${isCurrent && isYtPlaying ? 'paused-state' : ''}" onclick="playQueueItem('${item.source}', '${item.id}')">
             ${isCurrent && isYtPlaying 
-              ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>' 
-              : '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M8 5V19L19 12L8 5Z"/></svg>'
+              ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M6 19H10V5H6V19ZM14 5V19H18V5H14Z"/></svg>' 
+              : '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display:inline-block;vertical-align:middle"><path d="M8 5V19L19 12L8 5Z"/></svg>'
             }
           </button>
           
           <!-- Borrar -->
-          <button class="playlist-item-delete-btn" onclick="deleteQueueItem('${item.source}', '${item.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:0"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+          <button class="playlist-item-delete-btn" onclick="deleteQueueItem('${item.source}', '${item.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:0"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
         </div>
       </div>
     `;

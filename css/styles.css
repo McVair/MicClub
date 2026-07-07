@@ -1705,7 +1705,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
 }
 .playlist-item-btn.paused-state {
-  background: linear-gradient(135deg, #ec8826 0%, #b85412 100%) !important;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
 }
 
 @media (min-width: 992px) {
@@ -1785,16 +1785,16 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   box-shadow: 0 0 12px rgba(46, 204, 113, 0.4) !important;
 }
 .play-btn-theme-paused {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
-  border-color: var(--gold) !important;
-  color: #ffffff !important;
-  box-shadow: 0 0 12px rgba(223, 172, 74, 0.4) !important;
-}
-.play-btn-paused-state {
   background: linear-gradient(135deg, #ec8826 0%, #b85412 100%) !important;
   border-color: #ec8826 !important;
   color: #ffffff !important;
   box-shadow: 0 0 12px rgba(236, 136, 38, 0.4) !important;
+}
+.play-btn-paused-state {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+  border-color: #e74c3c !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(231, 76, 60, 0.4) !important;
 }
 
 @keyframes pulseGlow {
