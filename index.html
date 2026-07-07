@@ -651,8 +651,18 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── PANTALLA PÚBLICA DE PRESENTACIÓN ─────────── -->
   <div id="page-pantalla" class="page" style="padding: 0; max-width: none; margin: 0; width: 100%;">
+    <!-- Overlay para desbloquear Autoplay y Audio -->
+    <div id="pantalla-autoplay-overlay" onclick="activateAutoplay()" style="position: fixed; inset: 0; background: rgba(10, 10, 15, 0.98); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center; cursor: pointer; transition: opacity 0.4s ease;">
+      <div style="font-size: 64px; animation: pulseGlow 2.5s infinite; filter: drop-shadow(0 0 20px rgba(212, 168, 67, 0.3));">📺</div>
+      <h2 style="font-family: 'Oswald', sans-serif; font-size: 32px; color: #d4a843; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Pantalla de Emisión Activa</h2>
+      <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: #ffffff; max-width: 480px; line-height: 1.6; opacity: 0.85; margin: 0 20px;">
+        Hacé clic en cualquier parte de esta pantalla para habilitar el sonido y la reproducción automática de videos.
+      </p>
+      <button class="btn btn-gold" style="margin-top: 10px; padding: 12px 30px; font-size: 14px;">COMENZAR SHOW</button>
+    </div>
+
     <!-- Reproductor de YouTube para Proyección (Ocupa toda la pantalla cuando está activo) -->
-    <div id="pantalla-yt-container" style="display:block;position:absolute;top:0;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;background:#000;z-index:-9999">
+    <div id="pantalla-yt-container" style="display:block;position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;pointer-events:none;background:#000;z-index:-9999">
       <div id="pantalla-player"></div>
     </div>
     <div class="pantalla-layout">

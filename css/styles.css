@@ -1180,6 +1180,8 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   width: 100vw;
   overflow: hidden;
   background: #0A0A0F;
+  position: relative;
+  z-index: 10;
 }
 .pantalla-sidebar {
   display: none !important;
@@ -1805,37 +1807,37 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 
 .btn-playback-lista {
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
+  color: var(--bg) !important;
   border: none !important;
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4) !important;
+  box-shadow: 0 0 10px rgba(223, 172, 74, 0.4) !important;
 }
 .btn-playback-lista:hover {
   filter: brightness(1.15) !important;
 }
 
 .btn-playback-tema {
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
-  color: #ffffff !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%) !important;
+  color: var(--bg) !important;
   border: none !important;
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4) !important;
+  box-shadow: 0 0 10px rgba(223, 172, 74, 0.4) !important;
 }
 .btn-playback-tema:hover {
   filter: brightness(1.15) !important;
 }
 
 #playback-mode-btn {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  text-fill-color: #ffffff !important;
+  color: var(--bg) !important;
+  -webkit-text-fill-color: var(--bg) !important;
+  text-fill-color: var(--bg) !important;
 }
 #playback-mode-btn:hover {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  text-fill-color: #ffffff !important;
+  color: var(--bg) !important;
+  -webkit-text-fill-color: var(--bg) !important;
+  text-fill-color: var(--bg) !important;
 }
 #playback-mode-btn * {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  text-fill-color: #ffffff !important;
+  color: var(--bg) !important;
+  -webkit-text-fill-color: var(--bg) !important;
+  text-fill-color: var(--bg) !important;
 }

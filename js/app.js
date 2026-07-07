@@ -7132,6 +7132,9 @@ function onPlayerReady(event) {
       lastLoadedVideoId = s.castYtVideo.ytId;
       projectionPlayer.loadVideoById(s.castYtVideo.ytId);
       projectionPlayer.mute();
+      if (s.castYtCommand) {
+        lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
+      }
       if (s.playerState === 'playing' || (s.castYtCommand && s.castYtCommand.type === 'yt_play')) {
         projectionPlayer.playVideo();
       }
@@ -7151,6 +7154,9 @@ function onPlayerReady(event) {
     }
     if (s.castYtVolume !== undefined) {
       projectionPlayer.setVolume(s.castYtVolume);
+    }
+    if (s.castYtCommand) {
+      lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
     }
     if ((s.castYtCommand && s.castYtCommand.type === 'yt_play') || s.playerState === 'playing') {
       projectionPlayer.playVideo();
@@ -7253,9 +7259,10 @@ function applyProyectorLayout(layout) {
     if (ytContainer) {
       ytContainer.style.display = 'block';
       ytContainer.style.position = 'absolute';
-      ytContainer.style.left = '-9999px';
-      ytContainer.style.width = '1px';
-      ytContainer.style.height = '1px';
+      ytContainer.style.top = '0';
+      ytContainer.style.left = '0';
+      ytContainer.style.width = '100%';
+      ytContainer.style.height = '100%';
       ytContainer.style.opacity = '0';
       ytContainer.style.zIndex = '-9999';
       ytContainer.style.pointerEvents = 'none';
@@ -7266,11 +7273,12 @@ function applyProyectorLayout(layout) {
     if (ytContainer) {
       ytContainer.style.display = 'block';
       ytContainer.style.position = 'absolute';
-      ytContainer.style.left = '-9999px';
-      ytContainer.style.width = '1px';
-      ytContainer.style.height = '1px';
-      ytContainer.style.opacity = '0';
-      ytContainer.style.zIndex = '-9999';
+      ytContainer.style.top = '0';
+      ytContainer.style.left = '0';
+      ytContainer.style.width = '100%';
+      ytContainer.style.height = '100%';
+      ytContainer.style.opacity = '0.001';
+      ytContainer.style.zIndex = '1';
       ytContainer.style.pointerEvents = 'none';
     }
     if (layoutContainer) {
