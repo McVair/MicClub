@@ -6403,9 +6403,6 @@ let lastCastYtVolume = 100;
 function updatePlayBtnIcon() {
   const playBtn = document.getElementById('yt-remote-play-btn');
   if (playBtn) {
-    if (localState.settings?.playerState !== undefined) {
-      isYtPlaying = (localState.settings.playerState === 'playing');
-    }
     const mode = localState.settings?.playbackMode || 'theme';
     playBtn.classList.remove('play-btn-continuous', 'play-btn-theme-paused', 'play-btn-paused-state');
     
