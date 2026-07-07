@@ -1821,3 +1821,13 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 .btn-playback-tema:hover {
   filter: brightness(1.15) !important;
 }
+
+#playback-mode-btn {
+  color: #ffffff !important;
+}
+#playback-mode-btn:hover {
+  color: #ffffff !important;
+}
+#playback-mode-btn * {
+  color: #ffffff !important;
+}

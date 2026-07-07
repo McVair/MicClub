@@ -6925,13 +6925,16 @@ function updatePlaybackModeUI() {
   
   if (mode === 'continuous') {
     btn.textContent = 'lista';
+    btn.classList.add('btn-playback-lista');
     btn.style.setProperty('background', 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)', 'important');
     btn.style.setProperty('box-shadow', '0 0 10px rgba(46, 204, 113, 0.4)', 'important');
   } else {
     btn.textContent = 'tema';
+    btn.classList.add('btn-playback-tema');
     btn.style.setProperty('background', 'linear-gradient(135deg, #ec8826 0%, #b85412 100%)', 'important');
     btn.style.setProperty('box-shadow', '0 0 10px rgba(236, 136, 38, 0.4)', 'important');
   }
+  btn.style.setProperty('color', '#ffffff', 'important');
   updatePlayBtnIcon();
 }
 
