@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.42">
+<link rel="stylesheet" href="css/styles.css?v=1.43">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -869,7 +869,7 @@ if ('serviceWorker' in navigator) {
             <div class="card-title" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
               <div style="display:flex;align-items:center;gap:8px">
                 <span>Playlist</span>
-                <button class="btn btn-sm btn-gold" id="playback-mode-btn" onclick="togglePlaybackMode()" style="color:#ffffff !important;font-size:10px;padding:2px 8px;min-height:auto;margin:0;width:auto">Tema</button>
+                <button id="playback-mode-btn" onclick="togglePlaybackMode()" style="color:#ffffff !important;font-family:'Inter',sans-serif !important;font-size:11px !important;font-weight:700 !important;text-transform:lowercase !important;border:none !important;padding:3px 8px !important;display:inline-block !important;min-height:auto !important;height:auto !important;width:auto !important;border-radius:4px !important;cursor:pointer !important;line-height:1 !important;margin:0 !important;vertical-align:middle !important">tema</button>
               </div>
               <span id="yt-playlist-count" style="font-size:11px;color:var(--text2)">0 temas</span>
             </div>
@@ -1085,6 +1085,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.52" defer></script>
+<script src="js/app.js?v=1.53" defer></script>
 </body>
 </html>

@@ -6902,35 +6902,35 @@ function updatePlaybackModeUI() {
   
   const mode = localState.settings?.playbackMode || 'theme';
   
-  // Siempre remover clases que puedan tener estilos fijos
-  btn.classList.remove('btn-outline', 'btn-gold', 'btn-playback-lista', 'btn-playback-tema');
+  // Limpiar clases completamente para evitar heredar alturas o paddings conflictivos
+  btn.className = '';
   
-  // Asignar todas las propiedades visuales inline con !important para asegurar máxima prioridad
+  // Estilos inline de diseño básicos
+  btn.style.setProperty('font-family', "'Inter', sans-serif", 'important');
   btn.style.setProperty('font-size', '11px', 'important');
   btn.style.setProperty('font-weight', '700', 'important');
-  btn.style.setProperty('text-transform', 'none', 'important');
+  btn.style.setProperty('text-transform', 'lowercase', 'important');
   btn.style.setProperty('letter-spacing', '0.5px', 'important');
   btn.style.setProperty('text-shadow', 'none', 'important');
   btn.style.setProperty('color', '#ffffff', 'important');
   btn.style.setProperty('border', 'none', 'important');
-  btn.style.setProperty('padding', '2px 8px', 'important');
-  btn.style.setProperty('display', 'inline-flex', 'important');
-  btn.style.setProperty('align-items', 'center', 'important');
-  btn.style.setProperty('justify-content', 'center', 'important');
+  btn.style.setProperty('padding', '3px 8px', 'important');
+  btn.style.setProperty('display', 'inline-block', 'important');
   btn.style.setProperty('min-height', 'auto', 'important');
+  btn.style.setProperty('height', 'auto', 'important');
   btn.style.setProperty('width', 'auto', 'important');
-  btn.style.setProperty('border-radius', '6px', 'important');
+  btn.style.setProperty('border-radius', '4px', 'important');
   btn.style.setProperty('cursor', 'pointer', 'important');
-  btn.style.setProperty('transition', 'all 0.2s', 'important');
+  btn.style.setProperty('line-height', '1', 'important');
+  btn.style.setProperty('margin', '0', 'important');
+  btn.style.setProperty('vertical-align', 'middle', 'important');
   
   if (mode === 'continuous') {
     btn.textContent = 'lista';
-    btn.classList.add('btn-playback-lista');
     btn.style.setProperty('background', 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)', 'important');
     btn.style.setProperty('box-shadow', '0 0 10px rgba(46, 204, 113, 0.4)', 'important');
   } else {
     btn.textContent = 'tema';
-    btn.classList.add('btn-playback-tema');
     btn.style.setProperty('background', 'linear-gradient(135deg, #ec8826 0%, #b85412 100%)', 'important');
     btn.style.setProperty('box-shadow', '0 0 10px rgba(236, 136, 38, 0.4)', 'important');
   }
