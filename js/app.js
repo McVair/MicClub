@@ -6787,7 +6787,7 @@ function playQueueItem(source, id, autoPlay = true) {
   }
 
   activeYtVideo = item;
-  isYtPlaying = false; // Inicializar en falso (mostrar play), esperar a que el proyector reporte reproducción activa
+  isYtPlaying = autoPlay;
   
   // Actualizar el UI del reproductor remoto
   const titleEl = document.getElementById('yt-remote-title');
@@ -6814,12 +6814,16 @@ function playQueueItem(source, id, autoPlay = true) {
     });
   }
   if (firebaseOk && MODE !== 'bar') {
-    dbUpdate(dbRef(db, 'settings/castYtVideo'), {
-      ytId: item.ytId,
-      title: item.name,
-      song: item.song,
-      autoPlay: autoPlay,
-      timestamp: Date.now()
+    dbUpdate(dbRef(db, 'settings'), {
+      castYtVideo: {
+        ytId: item.ytId,
+        title: item.name,
+        song: item.song,
+        autoPlay: autoPlay,
+        timestamp: Date.now()
+      },
+      playerState: autoPlay ? 'playing' : 'paused',
+      playerTime: 0
     });
   }
 
@@ -6938,9 +6942,12 @@ function ytRemoteTogglePlay() {
     castChannel.postMessage({ type: isYtPlaying ? 'yt_play' : 'yt_pause' });
   }
   if (firebaseOk && MODE !== 'bar') {
-    dbUpdate(dbRef(db, 'settings/castYtCommand'), {
-      type: isYtPlaying ? 'yt_play' : 'yt_pause',
-      timestamp: Date.now()
+    dbUpdate(dbRef(db, 'settings'), {
+      castYtCommand: {
+        type: isYtPlaying ? 'yt_play' : 'yt_pause',
+        timestamp: Date.now()
+      },
+      playerState: isYtPlaying ? 'playing' : 'paused'
     });
   }
 }
