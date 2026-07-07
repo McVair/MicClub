@@ -6826,8 +6826,13 @@ function playQueueItem(source, id, autoPlay = true) {
     });
   }
 
-  // Auto-seleccionar y emitir la vista 'intro_tema' en la proyección al cargar un tema
-  setCastLayout('intro_tema');
+  // Auto-seleccionar la vista según el modo de reproducción
+  const mode = localState.settings?.playbackMode || 'theme';
+  if (mode === 'continuous') {
+    setCastLayout('video');
+  } else {
+    setCastLayout('intro_tema');
+  }
   
   renderPlaylistQueue();
 }
@@ -6897,26 +6902,35 @@ function updatePlaybackModeUI() {
   
   const mode = localState.settings?.playbackMode || 'theme';
   
-  // Limpiar clases previas
+  // Siempre remover clases que puedan tener estilos fijos
   btn.classList.remove('btn-outline', 'btn-gold', 'btn-playback-lista', 'btn-playback-tema');
   
-  // Limpiar propiedades inline que interfieren con las clases de fondo y color
-  btn.style.removeProperty('background');
-  btn.style.removeProperty('color');
-  btn.style.removeProperty('border');
-  
+  // Asignar todas las propiedades visuales inline con !important para asegurar máxima prioridad
   btn.style.setProperty('font-size', '11px', 'important');
   btn.style.setProperty('font-weight', '700', 'important');
   btn.style.setProperty('text-transform', 'none', 'important');
   btn.style.setProperty('letter-spacing', '0.5px', 'important');
   btn.style.setProperty('text-shadow', 'none', 'important');
+  btn.style.setProperty('color', '#ffffff', 'important');
+  btn.style.setProperty('border', 'none', 'important');
+  btn.style.setProperty('padding', '2px 8px', 'important');
+  btn.style.setProperty('display', 'inline-flex', 'important');
+  btn.style.setProperty('align-items', 'center', 'important');
+  btn.style.setProperty('justify-content', 'center', 'important');
+  btn.style.setProperty('min-height', 'auto', 'important');
+  btn.style.setProperty('width', 'auto', 'important');
+  btn.style.setProperty('border-radius', '6px', 'important');
+  btn.style.setProperty('cursor', 'pointer', 'important');
+  btn.style.setProperty('transition', 'all 0.2s', 'important');
   
   if (mode === 'continuous') {
     btn.textContent = 'lista';
-    btn.classList.add('btn-playback-lista');
+    btn.style.setProperty('background', 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)', 'important');
+    btn.style.setProperty('box-shadow', '0 0 10px rgba(46, 204, 113, 0.4)', 'important');
   } else {
     btn.textContent = 'tema';
-    btn.classList.add('btn-playback-tema');
+    btn.style.setProperty('background', 'linear-gradient(135deg, #ec8826 0%, #b85412 100%)', 'important');
+    btn.style.setProperty('box-shadow', '0 0 10px rgba(236, 136, 38, 0.4)', 'important');
   }
   updatePlayBtnIcon();
 }
@@ -7160,6 +7174,15 @@ function onPlayerReady(event) {
     if (s.castLayout) {
       applyProyectorLayout(s.castLayout);
     }
+    if (s.castYtVideo) {
+      lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
+      lastLoadedVideoId = s.castYtVideo.ytId;
+      if (s.castYtVideo.autoPlay !== false) {
+        projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+      } else {
+        projectionPlayer.cueVideoById(s.castYtVideo.ytId);
+      }
+    }
     if (s.castYtVolume !== undefined) {
       projectionPlayer.setVolume(s.castYtVolume);
     }
@@ -7228,6 +7251,7 @@ function onPlayerStateChange(event) {
   }
   
   if (event.data === YT.PlayerState.ENDED) {
+    lastLoadedVideoId = null; // PERMITIR REPLAY DE LA MISMA CANCIÓN
     if (castChannel) {
       castChannel.postMessage({ type: 'yt_ended' });
     }
