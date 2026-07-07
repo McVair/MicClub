@@ -637,35 +637,7 @@ function initFirebase() {
         }
       }
 
-      if (MODE === 'pantalla' && IS_BAR_PROJECTION) {
-        if (currentCastLayout === 'video') {
-          if (s.castYtVideo && s.castYtVideo.timestamp !== lastCastYtVideoTimestamp) {
-            lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
-            if (projectionPlayer && projectionPlayerReady) {
-              if (lastLoadedVideoId !== s.castYtVideo.ytId) {
-                lastLoadedVideoId = s.castYtVideo.ytId;
-                projectionPlayer.loadVideoById(s.castYtVideo.ytId);
-                projectionPlayer.mute();
-              }
-            }
-          }
-          if (s.castYtCommand && s.castYtCommand.timestamp !== lastCastYtCommandTimestamp) {
-            lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
-            const cmd = s.castYtCommand;
-            if (projectionPlayer && projectionPlayerReady) {
-              if (cmd.type === 'yt_play') {
-                projectionPlayer.playVideo();
-                projectionPlayer.mute();
-              } else if (cmd.type === 'yt_pause') {
-                projectionPlayer.pauseVideo();
-              } else if (cmd.type === 'yt_seek') {
-                projectionPlayer.seekTo(cmd.time, true);
-                projectionPlayer.mute();
-              }
-            }
-          }
-        }
-      }
+
 
       if (!showRunning) enforceNoShowState();
       checkAndMigrate();
@@ -7155,6 +7127,15 @@ function onPlayerReady(event) {
   const s = localState.settings || {};
   if (IS_BAR_PROJECTION) {
     applyProyectorLayout('ranking');
+    if (s.castYtVideo) {
+      lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
+      lastLoadedVideoId = s.castYtVideo.ytId;
+      projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+      projectionPlayer.mute();
+      if (s.playerState === 'playing' || (s.castYtCommand && s.castYtCommand.type === 'yt_play')) {
+        projectionPlayer.playVideo();
+      }
+    }
   } else {
     if (s.castLayout) {
       applyProyectorLayout(s.castLayout);
@@ -7171,7 +7152,7 @@ function onPlayerReady(event) {
     if (s.castYtVolume !== undefined) {
       projectionPlayer.setVolume(s.castYtVolume);
     }
-    if (s.castYtCommand && s.castYtCommand.type === 'yt_play') {
+    if ((s.castYtCommand && s.castYtCommand.type === 'yt_play') || s.playerState === 'playing') {
       projectionPlayer.playVideo();
     }
   }
@@ -7267,26 +7248,7 @@ function applyProyectorLayout(layout) {
     }
     if (layoutContainer) layoutContainer.style.display = 'none';
 
-    if (IS_BAR_PROJECTION && projectionPlayer && projectionPlayerReady) {
-      const activeVideo = localState.settings?.castYtVideo;
-      if (activeVideo) {
-        if (lastLoadedVideoId !== activeVideo.ytId) {
-          lastLoadedVideoId = activeVideo.ytId;
-          projectionPlayer.loadVideoById(activeVideo.ytId);
-          projectionPlayer.mute();
-        }
-        const progress = localState.settings?.playerTime || 0;
-        if (progress > 0) {
-          projectionPlayer.seekTo(progress, true);
-        }
-        const isPlaying = localState.settings?.playerState === 'playing';
-        if (isPlaying) {
-          projectionPlayer.playVideo();
-        } else {
-          projectionPlayer.pauseVideo();
-        }
-      }
-    }
+
   } else if (layout === 'blank') {
     if (ytContainer) {
       ytContainer.style.display = 'block';
