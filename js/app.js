@@ -7306,7 +7306,13 @@ function updateCastButtonsHighlight(layout) {
   const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote', 'guests'];
   layouts.forEach(l => {
     const btn = document.getElementById(`cast-btn-${l}`);
-    if (btn) btn.classList.toggle('active', l === layout);
+    if (btn) {
+      if (l === 'video') {
+        btn.classList.toggle('active', layout === 'video' || layout === 'intro_tema');
+      } else {
+        btn.classList.toggle('active', l === layout);
+      }
+    }
     const btnBar = document.getElementById(`bar-cast-btn-${l}`);
     if (btnBar) {
       if (l === 'video') {
