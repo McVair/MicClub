@@ -291,7 +291,6 @@ if ('serviceWorker' in navigator) {
     <!-- D · Pantalla de éxito de reserva -->
     <div id="reg-success-view" class="card" style="display:none; padding: 24px; text-align: left; animation: fadeIn 0.4s ease;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
         <h3 style="font-family: 'Inter', sans-serif; font-size: 22px; color: var(--gold); margin: 0; text-shadow: 0 0 10px rgba(223, 172, 74, 0.3); text-transform: none; letter-spacing: 0;">¡Gracias por sumarte al Mic Club!</h3>
       </div>
       
@@ -301,7 +300,7 @@ if ('serviceWorker' in navigator) {
       
       <div style="background: rgba(212, 168, 67, 0.06); border: 1px solid var(--gold-dark); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
         <p style="font-size: 14px; line-height: 1.6; color: var(--text); margin: 0;">
-          Para confirmar la reserva solo falta transferir <strong>$6000</strong> por cada persona (un total de <strong id="success-total-amount"></strong> por <strong id="success-spots-summary"></strong>) y <a id="success-wa-link" href="#" target="_blank" style="color: var(--gold); text-decoration: underline; font-weight: bold;">enviarnos un mensaje por WhatsApp</a>.
+          Para confirmar la reserva solo falta transferir <strong>$6000</strong> por cada persona (un total de <strong id="success-total-amount"></strong> por <strong id="success-spots-summary"></strong>) al alias: <span id="success-alias-copy" style="color: var(--gold); cursor: pointer; text-decoration: underline; font-weight: bold; transition: color 0.2s;" onclick="copyAliasToClipboard()" title="Clic para copiar alias">lasalasdemivoz</span> y enviarnos el comprobante por <a id="success-wa-link" href="#" target="_blank" style="color: var(--gold); text-decoration: underline; font-weight: bold;">whatsapp al N° 3624834753</a>.
         </p>
       </div>
       

@@ -3513,6 +3513,24 @@ function showReservationSuccess(ppl, eventId) {
   window.scrollTo(0, 0);
 }
 
+function copyAliasToClipboard() {
+  const alias = "lasalasdemivoz";
+  navigator.clipboard.writeText(alias).then(() => {
+    const el = document.getElementById('success-alias-copy');
+    if (el) {
+      const originalText = el.textContent;
+      el.textContent = "¡Copiado!";
+      el.style.color = "var(--teal)";
+      setTimeout(() => {
+        el.textContent = originalText;
+        el.style.color = "var(--gold)";
+      }, 1500);
+    }
+  }).catch(err => {
+    console.error('Error al copiar al portapapeles:', err);
+  });
+}
+
 function renderRegistrationEventSelectorList(ev1, ev2) {
   const listEl = document.getElementById('reg-event-selector-list');
   if (!listEl) return;
