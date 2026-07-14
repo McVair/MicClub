@@ -6220,7 +6220,7 @@ function renderPantallaContent() {
   const elName = document.getElementById('pantalla-event-name');
   const elDetails = document.getElementById('pantalla-event-details');
   if (pantallaTab === 'ranking') {
-    if (elName) elName.textContent = 'Mic Club';
+    if (elName) elName.textContent = 'Ranking MIC CLUB';
     if (elDetails) elDetails.textContent = 'Puntos Acumulados';
   } else if (pantallaTab === 'votos') {
     if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
@@ -6373,7 +6373,7 @@ function updatePantallaContent() {
   const elName = document.getElementById('pantalla-event-name');
   const elDetails = document.getElementById('pantalla-event-details');
   if (pantallaTab === 'ranking') {
-    if (elName) elName.textContent = 'RANKING MIC CLUB';
+    if (elName) elName.textContent = 'Ranking MIC CLUB';
     if (elDetails) elDetails.textContent = 'Puntos Acumulados';
   } else if (pantallaTab === 'votos') {
     if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
