@@ -7040,7 +7040,9 @@ function playQueueItem(source, id, autoPlay = true) {
       type: autoPlay ? 'yt_load' : 'yt_cue',
       ytId: item.ytId,
       title: item.name,
-      song: item.song
+      song: item.song,
+      source: item.source,
+      id: item.id
     });
   }
   if (firebaseOk && MODE !== 'bar') {
@@ -7378,6 +7380,9 @@ function onPlayerReady(event) {
   if (IS_BAR_PROJECTION && projectionPlayer && typeof projectionPlayer.mute === 'function') {
     projectionPlayer.mute();
   }
+  
+  activateAutoplay();
+
   if (castChannel) {
     castChannel.postMessage({ type: 'projection_ready' });
   }
@@ -7570,19 +7575,26 @@ function handleProyectorMessage(data) {
     if (pantallaTab === 'votos') {
       renderPantallaContent();
     }
-  } else if (data.type === 'yt_load') {
+  } else if (data.type === 'yt_load' || data.type === 'yt_cue') {
+    activeYtVideo = {
+      source: data.source,
+      id: data.id,
+      ytId: data.ytId,
+      name: data.title,
+      song: data.song
+    };
     if (projectionPlayer && projectionPlayerReady) {
       if (lastLoadedVideoId !== data.ytId) {
         lastLoadedVideoId = data.ytId;
-        projectionPlayer.loadVideoById(data.ytId);
+        if (data.type === 'yt_load') {
+          projectionPlayer.loadVideoById(data.ytId);
+        } else {
+          projectionPlayer.cueVideoById(data.ytId);
+        }
       }
     }
-  } else if (data.type === 'yt_cue') {
-    if (projectionPlayer && projectionPlayerReady) {
-      if (lastLoadedVideoId !== data.ytId) {
-        lastLoadedVideoId = data.ytId;
-        projectionPlayer.cueVideoById(data.ytId);
-      }
+    if (pantallaTab === 'participantes') {
+      renderPantallaContent();
     }
   } else if (data.type === 'yt_play') {
     if (projectionPlayer && projectionPlayerReady) {
@@ -7688,7 +7700,9 @@ function handleCastMessage(data) {
             type: 'yt_load',
             ytId: activeYtVideo.ytId,
             title: activeYtVideo.name,
-            song: activeYtVideo.song
+            song: activeYtVideo.song,
+            source: activeYtVideo.source,
+            id: activeYtVideo.id
           });
         }
       }
@@ -7817,7 +7831,7 @@ function checkProjectionWindowClosed() {
 
 function openProjectionWindow() {
   const url = (MODE === 'bar') ? '?mode=pantalla&source=bar' : '?mode=pantalla';
-  const name = ((MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection') + '_' + Date.now();
+  const name = (MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection';
   const w = window.screen.width || 1920;
   const h = window.screen.height || 1080;
   
@@ -7841,18 +7855,7 @@ function toggleProjectionState() {
   if (window.innerWidth < 992) return; // Prevent projection toggling on mobile
   
   if (projectionWindowRef && !projectionWindowRef.closed) {
-    projectionWindowRef.close();
-    projectionWindowRef = null;
-    if (firebaseOk && MODE !== 'bar') {
-      dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
-    } else {
-      lastProjectionActive = false;
-      updateProjectionButtonUI();
-    }
-    if (projectionCheckInterval) {
-      clearInterval(projectionCheckInterval);
-      projectionCheckInterval = null;
-    }
+    projectionWindowRef.focus();
     return;
   }
 
