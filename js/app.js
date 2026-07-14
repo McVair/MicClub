@@ -7273,6 +7273,7 @@ function ytRemoteVolumeChange(val) {
 
 // Seleccionar diseño de emisión a pantalla secundaria
 function setCastLayout(layout) {
+  if (MODE === 'bar' && layout === 'video') return; // Bloquear video en modo bar
   currentCastLayout = layout;
   updateCastButtonsHighlight(layout);
   
@@ -7300,7 +7301,13 @@ function updateCastButtonsHighlight(layout) {
     const btn = document.getElementById(`cast-btn-${l}`);
     if (btn) btn.classList.toggle('active', l === layout);
     const btnBar = document.getElementById(`bar-cast-btn-${l}`);
-    if (btnBar) btnBar.classList.toggle('active', l === layout);
+    if (btnBar) {
+      if (l === 'video') {
+        btnBar.classList.remove('active');
+      } else {
+        btnBar.classList.toggle('active', l === layout);
+      }
+    }
   });
   
   const votingContainer = document.getElementById('voting-reveal-buttons-container');
