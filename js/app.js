@@ -7846,7 +7846,7 @@ function checkProjectionWindowClosed() {
 
 function openProjectionWindow() {
   const url = (MODE === 'bar') ? '?mode=pantalla&source=bar' : '?mode=pantalla';
-  const name = (MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection';
+  const name = ((MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection') + '_' + Date.now();
   const w = window.screen.width || 1920;
   const h = window.screen.height || 1080;
   
