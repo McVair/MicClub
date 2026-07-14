@@ -6648,6 +6648,7 @@ let lastLoadedVideoId = null;
 let isSeeking = false;
 let lastCastYtVideoTimestamp = 0;
 let lastCastYtCommandTimestamp = 0;
+let lastYtEndedTime = 0;
 let lastCastYtVolume = 100;
 
 function updatePlayBtnIcon() {
@@ -7529,8 +7530,6 @@ function onPlayerStateChange(event) {
     if (castChannel) {
       castChannel.postMessage({ type: 'yt_ended' });
     }
-    // Cargar siguiente tema pausado (mostrar intro) y esperar play
-    ytRemoteNext(false);
   }
 }
 
@@ -7690,7 +7689,10 @@ function handleCastMessage(data) {
     isYtPlaying = false;
     updatePlayBtnIcon();
     renderPlaylistQueue();
-    if (!firebaseOk) {
+    
+    const now = Date.now();
+    if (now - lastYtEndedTime > 2000) {
+      lastYtEndedTime = now;
       ytRemoteNext(false);
     }
   } else if (data.type === 'sync_request') {
