@@ -504,9 +504,9 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
 
-    <!-- Botón flotante para votar (estilo WhatsApp) -->
-    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:1000;pointer-events:none;padding:0 14px;box-sizing:border-box;display:flex;justify-content:flex-end">
-      <button id="program-vote-btn" onclick="navPush('vote-public')" class="btn" style="pointer-events:auto;box-shadow:0 12px 32px rgba(0,0,0,0.6);font-family:'Inter',sans-serif;font-weight:700;font-size:32px;color:#F4EAD0;letter-spacing:0.5px;width:150px;height:150px;border-radius:20px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1;padding:16px;transition:all 0.2s ease;box-sizing:border-box">VOTAR!</button>
+    <!-- Barra fija de votación en la base (ancho completo) -->
+    <div id="program-vote-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:1000;box-sizing:border-box;padding:0;display:block;">
+      <button id="program-vote-btn" onclick="handleProgramVoteClick()" class="btn btn-gold" style="width:100%;height:54px;border-radius:0;border:none;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px;display:flex;align-items:center;justify-content:center;box-shadow:0 -4px 12px rgba(0,0,0,0.15);transition:all 0.3s ease;">VOTAR!</button>
     </div>
   </div>
 

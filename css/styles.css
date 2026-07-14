@@ -548,9 +548,9 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 }
 .vote-pill:active { filter: brightness(1.1); }
 .vote-pill.selected {
-  background: #3E8C6E;
-  border-color: #3E8C6E;
-  color: #ffffff;
+  background: #3E8C6E !important;
+  border-color: #3E8C6E !important;
+  color: #ffffff !important;
 }
 
 /* ── INLINE EDIT ── */

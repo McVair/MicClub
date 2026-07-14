@@ -74,6 +74,66 @@ let revealedCategories = {
 let lastEventName = null;
 let showingReservationSuccess = false;
 
+let tempSelections = null;
+let tempSelectionsEventId = null;
+
+function getOrCreateVoterId() {
+  let voterId = localStorage.getItem('voter_id');
+  if (!voterId) {
+    voterId = 'voter_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('voter_id', voterId);
+  }
+  return voterId;
+}
+
+function getDeviceVotesFromDB(voterId, eventId) {
+  const votes = { song: [], perf: [] };
+  if (!allParticipants || !eventId) return votes;
+  Object.entries(allParticipants).forEach(([pid, p]) => {
+    const res = p.reservations?.[eventId] || {};
+    const isMigratedActive = (eventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+    const target = isMigratedActive ? p : res;
+    const v = target.publicVotes?.[voterId];
+    if (v) {
+      if (v.song) votes.song.push(pid);
+      if (v.perf) votes.perf.push(pid);
+    }
+  });
+  return votes;
+}
+
+function showTemporaryAlert(text, duration = 2000, callback = null) {
+  const alertDiv = document.createElement('div');
+  alertDiv.style.position = 'fixed';
+  alertDiv.style.top = '50%';
+  alertDiv.style.left = '50%';
+  alertDiv.style.transform = 'translate(-50%, -50%)';
+  alertDiv.style.background = 'rgba(10, 10, 15, 0.95)';
+  alertDiv.style.border = '1px solid var(--gold)';
+  alertDiv.style.borderRadius = '12px';
+  alertDiv.style.padding = '20px 30px';
+  alertDiv.style.color = 'var(--gold)';
+  alertDiv.style.fontFamily = "'Inter', sans-serif";
+  alertDiv.style.fontSize = '18px';
+  alertDiv.style.fontWeight = 'bold';
+  alertDiv.style.zIndex = '99999';
+  alertDiv.style.textAlign = 'center';
+  alertDiv.style.boxShadow = '0 0 20px rgba(223, 172, 74, 0.3)';
+  alertDiv.style.animation = 'fadeIn 0.3s ease';
+  alertDiv.textContent = text;
+  
+  document.body.appendChild(alertDiv);
+  
+  setTimeout(() => {
+    alertDiv.style.transition = 'opacity 0.3s ease';
+    alertDiv.style.opacity = '0';
+    setTimeout(() => {
+      alertDiv.remove();
+      if (callback) callback();
+    }, 300);
+  }, duration);
+}
+
 let pantallaTab = 'artistas';
 
 function resetRevealedCategories() {
@@ -782,8 +842,26 @@ function getParticipantForEvent(p, eventId) {
   const res = p.reservations?.[eventId] || {};
   const isMigratedActive = (eventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
   
+  const targetRes = isMigratedActive ? p : res;
+  const publicVotes = targetRes.publicVotes || {};
+  let calculatedVoteSong = 0;
+  let calculatedVotePerf = 0;
+  let hasPublicVotes = false;
+  Object.values(publicVotes).forEach(v => {
+    hasPublicVotes = true;
+    if (v.song) calculatedVoteSong++;
+    if (v.perf) calculatedVotePerf++;
+  });
+  
+  const voteSongVal = hasPublicVotes ? calculatedVoteSong : (targetRes.voteSong ?? 0);
+  const votePerfVal = hasPublicVotes ? calculatedVotePerf : (targetRes.votePerf ?? 0);
+
   if (isMigratedActive) {
-    return p;
+    return {
+      ...p,
+      voteSong: voteSongVal,
+      votePerf: votePerfVal
+    };
   }
   
   return {
@@ -794,8 +872,8 @@ function getParticipantForEvent(p, eventId) {
     song: res.song || '',
     karaokeLink: res.karaokeLink || '',
     songConfirmed: !!res.songConfirmed,
-    voteSong: res.voteSong ?? 0,
-    votePerf: res.votePerf ?? 0,
+    voteSong: voteSongVal,
+    votePerf: votePerfVal,
     juryScoresSong: res.juryScoresSong || {},
     juryScoresPerf: res.juryScoresPerf || {},
     juryScoresHinchada: res.juryScoresHinchada || {},
@@ -1298,10 +1376,33 @@ function setProgramEventTab(slot) {
 }
 window.setProgramEventTab = setProgramEventTab;
 
+function handleProgramVoteClick() {
+  if (votingOpen) {
+    navPush('vote-public');
+  } else {
+    showTemporaryAlert("La votación aún no está abierta", 2000);
+  }
+}
+window.handleProgramVoteClick = handleProgramVoteClick;
+
 function updateProgramPage() {
   const nameEl = document.getElementById('program-event-name');
   const detailsEl = document.getElementById('program-event-details');
   const voteBtn = document.getElementById('program-vote-btn');
+  
+  if (voteBtn) {
+    if (votingOpen) {
+      voteBtn.style.background = 'var(--gold)';
+      voteBtn.style.color = '#0a0a0f';
+      voteBtn.style.borderColor = 'var(--gold)';
+      voteBtn.textContent = '🗳️ ¡VOTACIÓN ABIERTA! VOTAR AHORA';
+    } else {
+      voteBtn.style.background = '#d93838';
+      voteBtn.style.color = '#ffffff';
+      voteBtn.style.borderColor = '#d93838';
+      voteBtn.textContent = '🔒 VOTACIÓN CERRADA';
+    }
+  }
   
   const ev1 = localState.settings?.events?.event1;
   const ev2 = localState.settings?.events?.event2;
@@ -3772,10 +3873,21 @@ function loadPublicVoteOpts() {
   // Votación abierta — mostrar formulario
   if (voteArea) voteArea.style.display = 'block';
 
-  const prevRaw  = localStorage.getItem('voted_public');
-  const prevVote = prevRaw ? JSON.parse(prevRaw) : null;
+  const activeEventId = getCurrentEventId();
+  const voterId = getOrCreateVoterId();
 
-  if (prevVote) {
+  if (tempSelectionsEventId !== activeEventId) {
+    tempSelections = null;
+    tempSelectionsEventId = activeEventId;
+  }
+
+  if (!tempSelections && activeEventId) {
+    tempSelections = getDeviceVotesFromDB(voterId, activeEventId);
+  }
+
+  const hasVoted = tempSelections && (tempSelections.song.length > 0 || tempSelections.perf.length > 0);
+
+  if (hasVoted) {
     // Ya votó — mostrar banner editable
     if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Ya votaste! Podés modificar tu voto antes de que cierre la votación.'; }
     if (voteBtn)  voteBtn.textContent = 'ACTUALIZAR VOTO';
@@ -3796,8 +3908,8 @@ function loadPublicVoteOpts() {
     const song   = p.songTitle || p.song || '';
     const artist = p.songArtist || '';
     const detail = [song, artist].filter(Boolean).join(' · ');
-    const wasSong = prevVote?.song?.includes(p.id);
-    const wasPerf = prevVote?.perf?.includes(p.id);
+    const wasSong = tempSelections?.song?.includes(p.id);
+    const wasPerf = tempSelections?.perf?.includes(p.id);
     return `<div class="vote-row">
       <div class="vote-row-info">
         <div class="vote-row-name">${esc(p.name)}</div>
@@ -3815,113 +3927,123 @@ function toggleVoteBtn(type, pid) {
   const btn = document.getElementById(`vb-${type}-${pid}`);
   if (!btn) return;
   btn.classList.toggle('selected');
+  
+  const activeEventId = getCurrentEventId();
+  if (!tempSelections && activeEventId) {
+    const voterId = getOrCreateVoterId();
+    tempSelections = getDeviceVotesFromDB(voterId, activeEventId);
+  }
+  
+  if (tempSelections) {
+    const list = tempSelections[type];
+    const index = list.indexOf(pid);
+    if (index > -1) {
+      list.splice(index, 1);
+    } else {
+      list.push(pid);
+    }
+  }
 }
 
 async function submitPublicVote() {
+  const btn = document.getElementById('vote-btn');
+  if (btn) {
+    btn.innerHTML = '<span class="spinner"></span> ENVIANDO...';
+    btn.disabled = true;
+  }
+
   const songButtons = document.querySelectorAll('.vote-pill.selected[id^="vb-song-"]');
   const perfButtons = document.querySelectorAll('.vote-pill.selected[id^="vb-perf-"]');
   const songVotes = Array.from(songButtons).map(btn => btn.id.replace('vb-song-', ''));
   const perfVotes = Array.from(perfButtons).map(btn => btn.id.replace('vb-perf-', ''));
 
   const activeEventId = getCurrentEventId();
-  if (!activeEventId) { mcAlert('No hay evento activo'); return; }
+  if (!activeEventId) { 
+    mcAlert('No hay evento activo'); 
+    if (btn) { btn.innerHTML = 'ENVIAR VOTOS'; btn.disabled = false; }
+    return; 
+  }
 
-  const prevRaw  = localStorage.getItem('voted_public');
-  const prevVote = prevRaw ? JSON.parse(prevRaw) : { song: [], perf: [] };
+  const voterId = getOrCreateVoterId();
+  const prevVote = getDeviceVotesFromDB(voterId, activeEventId);
 
   try {
     if (firebaseOk) {
       const updates = {};
-      const prefix = `reservations/${activeEventId}/`;
-      
-      // Restar votos anteriores
-      (prevVote.song || []).forEach(pid => {
-        if (allParticipants[pid]) {
-          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
-          const cur = updates[`participants/${pid}/${prefix}voteSong`] ?? (parseInt(pEvent.voteSong) || 0);
-          updates[`participants/${pid}/${prefix}voteSong`] = Math.max(0, cur - 1);
-          if (activeEventId === 'event1') updates[`participants/${pid}/voteSong`] = 0;
+      Object.keys(allParticipants).forEach(pid => {
+        const p = allParticipants[pid];
+        const isMigratedActive = (activeEventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+        const pathPrefix = isMigratedActive ? `participants/${pid}/` : `participants/${pid}/reservations/${activeEventId}/`;
+        
+        const isSongSelected = songVotes.includes(pid);
+        const wasSongSelected = prevVote.song.includes(pid);
+        
+        const isPerfSelected = perfVotes.includes(pid);
+        const wasPerfSelected = prevVote.perf.includes(pid);
+        
+        if (isSongSelected !== wasSongSelected) {
+          updates[`${pathPrefix}publicVotes/${voterId}/song`] = isSongSelected ? true : null;
+        }
+        if (isPerfSelected !== wasPerfSelected) {
+          updates[`${pathPrefix}publicVotes/${voterId}/perf`] = isPerfSelected ? true : null;
         }
       });
-      (prevVote.perf || []).forEach(pid => {
-        if (allParticipants[pid]) {
-          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
-          const cur = updates[`participants/${pid}/${prefix}votePerf`] ?? (parseInt(pEvent.votePerf) || 0);
-          updates[`participants/${pid}/${prefix}votePerf`] = Math.max(0, cur - 1);
-          if (activeEventId === 'event1') updates[`participants/${pid}/votePerf`] = 0;
-        }
-      });
-      
-      // Sumar votos nuevos
-      songVotes.forEach(pid => {
-        if (allParticipants[pid]) {
-          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
-          const cur = updates[`participants/${pid}/${prefix}voteSong`] ?? (parseInt(pEvent.voteSong) || 0);
-          updates[`participants/${pid}/${prefix}voteSong`] = cur + 1;
-          if (activeEventId === 'event1') updates[`participants/${pid}/voteSong`] = 0;
-        }
-      });
-      perfVotes.forEach(pid => {
-        if (allParticipants[pid]) {
-          const pEvent = getParticipantForEvent(allParticipants[pid], activeEventId);
-          const cur = updates[`participants/${pid}/${prefix}votePerf`] ?? (parseInt(pEvent.votePerf) || 0);
-          updates[`participants/${pid}/${prefix}votePerf`] = cur + 1;
-          if (activeEventId === 'event1') updates[`participants/${pid}/votePerf`] = 0;
-        }
-      });
-      
-      if (Object.keys(updates).length) await dbUpdate(dbRef(db), updates);
+
+      if (Object.keys(updates).length) {
+        await dbUpdate(dbRef(db), updates);
+      }
     } else {
-      (prevVote.song || []).forEach(pid => {
-        if (allParticipants[pid]) {
-          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
-          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
-          const res = allParticipants[pid].reservations[activeEventId];
-          res.voteSong = Math.max(0, (parseInt(res.voteSong) || 0) - 1);
-          if (activeEventId === 'event1') allParticipants[pid].voteSong = 0;
+      Object.keys(allParticipants).forEach(pid => {
+        const p = allParticipants[pid];
+        const isMigratedActive = (activeEventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+        const target = isMigratedActive ? p : (p.reservations?.[activeEventId] || {});
+        
+        if (!target.publicVotes) target.publicVotes = {};
+        
+        const isSongSelected = songVotes.includes(pid);
+        if (isSongSelected) {
+          if (!target.publicVotes[voterId]) target.publicVotes[voterId] = {};
+          target.publicVotes[voterId].song = true;
+        } else if (target.publicVotes[voterId]) {
+          delete target.publicVotes[voterId].song;
         }
-      });
-      (prevVote.perf || []).forEach(pid => {
-        if (allParticipants[pid]) {
-          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
-          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
-          const res = allParticipants[pid].reservations[activeEventId];
-          res.votePerf = Math.max(0, (parseInt(res.votePerf) || 0) - 1);
-          if (activeEventId === 'event1') allParticipants[pid].votePerf = 0;
+        
+        const isPerfSelected = perfVotes.includes(pid);
+        if (isPerfSelected) {
+          if (!target.publicVotes[voterId]) target.publicVotes[voterId] = {};
+          target.publicVotes[voterId].perf = true;
+        } else if (target.publicVotes[voterId]) {
+          delete target.publicVotes[voterId].perf;
         }
-      });
-      songVotes.forEach(pid => {
-        if (allParticipants[pid]) {
-          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
-          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
-          const res = allParticipants[pid].reservations[activeEventId];
-          res.voteSong = (parseInt(res.voteSong) || 0) + 1;
-          if (activeEventId === 'event1') allParticipants[pid].voteSong = 0;
-        }
-      });
-      perfVotes.forEach(pid => {
-        if (allParticipants[pid]) {
-          if (!allParticipants[pid].reservations) allParticipants[pid].reservations = {};
-          if (!allParticipants[pid].reservations[activeEventId]) allParticipants[pid].reservations[activeEventId] = {};
-          const res = allParticipants[pid].reservations[activeEventId];
-          res.votePerf = (parseInt(res.votePerf) || 0) + 1;
-          if (activeEventId === 'event1') allParticipants[pid].votePerf = 0;
+        
+        // Limpiar objeto de votante vacío
+        if (target.publicVotes[voterId] && Object.keys(target.publicVotes[voterId]).length === 0) {
+          delete target.publicVotes[voterId];
         }
       });
       saveLocal();
     }
+
     localStorage.setItem('voted_public', JSON.stringify({ song: songVotes, perf: perfVotes }));
-    const voteDone = document.getElementById('vote-done');
-    const voteBtn2 = document.getElementById('vote-btn');
-    if (voteDone) { voteDone.style.display = 'block'; voteDone.innerHTML = '✅ ¡Voto registrado! Podés modificarlo mientras la votación esté abierta.'; }
-    if (voteBtn2) { voteBtn2.innerHTML = 'ACTUALIZAR VOTO'; voteBtn2.disabled = false; }
-    
-    updateUI();
+    tempSelections = null;
+    tempSelectionsEventId = null;
+
+    if (btn) {
+      btn.innerHTML = (songVotes.length > 0 || perfVotes.length > 0) ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTOS';
+      btn.disabled = false;
+    }
+
+    showTemporaryAlert("¡Gracias por votar!", 2000, () => {
+      nav('program');
+    });
+
   } catch(e) {
     console.error(e);
     mcAlert('Error al registrar voto: ' + e.message);
-    const voteBtn2 = document.getElementById('vote-btn');
-    if (voteBtn2) { voteBtn2.innerHTML = 'REGISTRAR VOTO'; voteBtn2.disabled = false; }
+    if (btn) { 
+      btn.innerHTML = (prevVote.song.length > 0 || prevVote.perf.length > 0) ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTOS'; 
+      btn.disabled = false; 
+    }
   }
 }
 
