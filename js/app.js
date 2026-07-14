@@ -6234,10 +6234,19 @@ function renderPantallaContent() {
     container.innerHTML = renderProjectionQueueLayout('En Escena', artists, 'No hay artistas invitados cargados aún para este evento.');
   }
   else if (pantallaTab === 'participantes') {
-    const parts = getEnrichedParticipantsList(activeEventId)
-      .filter(p => p.songConfirmed)
-      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    container.innerHTML = renderProjectionQueueLayout('En Escena', parts, 'Esperando confirmación de participantes...');
+    const queue = getConsolidatedQueue(activeEventId);
+    
+    // Encontrar al cantante actual basado en activeYtVideo
+    let currentIdx = 0;
+    if (activeYtVideo) {
+      const idx = queue.findIndex(x => x.source === activeYtVideo.source && x.id === activeYtVideo.id);
+      if (idx !== -1) {
+        currentIdx = idx;
+      }
+    }
+    
+    const sliceFromActive = queue.slice(currentIdx);
+    container.innerHTML = renderProjectionQueueLayout('En Escena', sliceFromActive, 'Esperando confirmación de participantes...');
   }
   else if (pantallaTab === 'votos') {
     container.innerHTML = `
