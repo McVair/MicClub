@@ -1300,6 +1300,8 @@ function getPantallaStateHash() {
   const nextEventImg = localState.settings?.nextEventImage || '';
   const freeList = JSON.stringify(activeEventId ? (freeKaraokeList[activeEventId] || {}) : {});
   
+  const activeVideoKey = activeYtVideo ? `${activeYtVideo.source}-${activeYtVideo.id}-${activeYtVideo.ytId}` : 'none';
+  
   return [
     pantallaTab,
     JSON.stringify(guestArtists),
@@ -1308,7 +1310,8 @@ function getPantallaStateHash() {
     votingCols,
     nextEventImg,
     freeList,
-    screensaverActive
+    screensaverActive,
+    activeVideoKey
   ].join('##');
 }
 
