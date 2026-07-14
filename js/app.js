@@ -3213,13 +3213,19 @@ function updateShowMode() {
     </div>`;
   }).join('');
 
+  let currentRank = 0;
+  let currentScore = -1;
   const activeHtml = activeParts.map((p, i) => {
+    if (p.score !== currentScore) {
+      currentRank = i + 1;
+      currentScore = p.score;
+    }
     const pct    = Math.min(100, (p.score / META) * 100);
-    const isTop  = i < 3;
-    const rank   = getMedalHTML(i + 1);
+    const isTop  = currentRank <= 3;
+    const rank   = getMedalHTML(currentRank);
     const nameColor = 'var(--text)'; // All names are cream white
     
-    const sizeClass = (i === 0) ? '20' : '15';
+    const sizeClass = (currentRank === 1) ? '20' : '15';
     const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
     const ptsGlow = ''; // All scores have yellow glow
     const suffixSize = sizeClass === '20' ? '12' : '9';
