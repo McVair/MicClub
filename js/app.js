@@ -7817,7 +7817,7 @@ function checkProjectionWindowClosed() {
 
 function openProjectionWindow() {
   const url = (MODE === 'bar') ? '?mode=pantalla&source=bar' : '?mode=pantalla';
-  const name = (MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection';
+  const name = ((MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection') + '_' + Date.now();
   const w = window.screen.width || 1920;
   const h = window.screen.height || 1080;
   
@@ -7839,11 +7839,10 @@ window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
   if (window.innerWidth < 992) return; // Prevent projection toggling on mobile
-  if (lastProjectionActive) {
-    if (projectionWindowRef && !projectionWindowRef.closed) {
-      projectionWindowRef.close();
-      projectionWindowRef = null;
-    }
+  
+  if (projectionWindowRef && !projectionWindowRef.closed) {
+    projectionWindowRef.close();
+    projectionWindowRef = null;
     if (firebaseOk && MODE !== 'bar') {
       dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
     } else {
