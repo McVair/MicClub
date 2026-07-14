@@ -109,30 +109,30 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:100%">Video</button>
         </div>
 
-        <!-- Segundo Renglon: Votación -->
+        <!-- Segunda Fila: Ranking -->
+        <div style="margin-bottom:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:100%">Ranking</button>
+        </div>
+
+        <!-- Tercera Fila: Invitados, Participantes, Karaoke -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-guests" onclick="setCastLayout('guests')" style="font-size:11px;padding:8px 0;width:100%">Invitados</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:100%">Participantes</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
+        </div>
+
+        <!-- Cuarta Fila: Votación -->
         <div style="margin-bottom:8px">
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:100%">Votación</button>
         </div>
 
-        <!-- Tercer Renglon: 5 botones de Votación (2 renglones de alto) -->
-        <div id="voting-reveal-buttons-container" style="display:none;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+        <!-- Quinta Fila: 5 botones de Votación (se muestran dinámicamente) -->
+        <div id="voting-reveal-buttons-container" style="display:none;grid-template-columns:repeat(5,1fr);gap:6px">
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-pubSong" onclick="toggleVotingColumn('pubSong')">Canción<br>Público</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-pubPerf" onclick="toggleVotingColumn('pubPerf')">Perfo<br>Público</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-jurySong" onclick="toggleVotingColumn('jurySong')">Canción<br>Jurado</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-juryPerf" onclick="toggleVotingColumn('juryPerf')">Perfo<br>Jurado</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-juryHinchada" onclick="toggleVotingColumn('juryHinchada')">Mejor<br>Hinchada</button>
-        </div>
-
-        <!-- Cuarta Fila: Ranking -->
-        <div style="margin-bottom:8px">
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:100%">Ranking</button>
-        </div>
-
-        <!-- Quinta Fila: Invitados, Participantes, Karaoke -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-guests" onclick="setCastLayout('guests')" style="font-size:11px;padding:8px 0;width:100%">Invitados</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:100%">Participantes</button>
-          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
         </div>
       </div>
 
@@ -1139,6 +1139,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.88" defer></script>
+<script src="js/app.js?v=1.89" defer></script>
 </body>
 </html>
