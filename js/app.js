@@ -7817,14 +7817,26 @@ function activateAutoplay() {
 window.activateAutoplay = activateAutoplay;
 
 function checkProjectionWindowClosed() {
-  if (projectionWindowRef && projectionWindowRef.closed) {
-    projectionWindowRef = null;
-    if (firebaseOk && MODE !== 'bar') {
-      dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
-    } else {
-      lastProjectionActive = false;
-      updateProjectionButtonUI();
+  try {
+    if (projectionWindowRef && projectionWindowRef.closed) {
+      projectionWindowRef = null;
+      if (firebaseOk && MODE !== 'bar') {
+        dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
+      } else {
+        lastProjectionActive = false;
+        updateProjectionButtonUI();
+      }
+      if (projectionCheckInterval) {
+        clearInterval(projectionCheckInterval);
+        projectionCheckInterval = null;
+      }
     }
+  } catch (e) {
+    console.error("Error checking closed window state:", e);
+    // En caso de excepción, limpiar la referencia para desbloquear futuras emisiones
+    projectionWindowRef = null;
+    lastProjectionActive = false;
+    updateProjectionButtonUI();
     if (projectionCheckInterval) {
       clearInterval(projectionCheckInterval);
       projectionCheckInterval = null;
@@ -7841,11 +7853,16 @@ function openProjectionWindow() {
   // Abrir como ventana popup limpia (sin barras de URL o pestañas)
   // E intentar posicionarla en el segundo monitor a la derecha (coordenada left = w)
   const features = `width=${w},height=${h},left=${w},top=0,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no`;
-  projectionWindowRef = window.open(url, name, features);
-  if (projectionWindowRef) {
-    projectionWindowRef.focus();
-  } else {
-    // Si el navegador bloquea los popups, usar fallback normal en nueva pestaña
+  try {
+    projectionWindowRef = window.open(url, name, features);
+    if (projectionWindowRef) {
+      projectionWindowRef.focus();
+    } else {
+      // Si el navegador bloquea los popups, usar fallback normal en nueva pestaña
+      projectionWindowRef = window.open(url, '_blank');
+    }
+  } catch (e) {
+    console.error("Error opening window:", e);
     projectionWindowRef = window.open(url, '_blank');
   }
   
@@ -7857,8 +7874,20 @@ window.openProjectionWindow = openProjectionWindow;
 function toggleProjectionState() {
   if (window.innerWidth < 992) return; // Prevent projection toggling on mobile
   
-  if (projectionWindowRef && !projectionWindowRef.closed) {
-    projectionWindowRef.focus();
+  let isWindowOpen = false;
+  try {
+    if (projectionWindowRef && !projectionWindowRef.closed) {
+      isWindowOpen = true;
+    }
+  } catch (e) {
+    console.error("Error checking window state in toggle:", e);
+    projectionWindowRef = null;
+  }
+
+  if (isWindowOpen) {
+    try {
+      projectionWindowRef.focus();
+    } catch (e) {}
     return;
   }
 
