@@ -1838,3 +1838,19 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 .btn-playback-tema:hover {
   filter: brightness(1.15) !important;
 }
+
+/* Tarjeta de emisión de control del Bar con estilo premium y bordes sutiles */
+.card-emission {
+  position: relative;
+  background: var(--bg2) !important;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(223, 172, 74, 0.02);
+  z-index: 1;
+}
+.card-emission::before {
+  display: none !important;
+}
+

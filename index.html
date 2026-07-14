@@ -971,9 +971,9 @@ if ('serviceWorker' in navigator) {
     <!-- Cabecera Fija Bar (Igual a la de Admin) -->
     <div id="bar-fixed-header">
       <div class="header-content-wrapper">
-        <div class="header-logo-event">
+        <div class="header-logo-event" style="display: flex; align-items: center;">
           <span class="logo-micclub">MIC CLUB</span>
-          <span class="logo-sub">Control de emisión</span>
+          <span class="logo-sub" style="font-family:'Oswald',sans-serif; font-size: 16px !important; color: var(--gold) !important; margin-left: 8px !important; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">| Control de emisión</span>
         </div>
         <span class="logo-separator">·</span>
         <div class="header-event-container">
@@ -984,7 +984,7 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Panel de Emisión simplificado (sólo controles de proyección, sin admin links) -->
-    <div class="card" style="padding:14px;margin-bottom:14px">
+    <div class="card-emission">
       
       <!-- Primera Fila: Emitir, Salvapantallas -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -1015,6 +1015,16 @@ if ('serviceWorker' in navigator) {
     <!-- Botón Descargar Reservas exclusivo para Bar -->
     <div style="margin-top:14px">
       <button class="btn btn-gold" onclick="downloadReservations()" style="width:100%">Descargar Reservas</button>
+    </div>
+
+    <!-- Miniatura de la Pantalla de Emisión (Monitor) -->
+    <div class="card-emission" style="margin-top: 14px; padding: 8px; background: #0A0A0F !important;">
+      <div style="font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; text-align: center;">
+        Monitor de emisión
+      </div>
+      <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid rgba(255, 255, 255, 0.05);">
+        <iframe src="?mode=pantalla" style="position: absolute; top: 0; left: 0; width: 500%; height: 500%; border: none; transform: scale(0.2); transform-origin: 0 0; pointer-events: none;"></iframe>
+      </div>
     </div>
   </div>
 
@@ -1127,6 +1137,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.79" defer></script>
+<script src="js/app.js?v=1.80" defer></script>
 </body>
 </html>
