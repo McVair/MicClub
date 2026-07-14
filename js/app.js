@@ -3899,7 +3899,9 @@ function loadPublicVoteOpts() {
     if (voteBtn) voteBtn.textContent = 'ENVIAR VOTOS';
   }
 
-  const parts = sorted().filter(p => p.songConfirmed);
+  const parts = getEnrichedParticipantsList(activeEventId)
+    .filter(p => p.songConfirmed)
+    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
   const el    = document.getElementById('vote-cards-container');
   if (!el) return;
 
