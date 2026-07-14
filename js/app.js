@@ -79,14 +79,15 @@ let tempSelectionsEventId = null;
 
 function getOrCreateVoterId() {
   try {
-    let voterId = localStorage.getItem('voter_id');
-    if (!voterId) {
+    let voterId = localStorage.getItem('voter_id_v3');
+    if (!voterId || voterId === 'undefined' || voterId === 'null') {
       voterId = 'voter_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem('voter_id', voterId);
+      localStorage.setItem('voter_id_v3', voterId);
+      try { localStorage.removeItem('voter_id'); } catch (err) {}
     }
     return voterId;
   } catch (e) {
-    if (!window._voterIdMem) {
+    if (!window._voterIdMem || window._voterIdMem === 'undefined' || window._voterIdMem === 'null') {
       window._voterIdMem = 'voter_mem_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
     return window._voterIdMem;
@@ -3901,7 +3902,12 @@ function loadPublicVoteOpts() {
 
   const parts = getEnrichedParticipantsList(activeEventId)
     .filter(p => p.songConfirmed)
-    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    .sort((a, b) => {
+      const tA = a.timestamp || 0;
+      const tB = b.timestamp || 0;
+      if (tA !== tB) return tA - tB;
+      return a.id.localeCompare(b.id);
+    });
   const el    = document.getElementById('vote-cards-container');
   if (!el) return;
 
