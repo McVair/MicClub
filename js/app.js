@@ -610,7 +610,18 @@ function initFirebase() {
 
       if (MODE === 'admin' || MODE === 'home') {
         updatePlaybackModeUI();
-        if (s.playerState) {
+        if (s.playerState === 'ended') {
+          isYtPlaying = false;
+          updatePlayBtnIcon();
+          renderPlaylistQueue();
+          
+          const now = Date.now();
+          if (s.playerTimestamp && s.playerTimestamp !== lastCastPlayerTimestamp && (now - lastYtEndedTime > 2000)) {
+            lastCastPlayerTimestamp = s.playerTimestamp;
+            lastYtEndedTime = now;
+            ytRemoteNext(false);
+          }
+        } else if (s.playerState) {
           isYtPlaying = (s.playerState === 'playing');
           updatePlayBtnIcon();
           renderPlaylistQueue();
@@ -6641,6 +6652,7 @@ let isSeeking = false;
 let lastCastYtVideoTimestamp = 0;
 let lastCastYtCommandTimestamp = 0;
 let lastYtEndedTime = 0;
+let lastCastPlayerTimestamp = 0;
 let lastCastYtVolume = 100;
 
 function updatePlayBtnIcon() {
@@ -7535,6 +7547,12 @@ function onPlayerStateChange(event) {
     lastLoadedVideoId = null; // PERMITIR REPLAY DE LA MISMA CANCIÓN
     if (castChannel) {
       castChannel.postMessage({ type: 'yt_ended' });
+    }
+    if (firebaseOk && !IS_BAR_PROJECTION) {
+      dbUpdate(dbRef(db, 'settings'), {
+        playerState: 'ended',
+        playerTimestamp: Date.now()
+      });
     }
   }
 }
