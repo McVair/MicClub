@@ -6234,7 +6234,10 @@ function renderPantallaContent() {
     container.innerHTML = renderProjectionQueueLayout('En Escena', artists, 'No hay artistas invitados cargados aún para este evento.');
   }
   else if (pantallaTab === 'participantes') {
-    const queue = getConsolidatedQueue(activeEventId);
+    const fullQueue = getConsolidatedQueue(activeEventId);
+    const queue = fullQueue.filter(item => 
+      item.source === 'micclub' || (item.source === 'manual' && item.targetList === 'micclub')
+    );
     
     // Encontrar al cantante actual basado en activeYtVideo
     let currentIdx = 0;
