@@ -6195,10 +6195,10 @@ function setPantallaTab(tab) {
     }
   }
   
-  // Fuegos artificiales en pestaña de Resultados Votación
+  // Fuegos artificiales en pestaña de Resultados Votación y Ranking
   const canvas = document.getElementById('pantalla-celebration-canvas');
   if (canvas) {
-    if (tab === 'votos') {
+    if (tab === 'votos' || tab === 'ranking') {
       canvas.style.display = 'block';
       startCelebration();
     } else {
@@ -6311,9 +6311,6 @@ function renderPantallaContent() {
   else if (pantallaTab === 'ranking') {
     container.innerHTML = `
       <div style="width: 100%; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.5s ease-out forwards; padding: 20px 10px; box-sizing: border-box;">
-        <div style="font-family: 'Oswald', sans-serif; font-size: 16px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 12px; text-transform: uppercase; text-align: center;">
-          🏆 PUNTOS ACUMULADOS
-        </div>
         <div id="pantalla-show-rows" style="display: flex; flex-direction: column; gap: 8px; width: 100%;"></div>
       </div>
     `;
@@ -6376,7 +6373,7 @@ function updatePantallaContent() {
   const elName = document.getElementById('pantalla-event-name');
   const elDetails = document.getElementById('pantalla-event-details');
   if (pantallaTab === 'ranking') {
-    if (elName) elName.textContent = 'Mic Club';
+    if (elName) elName.textContent = 'RANKING MIC CLUB';
     if (elDetails) elDetails.textContent = 'Puntos Acumulados';
   } else if (pantallaTab === 'votos') {
     if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
