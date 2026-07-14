@@ -7078,6 +7078,8 @@ function playQueueItem(source, id, autoPlay = false) {
         ytId: item.ytId,
         title: item.name,
         song: item.song,
+        source: item.source,
+        id: item.id,
         autoPlay: autoPlay,
         timestamp: Date.now()
       },
@@ -7891,7 +7893,10 @@ function checkProjectionWindowClosed() {
     if (projectionWindowRef && projectionWindowRef.closed) {
       projectionWindowRef = null;
       if (firebaseOk && MODE !== 'bar') {
-        dbUpdate(dbRef(db, 'settings'), { projectionActive: false });
+        dbUpdate(dbRef(db, 'settings'), {
+          projectionActive: false,
+          playerState: 'paused'
+        });
       } else {
         lastProjectionActive = false;
         updateProjectionButtonUI();
@@ -7966,7 +7971,11 @@ function toggleProjectionState() {
   setCastLayout(startLayout);
   
   if (firebaseOk && MODE !== 'bar') {
-    dbUpdate(dbRef(db, 'settings'), { projectionActive: true, castLayout: startLayout });
+    dbUpdate(dbRef(db, 'settings'), {
+      projectionActive: true,
+      castLayout: startLayout,
+      playerState: 'paused'
+    });
   } else {
     lastProjectionActive = true;
     updateProjectionButtonUI();
