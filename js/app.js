@@ -592,7 +592,10 @@ function initFirebase() {
         updateProjectionButtonUI();
       }
       if (s.castYtVideo) {
-        activeYtVideo = s.castYtVideo;
+        activeYtVideo = {
+          ...s.castYtVideo,
+          name: s.castYtVideo.title || s.castYtVideo.name
+        };
         if (MODE === 'admin' || MODE === 'home') {
           const titleEl = document.getElementById('yt-remote-title');
           const singerEl = document.getElementById('yt-remote-singer');
@@ -6340,24 +6343,13 @@ function renderPantallaContent() {
     container.innerHTML = renderProjectionQueueLayout('En Escena', sortedFreeItems, 'No hay inscriptos en Karaoke Libre aún.');
   }
   else if (pantallaTab === 'intro_tema') {
-    const singer = activeYtVideo?.name || 'Mic Club';
+    const singer = activeYtVideo?.name || activeYtVideo?.title || 'Mic Club';
     const song = activeYtVideo?.song || 'Siguiente Tema';
     container.innerHTML = `
       <div class="intro-tema-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: calc(100vh - 240px); padding: 40px 20px; box-sizing: border-box; text-align: center; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
-        <div class="intro-tema-disc-wrapper" style="position: relative; width: 180px; height: 180px; margin-bottom: 40px; display: flex; align-items: center; justify-content: center;">
-          <div style="position: absolute; width: 220px; height: 220px; background: radial-gradient(circle, rgba(212, 168, 67, 0.15) 0%, rgba(212, 168, 67, 0) 70%); filter: blur(20px); animation: pulseGlow 4s ease-in-out infinite;"></div>
-          <div class="spinning-disc" style="width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #1e1d24 0%, #0d0c10 100%); border: 6px solid #d4a843; box-shadow: 0 15px 45px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(212, 168, 67, 0.2); display: flex; align-items: center; justify-content: center; animation: spin 20s linear infinite; position: relative;">
-            <div style="position: absolute; width: 80%; height: 80%; border-radius: 50%; border: 1px dashed rgba(212, 168, 67, 0.15);"></div>
-            <div style="position: absolute; width: 60%; height: 60%; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.05);"></div>
-            <div style="position: absolute; width: 40%; height: 40%; border-radius: 50%; border: 1px dashed rgba(212, 168, 67, 0.1);"></div>
-            <div style="width: 50px; height: 50px; border-radius: 50%; background: #d4a843; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); z-index: 2;">
-              <span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🎵</span>
-            </div>
-          </div>
-        </div>
-        <div style="font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 14px; color: rgba(252, 224, 173, 0.6); letter-spacing: 4px; margin-bottom: 16px; font-weight: 600;">A continuación en escena</div>
-        <h1 style="font-family: 'Inter', sans-serif; font-size: clamp(36px, 5vw, 64px); font-weight: 800; color: #d4a843; margin: 0 0 12px 0; letter-spacing: 0.5px; text-shadow: 0 0 30px rgba(212, 168, 67, 0.25); line-height: 1.1;">${esc(singer)}</h1>
-        <p style="font-family: 'Inter', sans-serif; font-size: clamp(20px, 2.5vw, 32px); font-weight: 500; color: rgba(255, 255, 255, 0.85); margin: 0; letter-spacing: 0.5px; max-width: 800px; line-height: 1.3;">${esc(song)}</p>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; text-align: center;">A continuación en escena</div>
+        <h1 style="font-family: 'Oswald', sans-serif; font-size: 80px; font-weight: 700; color: #ffffff; text-shadow: 0 0 24px rgba(223, 172, 74, 0.5); line-height: 1.1; width: 80%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;">${esc(singer)}</h1>
+        <p style="font-family: 'Inter', sans-serif; font-size: 24px; color: var(--gold); font-weight: 500; margin-top: 12px; margin-bottom: 12px; letter-spacing: 0.5px; opacity: 0.9; text-align: center;">${esc(song)}</p>
       </div>
     `;
   }
@@ -7028,7 +7020,7 @@ async function submitAddSongModal() {
 }
 
 // Reproducir ítem específico de la cola
-function playQueueItem(source, id, autoPlay = true) {
+function playQueueItem(source, id, autoPlay = false) {
   const queue = getConsolidatedQueue();
   const item = queue.find(x => x.source === source && x.id === id);
   if (!item) return;
@@ -7181,7 +7173,7 @@ function ytRemoteTogglePlay() {
     // Si no hay video activo, iniciar el primero de la cola
     const queue = getConsolidatedQueue();
     if (queue.length > 0) {
-      playQueueItem(queue[0].source, queue[0].id);
+      playQueueItem(queue[0].source, queue[0].id, true);
     }
     return;
   }
@@ -7208,7 +7200,7 @@ function ytRemoteTogglePlay() {
 }
 
 // Siguiente tema
-function ytRemoteNext(autoPlay = true) {
+function ytRemoteNext(autoPlay = false) {
   const queue = getConsolidatedQueue();
   if (!queue.length) return;
   
@@ -7301,14 +7293,22 @@ function setCastLayout(layout) {
   }
 }
 
+function isCurrentlyCasting() {
+  if (isMobileDevice()) {
+    return lastProjectionActive;
+  }
+  return (projectionWindowRef && !projectionWindowRef.closed) || lastProjectionActive;
+}
+
 // Destacar el botón del diseño activo en el admin
 function updateCastButtonsHighlight(layout) {
   const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote', 'guests'];
+  const emitting = isCurrentlyCasting();
   layouts.forEach(l => {
     const btn = document.getElementById(`cast-btn-${l}`);
     if (btn) {
       if (l === 'video') {
-        btn.classList.toggle('active', layout === 'video' || layout === 'intro_tema');
+        btn.classList.toggle('active', emitting && (layout === 'video' || layout === 'intro_tema'));
       } else {
         btn.classList.toggle('active', l === layout);
       }
@@ -7985,6 +7985,9 @@ function updateProjectionButtonUI() {
       }
     }
   });
+
+  // Actualizar también el destaque de los botones de layout
+  updateCastButtonsHighlight(currentCastLayout);
 }
 window.updateProjectionButtonUI = updateProjectionButtonUI;
 
