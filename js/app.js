@@ -7750,6 +7750,15 @@ if (MODE === 'pantalla') {
   // Añadir clase para ocultar scrollbars en el monitor
   document.body.classList.add('mode-pantalla');
 
+  // Aplicar el diseño inicial de inmediato sin esperar a YouTube
+  if (IS_BAR_PROJECTION) {
+    applyProyectorLayout('ranking');
+  } else if (localState.settings?.castLayout) {
+    applyProyectorLayout(localState.settings.castLayout);
+  } else {
+    applyProyectorLayout('video');
+  }
+
   // Definir el callback antes de inyectar el script para evitar race conditions
   window.onYouTubeIframeAPIReady = function() {
     initProjectionPlayer();
@@ -7915,7 +7924,7 @@ function toggleProjectionState() {
     return;
   }
 
-  const startLayout = (MODE === 'bar') ? 'ranking' : 'video';
+  const startLayout = 'ranking';
   openProjectionWindow();
   setCastLayout(startLayout);
   
