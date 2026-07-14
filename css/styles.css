@@ -949,10 +949,10 @@ body.mode-pantalla .column-source-tag {
 }
 
 /* Filas de Ranking Activos */
-body.mode-pantalla #pantalla-show-rows > div {
+body.mode-pantalla #pantalla-show-rows-disabled > div {
   padding: 4px 0 !important;
 }
-body.mode-pantalla #pantalla-show-rows > div > div {
+body.mode-pantalla #pantalla-show-rows-disabled > div > div {
   margin-bottom: 2px !important;
   gap: 6px !important;
 }
@@ -1143,7 +1143,8 @@ body.mode-pantalla .column-source-tag {
   padding: 1px 5px !important;
 }
 
-/* Filas de Ranking Activos */
+/* Filas de Ranking Activos desactivadas para permitir diseño responsivo de proyector */
+/*
 body.mode-pantalla #pantalla-show-rows > div {
   padding: 4px 0 !important;
 }
@@ -1154,12 +1155,13 @@ body.mode-pantalla #pantalla-show-rows > div > div {
 body.mode-pantalla #pantalla-consagrados-rows > div {
   padding: 4px 0 !important;
 }
-body.mode-pantalla #pantalla-show-rows > div > div > div:nth-child(2),
-body.mode-pantalla #pantalla-show-rows > div > div > div:nth-child(3),
+body.mode-pantalla #pantalla-show-rows-disabled > div > div > div:nth-child(2),
+body.mode-pantalla #pantalla-show-rows-disabled > div > div > div:nth-child(3),
 body.mode-pantalla #pantalla-consagrados-rows > div > div:nth-child(2),
 body.mode-pantalla #pantalla-consagrados-rows > div > div:nth-child(3) {
   font-size: 14px !important;
 }
+*/
 
 /* Filas de Podio de Votación */
 body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div {

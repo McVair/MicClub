@@ -3288,33 +3288,45 @@ function updateShowMode() {
   }
 
   // 2. Render on public monitor screen (pantalla)
-  const pConsagradosCard = document.getElementById('pantalla-consagrados-card');
-  const pConsagradosRows = document.getElementById('pantalla-consagrados-rows');
   const pShowRows = document.getElementById('pantalla-show-rows');
-  const pContainer = pShowRows?.closest('.show-layout-container');
-
-  if (pConsagradosCard && pConsagradosRows) {
-    if (consagradosData.length > 0) {
-      pConsagradosCard.style.display = 'block';
-      pConsagradosRows.innerHTML = consagradosHtml;
-      if (pContainer) {
-        pContainer.style.display = 'grid';
-        pContainer.style.gridTemplateColumns = '1fr 1fr';
-        pContainer.style.gap = '20px';
-      }
-    } else {
-      pConsagradosCard.style.display = 'none';
-      if (pContainer) {
-        pContainer.style.display = 'block';
-      }
-    }
-  }
-
   if (pShowRows) {
-    if (!activeParts.length) {
+    if (!parts.length) {
       pShowRows.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
     } else {
-      pShowRows.innerHTML = activeHtml;
+      let currentRank = 0;
+      let currentScore = -1;
+      const pantallaActiveHtml = parts.map((p, i) => {
+        if (p.score !== currentScore) {
+          currentRank = i + 1;
+          currentScore = p.score;
+        }
+        
+        const isConsagrado = p.score > 150;
+        const rankText = isConsagrado ? '👑' : getMedalHTML(currentRank);
+        
+        // Calcular el tamaño de fuente según la posición
+        let fontSize = 18;
+        if (currentRank === 1 || isConsagrado) {
+          fontSize = 32;
+        } else if (currentRank === 2) {
+          fontSize = 28;
+        } else if (currentRank === 3) {
+          fontSize = 25;
+        }
+        
+        return `
+          <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; width: 100%;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: ${fontSize}px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background: none !important; -webkit-background-clip: initial !important; letter-spacing: 0.5px; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+              <span style="min-width: 36px; text-align: center; display: inline-block;">${rankText}</span>
+              ${esc(p.name)}
+            </span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: ${fontSize}px; color: var(--gold) !important; -webkit-text-fill-color: var(--gold) !important; background: none !important; -webkit-background-clip: initial !important; font-weight: bold; white-space: nowrap;">
+              ${p.score} <span style="font-size: ${Math.round(fontSize * 0.6)}px; font-weight: 400; opacity: 0.8;">pts</span>
+            </span>
+          </div>
+        `;
+      }).join('');
+      pShowRows.innerHTML = pantallaActiveHtml;
     }
   }
 }
@@ -6298,19 +6310,11 @@ function renderPantallaContent() {
   }
   else if (pantallaTab === 'ranking') {
     container.innerHTML = `
-      <div class="show-layout-container" style="display: grid; gap: 20px; animation: fadeUp 0.5s ease-out forwards; width: 100%;">
-        <div class="result-column-card" style="margin: 0;">
-          <div class="result-column-header">
-            <div class="column-category-title">🏆 PUNTOS ACUMULADOS</div>
-          </div>
-          <div id="pantalla-show-rows" style="padding:10px 14px"></div>
+      <div style="width: 100%; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.5s ease-out forwards; padding: 20px 10px; box-sizing: border-box;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 16px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 12px; text-transform: uppercase; text-align: center;">
+          🏆 PUNTOS ACUMULADOS
         </div>
-        <div id="pantalla-consagrados-card" class="result-column-card" style="margin: 0; display: none; background: rgba(212, 168, 67, 0.03) !important;">
-          <div class="result-column-header">
-            <div class="column-category-title">👑 CONSAGRADOS (>150 pts)</div>
-          </div>
-          <div id="pantalla-consagrados-rows" style="padding:10px 14px"></div>
-        </div>
+        <div id="pantalla-show-rows" style="display: flex; flex-direction: column; gap: 8px; width: 100%;"></div>
       </div>
     `;
     updateShowMode();
