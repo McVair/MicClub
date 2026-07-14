@@ -721,9 +721,9 @@ if ('serviceWorker' in navigator) {
       <!-- Columna Derecha (Content Area) -->
       <div class="pantalla-content">
         <!-- Nombre del Evento (Siempre visible arriba) -->
-        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 8px; position: relative; width: 100%;">
-          <div id="pantalla-event-name" style="font-family:'Inter',sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--gold); line-height: 1.1;">-</div>
-          <div id="pantalla-event-details" style="font-size: 11px; color: var(--text2); margin-top: 2px; letter-spacing: 0.5px;">-</div>
+        <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; margin-bottom: 8px; position: relative; width: 100%; text-align: center;">
+          <div id="pantalla-event-name" style="font-family:'Oswald',sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--gold); line-height: 1.1; text-align: center; text-transform: uppercase;">-</div>
+          <div id="pantalla-event-details" style="font-family:'Oswald',sans-serif; font-size: 11px; color: var(--text2); margin-top: 2px; letter-spacing: 0.5px; text-align: center; text-transform: uppercase;">-</div>
           
           <!-- Canvas de fuegos artificiales dedicado para pantalla de resultados -->
           <canvas id="pantalla-celebration-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;opacity:0.45;display:none"></canvas>
@@ -736,7 +736,7 @@ if ('serviceWorker' in navigator) {
 
         <!-- Auspiciantes de la Pantalla de Proyección (Siempre visibles abajo) -->
         <div id="pantalla-sponsors-footer" style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; width: 100%; text-align: center; z-index: 2;">
-          <div style="font-family:'Inter',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; opacity: 0.8;">Auspiciantes Oficiales</div>
+          <div style="font-family:'Oswald',sans-serif; font-size: 10px; letter-spacing: 3px; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; opacity: 0.8;">Auspiciantes Oficiales</div>
           <div id="pantalla-sponsors-list" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px;"></div>
         </div>
       </div>
@@ -973,7 +973,7 @@ if ('serviceWorker' in navigator) {
       <div class="header-content-wrapper">
         <div class="header-logo-event">
           <span class="logo-micclub">MIC CLUB</span>
-          <span class="logo-sub">Las Alas de mi Voz</span>
+          <span class="logo-sub">Control de emisión</span>
         </div>
         <span class="logo-separator">·</span>
         <div class="header-event-container">
@@ -1014,7 +1014,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Botón Descargar Reservas exclusivo para Bar -->
     <div style="margin-top:14px">
-      <button class="btn btn-gold" onclick="downloadReservations()" style="width:100%">📥 Descargar Reservas</button>
+      <button class="btn btn-gold" onclick="downloadReservations()" style="width:100%">Descargar Reservas</button>
     </div>
   </div>
 

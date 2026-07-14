@@ -5886,6 +5886,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     nav('home');
   } else if (MODE === 'bar') {
+    document.title = 'Control de emisión';
     nav('bar');
   } else if (MODE === 'register') {
     nav('register');
@@ -6352,7 +6353,7 @@ function renderPantallaContent() {
             </div>
           </div>
         </div>
-        <div style="font-family: 'Inter', sans-serif; text-transform: uppercase; font-size: 14px; color: rgba(252, 224, 173, 0.6); letter-spacing: 4px; margin-bottom: 16px; font-weight: 600;">A continuación en escena</div>
+        <div style="font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 14px; color: rgba(252, 224, 173, 0.6); letter-spacing: 4px; margin-bottom: 16px; font-weight: 600;">A continuación en escena</div>
         <h1 style="font-family: 'Inter', sans-serif; font-size: clamp(36px, 5vw, 64px); font-weight: 800; color: #d4a843; margin: 0 0 12px 0; letter-spacing: 0.5px; text-shadow: 0 0 30px rgba(212, 168, 67, 0.25); line-height: 1.1;">${esc(singer)}</h1>
         <p style="font-family: 'Inter', sans-serif; font-size: clamp(20px, 2.5vw, 32px); font-weight: 500; color: rgba(255, 255, 255, 0.85); margin: 0; letter-spacing: 0.5px; max-width: 800px; line-height: 1.3;">${esc(song)}</p>
       </div>
@@ -6409,8 +6410,8 @@ ${
         const song = typeof art === 'object' ? art.song : '';
         return `
           <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 1px;">${esc(name)}</span>
-            <span style="font-family:'Inter',sans-serif; font-size: 17px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
+            <span style="font-family: Inter, sans-serif; font-size: 24px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background: none !important; -webkit-background-clip: initial !important; letter-spacing: 1px;">${esc(name)}</span>
+            <span style="font-family: Inter, sans-serif; font-size: 17px; color: var(--gold) !important; -webkit-text-fill-color: var(--gold) !important; background: none !important; -webkit-background-clip: initial !important; font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
           </div>
         `;
       }).join('')
@@ -8208,13 +8209,13 @@ function renderProjectionQueueLayout(title, items, emptyText) {
       
       <!-- Cantando Ahora Block -->
       <div style="width: 100%; text-align: center; margin-bottom: 20px;">
-        <div style="font-size: 14px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">
-          🎤 ${esc(title)}
+        <div style="font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 4px; color: var(--gold); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; text-align: center;">
+          ${esc(title)}
         </div>
-        <div style="font-family: 'Oswald', sans-serif; font-size: 80px; font-weight: 700; color: #ffffff; text-shadow: 0 0 24px rgba(223, 172, 74, 0.5); line-height: 1.1; width: 80%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 80px; font-weight: 700; color: #ffffff; text-shadow: 0 0 24px rgba(223, 172, 74, 0.5); line-height: 1.1; width: 80%; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;">
           ${esc(activeItem.name)}
         </div>
-        <div style="font-family: 'Inter', sans-serif; font-size: 24px; color: var(--gold); font-weight: 500; margin-top: 12px; margin-bottom: 12px; letter-spacing: 0.5px; opacity: 0.9;">
+        <div style="font-family: 'Inter', sans-serif; font-size: 24px; color: var(--gold); font-weight: 500; margin-top: 12px; margin-bottom: 12px; letter-spacing: 0.5px; opacity: 0.9; text-align: center;">
           ${esc(songLabel)}
         </div>
       </div>
@@ -8228,7 +8229,7 @@ function renderProjectionQueueLayout(title, items, emptyText) {
       
       <!-- Siguientes en la cola -->
       <div style="width: 100%; max-width: 800px; margin: 0 auto;">
-        <div style="font-size: 12px; letter-spacing: 3px; color: var(--text2); font-weight: bold; margin-bottom: 16px; text-transform: uppercase; text-align: center;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 3px; color: var(--text2); font-weight: bold; margin-bottom: 16px; text-transform: uppercase; text-align: center;">
           A Continuación...
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 6px;">
@@ -8243,10 +8244,10 @@ function renderProjectionQueueLayout(title, items, emptyText) {
             }
             return `
               <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-family:'Inter',sans-serif; font-size: 18px; color: #ffffff; letter-spacing: 0.5px; font-weight: 500;">
+                <span style="font-family: Inter, sans-serif; font-size: 18px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background: none !important; -webkit-background-clip: initial !important; letter-spacing: 0.5px; font-weight: 500;">
                   ${idx + 2}. ${esc(p.name)}
                 </span>
-                <span style="font-family:'Inter',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55%;">
+                <span style="font-family: Inter, sans-serif; font-size: 14px; color: var(--gold) !important; -webkit-text-fill-color: var(--gold) !important; background: none !important; -webkit-background-clip: initial !important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:55%;">
                   ${esc(pSongLabel)}
                 </span>
               </div>
