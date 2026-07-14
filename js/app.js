@@ -647,7 +647,7 @@ function initFirebase() {
 
       localState.settings = { ...localState.settings, ...s };
 
-      if (s.castLayout !== undefined) {
+      if (s.castLayout !== undefined && MODE !== 'bar') {
         const layoutChanged = (currentCastLayout !== s.castLayout);
         currentCastLayout = s.castLayout;
         if (MODE === 'admin' || MODE === 'home') {
@@ -7399,8 +7399,15 @@ function initProjectionPlayer() {
 
 function onPlayerReady(event) {
   projectionPlayerReady = true;
-  if (IS_BAR_PROJECTION && projectionPlayer && typeof projectionPlayer.mute === 'function') {
-    projectionPlayer.mute();
+  if (IS_BAR_PROJECTION) {
+    if (projectionPlayer && typeof projectionPlayer.mute === 'function') {
+      projectionPlayer.mute();
+    }
+    applyProyectorLayout('ranking');
+    if (castChannel) {
+      castChannel.postMessage({ type: 'projection_ready' });
+    }
+    return; // Evitar autoplay o carga de videos
   }
   
   activateAutoplay();
@@ -7408,48 +7415,31 @@ function onPlayerReady(event) {
   if (castChannel) {
     castChannel.postMessage({ type: 'projection_ready' });
   }
+  
   // Auto-sincronizar al estar listo leyendo de Firebase (solo si no es proyeccion de bar)
   const s = localState.settings || {};
-  if (IS_BAR_PROJECTION) {
-    applyProyectorLayout('ranking');
-    if (s.castYtVideo) {
-      lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
-      if (lastLoadedVideoId !== s.castYtVideo.ytId) {
-        lastLoadedVideoId = s.castYtVideo.ytId;
+  if (s.castLayout) {
+    applyProyectorLayout(s.castLayout);
+  }
+  if (s.castYtVideo) {
+    lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
+    if (lastLoadedVideoId !== s.castYtVideo.ytId) {
+      lastLoadedVideoId = s.castYtVideo.ytId;
+      if (s.castYtVideo.autoPlay !== false) {
         projectionPlayer.loadVideoById(s.castYtVideo.ytId);
-      }
-      projectionPlayer.mute();
-      if (s.castYtCommand) {
-        lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
-      }
-      if (s.playerState === 'playing' || (s.castYtCommand && s.castYtCommand.type === 'yt_play')) {
-        projectionPlayer.playVideo();
+      } else {
+        projectionPlayer.cueVideoById(s.castYtVideo.ytId);
       }
     }
-  } else {
-    if (s.castLayout) {
-      applyProyectorLayout(s.castLayout);
-    }
-    if (s.castYtVideo) {
-      lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
-      if (lastLoadedVideoId !== s.castYtVideo.ytId) {
-        lastLoadedVideoId = s.castYtVideo.ytId;
-        if (s.castYtVideo.autoPlay !== false) {
-          projectionPlayer.loadVideoById(s.castYtVideo.ytId);
-        } else {
-          projectionPlayer.cueVideoById(s.castYtVideo.ytId);
-        }
-      }
-    }
-    if (s.castYtVolume !== undefined) {
-      projectionPlayer.setVolume(s.castYtVolume);
-    }
-    if (s.castYtCommand) {
-      lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
-    }
-    if ((s.castYtCommand && s.castYtCommand.type === 'yt_play') || s.playerState === 'playing') {
-      projectionPlayer.playVideo();
-    }
+  }
+  if (s.castYtVolume !== undefined) {
+    projectionPlayer.setVolume(s.castYtVolume);
+  }
+  if (s.castYtCommand) {
+    lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
+  }
+  if ((s.castYtCommand && s.castYtCommand.type === 'yt_play') || s.playerState === 'playing') {
+    projectionPlayer.playVideo();
   }
 }
 
@@ -7462,8 +7452,16 @@ function onPlayerStateChange(event) {
   };
   const st = stateMap[event.data] || 'unknown';
 
-  if (IS_BAR_PROJECTION && projectionPlayer && projectionPlayerReady && typeof projectionPlayer.mute === 'function') {
-    projectionPlayer.mute();
+  if (IS_BAR_PROJECTION) {
+    if (projectionPlayer && projectionPlayerReady) {
+      if (typeof projectionPlayer.mute === 'function') {
+        projectionPlayer.mute();
+      }
+      if (event.data === YT.PlayerState.PLAYING && typeof projectionPlayer.pauseVideo === 'function') {
+        projectionPlayer.pauseVideo();
+      }
+    }
+    return;
   }
 
   if (event.data === YT.PlayerState.PLAYING) {
@@ -7587,6 +7585,13 @@ function applyProyectorLayout(layout) {
 
 function handleProyectorMessage(data) {
   if (MODE !== 'pantalla') return;
+
+  if (IS_BAR_PROJECTION) {
+    // Bloquear comandos de video en la proyección del bar
+    if (['yt_load', 'yt_cue', 'yt_play', 'yt_pause', 'yt_seek', 'yt_set_volume'].includes(data.type)) {
+      return;
+    }
+  }
 
   if (data.type === 'cast_layout') {
     currentCastLayout = data.layout;
