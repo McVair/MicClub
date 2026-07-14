@@ -1443,7 +1443,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   font-family: 'Oswald', sans-serif !important;
   font-size: 26px;
   letter-spacing: 1px;
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
