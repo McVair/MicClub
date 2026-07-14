@@ -569,7 +569,7 @@ function initFirebase() {
       }
 
       const projectionActive = !!s.projectionActive;
-      const isPC = window.innerWidth >= 992;
+      const isPC = !isMobileDevice();
       if (isPC && MODE !== 'bar') {
         if (projectionActive && !lastProjectionActive) {
           if (!projectionWindowRef || projectionWindowRef.closed) {
@@ -7816,6 +7816,11 @@ function activateAutoplay() {
 }
 window.activateAutoplay = activateAutoplay;
 
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+}
+window.isMobileDevice = isMobileDevice;
+
 function checkProjectionWindowClosed() {
   try {
     if (projectionWindowRef && projectionWindowRef.closed) {
@@ -7872,7 +7877,7 @@ function openProjectionWindow() {
 window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
-  if (window.innerWidth < 992) return; // Prevent projection toggling on mobile
+  if (isMobileDevice()) return; // Prevent projection toggling on mobile
   
   let isWindowOpen = false;
   try {
@@ -7909,7 +7914,7 @@ function updateProjectionButtonUI() {
   const btnBar = document.getElementById('bar-cast-btn-emitir');
   const btns = [btn, btnBar].filter(Boolean);
   
-  const isMobile = window.innerWidth < 992;
+  const isMobile = isMobileDevice();
   
   btns.forEach(b => {
     b.classList.remove('btn-gold', 'btn-green-emitting', 'btn-emit-mobile-active', 'btn-emit-mobile-inactive');
