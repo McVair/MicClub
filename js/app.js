@@ -1473,7 +1473,7 @@ function updateProgramPage() {
     const isLast = index === parts.length - 1;
     const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
     return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(p.name)}</span>
+      <span style="font-weight:600;color:var(--text)">${index + 1}. ${esc(p.name)}</span>
       <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${songLabel}</span>
     </div>`;
   }).join('');
@@ -1502,7 +1502,7 @@ function updateProgramPage() {
         const song = typeof art === 'object' ? art.song : '';
         return `
           <div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-            <span style="font-weight: 600; color: var(--text)">🎙️ ${esc(name)}</span>
+            <span style="font-weight: 600; color: var(--text)">${esc(name)}</span>
             <span style="color: var(--gold); font-size: 11px; font-weight: 500">${esc(song || 'Repertorio Especial')}</span>
           </div>
         `;
@@ -3500,7 +3500,7 @@ async function createNewUser() {
     const msg = e?.message || e?.code || 'Intentá de nuevo';
     showErr('reg-form-err', `Error al registrar: ${msg}`);
     console.error('createNewUser error:', e);
-    btn.innerHTML = '🎙️ CONFIRMAR';
+    btn.innerHTML = 'CONFIRMAR';
     btn.disabled  = false;
   }
 }
@@ -3543,7 +3543,7 @@ function resetRegisterPage() {
   if (rWa)     rWa.value     = '';
   if (rRef)    rRef.value    = '';
   if (rPeople) rPeople.value = '';
-  if (regBtn)  { regBtn.innerHTML = '🎙️ CONFIRMAR'; regBtn.disabled = false; }
+  if (regBtn)  { regBtn.innerHTML = 'CONFIRMAR'; regBtn.disabled = false; }
   const regErr = document.getElementById('reg-form-err');
   if (regErr) regErr.style.display = 'none';
   
@@ -4768,7 +4768,7 @@ function renderAdminMicClubParticipants() {
 
     return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;color:var(--gold);font-family:'Inter',sans-serif;font-size:14px">${index + 1}. 🎤 ${esc(p.name)}</span>
+        <span style="font-weight:700;color:var(--gold);font-family:'Inter',sans-serif;font-size:14px">${index + 1}. ${esc(p.name)}</span>
         <span style="font-size:11px;color:var(--text2)">${new Date(p.timestamp || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
       </div>
       <div style="font-size:13px;color:var(--text)">
@@ -5949,7 +5949,7 @@ function updateFreeKaraokePages() {
           const isLast = index === viewSortedFreeItems.length - 1;
           const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
           return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-weight:600;color:var(--text)">${index + 1}. ${esc(item.name)}</span>
             <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
           </div>`;
         }).join('');
@@ -5984,7 +5984,7 @@ function updateFreeKaraokePages() {
       const isLast = index === sortedFreeItems.length - 1;
       const borderStyle = isLast ? '' : 'border-bottom:1px solid rgba(255,255,255,.03);';
       return `<div style="padding:8px 0;${borderStyle}font-size:13px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:600;color:var(--text)">${index + 1}. 🎤 ${esc(item.name)}</span>
+        <span style="font-weight:600;color:var(--text)">${index + 1}. ${esc(item.name)}</span>
         <span style="color:var(--text2);font-size:11px;text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
       </div>`;
     }).join('') || '<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;font-style:italic">¡Sé el primero en inscribirte!</div>';
@@ -6005,7 +6005,7 @@ function updateFreeKaraokePages() {
       
       return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:700;color:var(--gold);font-family:'Inter',sans-serif;font-size:14px">&nbsp;${index + 1}. 🎤 ${esc(item.name)}</span>
+          <span style="font-weight:700;color:var(--gold);font-family:'Inter',sans-serif;font-size:14px">&nbsp;${index + 1}. ${esc(item.name)}</span>
           <span style="font-size:11px;color:var(--text2)">${new Date(item.createdAt || Date.now()).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}</span>
         </div>
         <div style="font-size:13px;color:var(--text)">
@@ -6371,7 +6371,7 @@ ${
         const song = typeof art === 'object' ? art.song : '';
         return `
           <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 1px;">🎙️ ${esc(name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 24px; color: #ffffff; letter-spacing: 1px;">${esc(name)}</span>
             <span style="font-family:'Inter',sans-serif; font-size: 17px; color: var(--gold); font-weight: 500;">${esc(song || 'Repertorio Especial')}</span>
           </div>
         `;
@@ -6552,7 +6552,7 @@ ${
       sortedFreeItems.map((item, index) => {
         return `
           <div style="padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family:'Inter',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. 🎤 ${esc(item.name)}</span>
+            <span style="font-family:'Inter',sans-serif; font-size: 20px; color: #ffffff; letter-spacing: 0.5px;">${index + 1}. ${esc(item.name)}</span>
             <span style="font-family:'Inter',sans-serif; font-size: 14px; color: var(--gold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">${esc(item.songTitle)} — ${esc(item.songArtist)}</span>
           </div>
         `;
