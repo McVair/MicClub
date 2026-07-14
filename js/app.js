@@ -78,12 +78,19 @@ let tempSelections = null;
 let tempSelectionsEventId = null;
 
 function getOrCreateVoterId() {
-  let voterId = localStorage.getItem('voter_id');
-  if (!voterId) {
-    voterId = 'voter_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('voter_id', voterId);
+  try {
+    let voterId = sessionStorage.getItem('voter_id');
+    if (!voterId) {
+      voterId = 'voter_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      sessionStorage.setItem('voter_id', voterId);
+    }
+    return voterId;
+  } catch (e) {
+    if (!window._voterIdMem) {
+      window._voterIdMem = 'voter_mem_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+    return window._voterIdMem;
   }
-  return voterId;
 }
 
 function getDeviceVotesFromDB(voterId, eventId) {
@@ -3881,7 +3888,8 @@ function loadPublicVoteOpts() {
     tempSelections = getDeviceVotesFromDB(voterId, activeEventId);
   }
 
-  const hasVoted = tempSelections && (tempSelections.song.length > 0 || tempSelections.perf.length > 0);
+  const dbVotes = getDeviceVotesFromDB(voterId, activeEventId);
+  const hasVoted = dbVotes.song.length > 0 || dbVotes.perf.length > 0;
 
   if (hasVoted) {
     // Ya votó — mostrar banner editable
