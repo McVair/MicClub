@@ -1329,12 +1329,14 @@ function updateUI() {
   handleVotingState();
   updateEventInfoBanners();
   if (MODE === 'vote') loadPublicVoteOpts();
-  if (adminLoggedIn) { 
-    renderAdminParticipants(); 
-    renderAdminJury(); 
-    updateAdminNextEventPreview();
+  if (adminLoggedIn || MODE === 'bar') { 
+    if (adminLoggedIn) {
+      renderAdminParticipants(); 
+      renderAdminJury(); 
+      updateAdminNextEventPreview();
+      renderAdminEventSelectorBar();
+    }
     renderPlaylistQueue();
-    renderAdminEventSelectorBar();
   }
   if (MODE === 'jury') { renderJurySelectors(); }
   if (currentPage === 'config') renderConfigParticipants();
@@ -6752,19 +6754,21 @@ function getConsolidatedQueue(eventId = null) {
   // Filtrar solo los ítems que tengan un ID de YouTube válido
   const validItems = list.filter(item => item.ytId);
 
-  // Aplicar orden personalizado si existe en settings
+  // Aplicar orden personalizado si existe en settings, de lo contrario ordenar por timestamp
   const customOrder = localState.settings?.queueOrder || [];
-  if (customOrder.length > 0) {
-    validItems.sort((a, b) => {
-      const keyA = `${a.source}-${a.id}`;
-      const keyB = `${b.source}-${b.id}`;
-      let idxA = customOrder.indexOf(keyA);
-      let idxB = customOrder.indexOf(keyB);
-      if (idxA === -1) idxA = 9999;
-      if (idxB === -1) idxB = 9999;
-      return idxA - idxB;
-    });
-  }
+  validItems.sort((a, b) => {
+    const keyA = `${a.source}-${a.id}`;
+    const keyB = `${b.source}-${b.id}`;
+    let idxA = customOrder.indexOf(keyA);
+    let idxB = customOrder.indexOf(keyB);
+    if (idxA === -1) idxA = 9999;
+    if (idxB === -1) idxB = 9999;
+    
+    if (idxA === 9999 && idxB === 9999) {
+      return (a.timestamp || 0) - (b.timestamp || 0);
+    }
+    return idxA - idxB;
+  });
 
   return validItems;
 }
