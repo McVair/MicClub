@@ -7866,14 +7866,7 @@ function checkProjectionWindowClosed() {
     }
   } catch (e) {
     console.error("Error checking closed window state:", e);
-    // En caso de excepción, limpiar la referencia para desbloquear futuras emisiones
-    projectionWindowRef = null;
-    lastProjectionActive = false;
-    updateProjectionButtonUI();
-    if (projectionCheckInterval) {
-      clearInterval(projectionCheckInterval);
-      projectionCheckInterval = null;
-    }
+    // No destruimos la referencia en caso de excepción de seguridad por carga transitoria
   }
 }
 
@@ -7914,7 +7907,8 @@ function toggleProjectionState() {
     }
   } catch (e) {
     console.error("Error checking window state in toggle:", e);
-    projectionWindowRef = null;
+    // Si da excepción, asumimos que sigue abierto para no destruir la referencia ni reiniciar el diseño
+    isWindowOpen = true;
   }
 
   if (isWindowOpen) {
@@ -7924,7 +7918,7 @@ function toggleProjectionState() {
     return;
   }
 
-  const startLayout = 'ranking';
+  const startLayout = currentCastLayout || 'ranking';
   openProjectionWindow();
   setCastLayout(startLayout);
   
