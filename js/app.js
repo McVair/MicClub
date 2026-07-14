@@ -1461,9 +1461,22 @@ function updateProgramPage() {
     if (regBtn) regBtn.style.display = 'none';
   }
 
+  const queue = getConsolidatedQueue(programSelectedEventId);
+  const queueIds = queue.filter(item => item.source === 'micclub').map(item => item.id);
+
   const parts = getEnrichedParticipantsList(programSelectedEventId)
     .filter(p => p.songConfirmed)
-    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    .sort((a, b) => {
+      let idxA = queueIds.indexOf(a.id);
+      let idxB = queueIds.indexOf(b.id);
+      if (idxA === -1) idxA = 9999;
+      if (idxB === -1) idxB = 9999;
+      if (idxA !== idxB) return idxA - idxB;
+      const tA = a.timestamp || 0;
+      const tB = b.timestamp || 0;
+      if (tA !== tB) return tA - tB;
+      return a.id.localeCompare(b.id);
+    });
 
   if (listWrap) listWrap.style.display = (parts.length > 0) ? 'block' : 'none';
   if (countEl) countEl.textContent = parts.length;
@@ -3906,9 +3919,17 @@ function loadPublicVoteOpts() {
     if (voteBtn) voteBtn.textContent = 'ENVIAR VOTOS';
   }
 
+  const queue = getConsolidatedQueue(activeEventId);
+  const queueIds = queue.filter(item => item.source === 'micclub').map(item => item.id);
+
   const parts = getEnrichedParticipantsList(activeEventId)
     .filter(p => p.songConfirmed)
     .sort((a, b) => {
+      let idxA = queueIds.indexOf(a.id);
+      let idxB = queueIds.indexOf(b.id);
+      if (idxA === -1) idxA = 9999;
+      if (idxB === -1) idxB = 9999;
+      if (idxA !== idxB) return idxA - idxB;
       const tA = a.timestamp || 0;
       const tB = b.timestamp || 0;
       if (tA !== tB) return tA - tB;
