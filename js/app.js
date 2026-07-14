@@ -72,6 +72,7 @@ let revealedCategories = {
   'rank-jury-hinchada': false
 };
 let lastEventName = null;
+let showingReservationSuccess = false;
 
 let pantallaTab = 'artistas';
 
@@ -320,8 +321,9 @@ async function saveAndExit() {
 
   const updates = { name, whatsapp: phone, updatedAt: Date.now() };
 
+  let ppl = 0;
   if (selectedEventId) {
-    const ppl    = parseInt(document.getElementById('prof-people-input')?.value) || 0;
+    ppl    = parseInt(document.getElementById('prof-people-input')?.value) || 0;
     const title  = document.getElementById('s-title')?.value.trim();
     const artist = document.getElementById('s-artist')?.value.trim();
     const link   = document.getElementById('s-link')?.value.trim();
@@ -435,7 +437,11 @@ async function saveAndExit() {
       }
     }
     updateUI();
-    resetRegisterPage();
+    if (selectedEventId && ppl > 0) {
+      showReservationSuccess(ppl, selectedEventId);
+    } else {
+      resetRegisterPage();
+    }
   } catch(e) {
     if (errEl) { errEl.textContent = 'Error al guardar. Intentá de nuevo.'; errEl.style.display = 'block'; }
     if (btn) { btn.innerHTML = '💾 GUARDAR Y SALIR'; btn.disabled = false; }
@@ -1099,6 +1105,7 @@ function getJuryLeader(cat, eventId = null) {
 
 function updateRegistrationPageUI() {
   if (currentPage !== 'register') return;
+  if (showingReservationSuccess) return;
   
   const gate = document.getElementById('reg-email-gate');
   const selector = document.getElementById('reg-event-selector');
@@ -1337,7 +1344,7 @@ function updateProgramPage() {
       : 'No hay show activo en curso';
   }
   
-  const listWrap = document.getElementById('program-participants-wrap');
+  const listWrap = document.getElementById('program-participants-list-wrap');
   const countEl  = document.getElementById('program-participants-count');
   const regBtn   = document.getElementById('program-register-btn');
   
@@ -3372,8 +3379,12 @@ async function createNewUser() {
       }
     }
     document.getElementById('reg-main-form').style.display = 'none';
-    showProfileView(currentPId, participant);
     updateUI();
+    if (selectedEventId && ppl > 0) {
+      showReservationSuccess(ppl, selectedEventId);
+    } else {
+      showProfileView(currentPId, participant);
+    }
   } catch(e) {
     const msg = e?.message || e?.code || 'Intentá de nuevo';
     showErr('reg-form-err', `Error al registrar: ${msg}`);
@@ -3391,18 +3402,21 @@ function resetRegisterPage() {
   currentPId = null;
   selectedEventId = null;
   eventSelectedManually = false;
+  showingReservationSuccess = false;
   
   const gate = document.getElementById('reg-email-gate');
   const form = document.getElementById('reg-main-form');
   const prof = document.getElementById('reg-profile');
   const selector = document.getElementById('reg-event-selector');
   const banner = document.getElementById('reg-cupo-banner');
+  const success = document.getElementById('reg-success-view');
   
   if (gate) gate.style.display = 'none';
   if (form) form.style.display = 'none';
   if (prof) prof.style.display = 'none';
   if (selector) selector.style.display = 'none';
   if (banner) banner.style.display = 'none';
+  if (success) success.style.display = 'none';
   
   const emailInput   = document.getElementById('r-email');
   const emailConfirm = document.getElementById('reg-email-confirm');
@@ -3436,6 +3450,67 @@ function resetRegisterPage() {
   if (songCheck)   songCheck.style.display   = 'none';
 
   updateRegistrationPageUI();
+}
+
+function showReservationSuccess(ppl, eventId) {
+  showingReservationSuccess = true;
+  const ev = localState.settings?.events?.[eventId] || {};
+  const eventName = ev.name || 'Próximo Evento';
+  const eventDate = ev.date || '';
+  const eventTime = ev.time || '';
+  const eventVenue = ev.venue || '';
+  
+  const spotsText = ppl === 1 ? '1 lugar' : `${ppl} lugares`;
+  const totalAmount = ppl * 6000;
+  const summaryText = ppl === 1 ? '1 persona' : `${ppl} personas`;
+  
+  const countEl = document.getElementById('success-spots-count');
+  const nameEl = document.getElementById('success-event-name');
+  const metaEl = document.getElementById('success-event-meta');
+  const totalEl = document.getElementById('success-total-amount');
+  const summaryEl = document.getElementById('success-spots-summary');
+  const waLink = document.getElementById('success-wa-link');
+  
+  if (countEl) countEl.textContent = spotsText;
+  if (nameEl) nameEl.textContent = eventName;
+  
+  let metaText = '';
+  const metaParts = [];
+  if (eventDate) metaParts.push(eventDate);
+  if (eventTime) metaParts.push(`a las ${eventTime}`);
+  if (eventVenue) metaParts.push(`en ${eventVenue}`);
+  if (metaParts.length > 0) {
+    metaText = `(${metaParts.join(' ')})`;
+  }
+  if (metaEl) metaEl.textContent = metaText;
+  
+  if (totalEl) totalEl.textContent = `$${totalAmount}`;
+  if (summaryEl) summaryEl.textContent = summaryText;
+  
+  if (waLink) {
+    const waParts = [];
+    if (eventDate) waParts.push(eventDate);
+    if (eventVenue) waParts.push(eventVenue);
+    const waDetails = waParts.length > 0 ? ` (${waParts.join(' - ')})` : '';
+    const textMsg = `¡Hola! Realicé una reserva de ${spotsText} para el evento "${eventName}"${waDetails}. Acá está mi comprobante de transferencia.`;
+    waLink.href = `https://wa.me/5493624834753?text=${encodeURIComponent(textMsg)}`;
+  }
+  
+  const gate = document.getElementById('reg-email-gate');
+  const form = document.getElementById('reg-main-form');
+  const prof = document.getElementById('reg-profile');
+  const selector = document.getElementById('reg-event-selector');
+  const banner = document.getElementById('reg-cupo-banner');
+  const successView = document.getElementById('reg-success-view');
+  
+  if (gate) gate.style.display = 'none';
+  if (form) form.style.display = 'none';
+  if (prof) prof.style.display = 'none';
+  if (selector) selector.style.display = 'none';
+  if (banner) banner.style.display = 'none';
+  
+  if (successView) successView.style.display = 'block';
+  window.scrollTo(0, 0);
 }
 
 function renderRegistrationEventSelectorList(ev1, ev2) {
@@ -7129,8 +7204,10 @@ function onPlayerReady(event) {
     applyProyectorLayout('ranking');
     if (s.castYtVideo) {
       lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
-      lastLoadedVideoId = s.castYtVideo.ytId;
-      projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+      if (lastLoadedVideoId !== s.castYtVideo.ytId) {
+        lastLoadedVideoId = s.castYtVideo.ytId;
+        projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+      }
       projectionPlayer.mute();
       if (s.castYtCommand) {
         lastCastYtCommandTimestamp = s.castYtCommand.timestamp;
@@ -7145,11 +7222,13 @@ function onPlayerReady(event) {
     }
     if (s.castYtVideo) {
       lastCastYtVideoTimestamp = s.castYtVideo.timestamp;
-      lastLoadedVideoId = s.castYtVideo.ytId;
-      if (s.castYtVideo.autoPlay !== false) {
-        projectionPlayer.loadVideoById(s.castYtVideo.ytId);
-      } else {
-        projectionPlayer.cueVideoById(s.castYtVideo.ytId);
+      if (lastLoadedVideoId !== s.castYtVideo.ytId) {
+        lastLoadedVideoId = s.castYtVideo.ytId;
+        if (s.castYtVideo.autoPlay !== false) {
+          projectionPlayer.loadVideoById(s.castYtVideo.ytId);
+        } else {
+          projectionPlayer.cueVideoById(s.castYtVideo.ytId);
+        }
       }
     }
     if (s.castYtVolume !== undefined) {

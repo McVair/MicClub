@@ -288,6 +288,37 @@ if ('serviceWorker' in navigator) {
 
     </div>
 
+    <!-- D · Pantalla de éxito de reserva -->
+    <div id="reg-success-view" class="card" style="display:none; padding: 24px; text-align: left; animation: fadeIn 0.4s ease;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+        <h3 style="font-family: 'Inter', sans-serif; font-size: 22px; color: var(--gold); margin: 0; text-shadow: 0 0 10px rgba(223, 172, 74, 0.3); text-transform: none; letter-spacing: 0;">¡Gracias por sumarte al Mic Club!</h3>
+      </div>
+      
+      <p style="font-size: 14px; line-height: 1.6; color: var(--text); margin-bottom: 16px;">
+        Reservaste <strong id="success-spots-count"></strong> para el evento: <strong id="success-event-name" style="color: var(--gold);"></strong> <span id="success-event-meta" style="font-size: 13px; color: var(--text2);"></span>
+      </p>
+      
+      <div style="background: rgba(212, 168, 67, 0.06); border: 1px solid var(--gold-dark); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <p style="font-size: 14px; line-height: 1.6; color: var(--text); margin: 0;">
+          Para confirmar la reserva solo falta transferir <strong>$6000</strong> por cada persona (un total de <strong id="success-total-amount"></strong> por <strong id="success-spots-summary"></strong>) y <a id="success-wa-link" href="#" target="_blank" style="color: var(--gold); text-decoration: underline; font-weight: bold;">enviarnos un mensaje por WhatsApp</a>.
+        </p>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <p style="font-size: 13px; color: var(--text2); margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Ingresá nuevamente con tu mail para:</p>
+        <ul style="font-size: 13px; color: var(--text2); line-height: 1.6; padding-left: 20px; margin: 0; list-style-type: disc;">
+          <li>Cargar tu canción para el concurso.</li>
+          <li>Sumar personas a tu reserva.</li>
+          <li>Seguir el ranking y tus puntos.</li>
+        </ul>
+      </div>
+      
+      <p style="text-align: center; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: bold; color: var(--gold); margin-bottom: 24px; text-shadow: 0 0 8px rgba(223, 172, 74, 0.2);">¡Nos vemos en el Mic Club!</p>
+      
+      <button class="btn btn-gold" onclick="resetRegisterPage()" style="width: 100%;">ENTENDIDO</button>
+    </div>
+
     <!-- Botón de Ranking Mic Club al final de la pantalla de Reservas -->
     <div style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px; text-align: center; width: 100%;">
       <button class="btn btn-gold btn-outline" id="btn-register-to-ranking" onclick="nav('show')" style="width: 100%; font-size: 12px; padding: 8px 0; min-height: 36px;">Ranking Mic Club</button>
