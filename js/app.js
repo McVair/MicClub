@@ -2,6 +2,7 @@
 //  MIC CLUB · Engine v4 (v1.51)
 // ─────────────────────────────────────────────────────────────────────────────
 console.log("MIC CLUB v1.51 Loaded!");
+const isIframe = (window.self !== window.top);
 
 const ADMIN_PASS_DEFAULT = '3984';
 const META = 150;
@@ -570,7 +571,7 @@ function initFirebase() {
 
       const projectionActive = !!s.projectionActive;
       const isPC = !isMobileDevice();
-      if (isPC && MODE !== 'bar') {
+      if (isPC && MODE !== 'bar' && !isIframe) {
         if (projectionActive && !lastProjectionActive) {
           if (!projectionWindowRef || projectionWindowRef.closed) {
             openProjectionWindow();

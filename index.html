@@ -973,7 +973,7 @@ if ('serviceWorker' in navigator) {
       <div class="header-content-wrapper">
         <div class="header-logo-event" style="display: flex; align-items: center;">
           <span class="logo-micclub">MIC CLUB</span>
-          <span class="logo-sub" style="font-family:'Oswald',sans-serif; font-size: 16px !important; color: var(--gold) !important; margin-left: 8px !important; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">| Control de emisión</span>
+          <span class="logo-sub" style="font-family:'Oswald',sans-serif; font-size: 16px !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background: none !important; -webkit-background-clip: initial !important; margin-left: 8px !important; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block;">| Control de emisión</span>
         </div>
         <span class="logo-separator">·</span>
         <div class="header-event-container">
@@ -1018,12 +1018,14 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Miniatura de la Pantalla de Emisión (Monitor) -->
-    <div class="card-emission" style="margin-top: 14px; padding: 8px; background: #0A0A0F !important;">
-      <div style="font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; text-align: center;">
-        Monitor de emisión
-      </div>
-      <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid rgba(255, 255, 255, 0.05);">
-        <iframe src="?mode=pantalla" style="position: absolute; top: 0; left: 0; width: 500%; height: 500%; border: none; transform: scale(0.2); transform-origin: 0 0; pointer-events: none;"></iframe>
+    <div style="display: flex; justify-content: center; width: 100%;">
+      <div class="card-emission" style="margin-top: 14px; padding: 6px; background: #0A0A0F !important; width: 50%; box-sizing: border-box;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 9px; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; text-align: center;">
+          Monitor de emisión
+        </div>
+        <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; background: #000; border: 1px solid rgba(255, 255, 255, 0.05);">
+          <iframe src="index.html?mode=pantalla" style="position: absolute; top: 0; left: 0; width: 400%; height: 400%; border: none; transform: scale(0.25); transform-origin: 0 0; pointer-events: none;"></iframe>
+        </div>
       </div>
     </div>
   </div>
@@ -1137,6 +1139,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=1.80" defer></script>
+<script src="js/app.js?v=1.81" defer></script>
 </body>
 </html>
