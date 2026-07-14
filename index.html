@@ -504,9 +504,9 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
 
-    <!-- Barra fija de votación en la base (ancho completo) -->
-    <div id="program-vote-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:1000;box-sizing:border-box;padding:0;display:block;">
-      <button id="program-vote-btn" onclick="handleProgramVoteClick()" class="btn btn-gold" style="width:100%;height:54px;border-radius:0;border:none;font-family:'Inter',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px;display:flex;align-items:center;justify-content:center;box-shadow:0 -4px 12px rgba(0,0,0,0.15);transition:all 0.3s ease;">VOTAR!</button>
+    <!-- Barra fija de votación en la base (formato Ir a Playlist) -->
+    <div id="program-vote-bar" style="position:fixed;bottom:0;left:0;right:0;padding:12px;background:rgba(22, 21, 26, 0.95);border-top:1px solid rgba(255, 255, 255, 0.05);z-index:1000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:block;">
+      <button id="program-vote-btn" onclick="handleProgramVoteClick()" class="btn btn-green" style="width:100%;margin:0">VOTAR</button>
     </div>
   </div>
 
@@ -599,7 +599,7 @@ if ('serviceWorker' in navigator) {
   </div>
 
   <!-- ─────────── VOTACIÓN PÚBLICA ─────────── -->
-  <div id="page-vote-public" class="page">
+  <div id="page-vote-public" class="page" style="padding-bottom:100px">
     <div id="event-banner-vote" class="event-banner" style="display:none"></div>
 
     <!-- Votación cerrada -->
@@ -613,8 +613,10 @@ if ('serviceWorker' in navigator) {
     <div id="vote-done" class="alert alert-success" style="display:none;margin-bottom:10px"></div>
 
     <div id="vote-area">
-      <div id="vote-cards-container" style="margin-bottom:10px"></div>
-      <button class="btn btn-gold" id="vote-btn" onclick="submitPublicVote()" style="width:100%">ENVIAR VOTOS</button>
+      <div id="vote-cards-container" style="margin-bottom:80px"></div>
+      <div id="vote-submit-bar" style="position:fixed;bottom:0;left:0;right:0;padding:12px;background:rgba(22, 21, 26, 0.95);border-top:1px solid rgba(255, 255, 255, 0.05);z-index:1000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:block;">
+        <button class="btn btn-green" id="vote-btn" onclick="submitPublicVote()" style="width:100%;margin:0">ENVIAR VOTOS</button>
+      </div>
     </div>
   </div>
 

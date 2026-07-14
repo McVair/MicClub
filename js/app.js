@@ -1280,7 +1280,7 @@ function getPantallaStateHash() {
   
   // Participantes del evento actual con sus votos e información
   const parts = getEnrichedParticipantsList(activeEventId)
-    .map(p => `${p.id}:${p.name}:${p.song}:${p.songConfirmed}:${p.micclubPts}:${JSON.stringify(p.votes || {})}:${JSON.stringify(p.juryVotes || {})}`);
+    .map(p => `${p.id}:${p.name}:${p.song}:${p.songConfirmed}:${p.micclubPts}:${p.voteSong || 0}:${p.votePerf || 0}:${JSON.stringify(p.votes || {})}:${JSON.stringify(p.juryVotes || {})}`);
 
   // Ranking general (participantes y sus puntos acumulados)
   const allParts = Object.values(allParticipants || {})
@@ -1392,15 +1392,11 @@ function updateProgramPage() {
   
   if (voteBtn) {
     if (votingOpen) {
-      voteBtn.style.background = 'var(--gold)';
-      voteBtn.style.color = '#0a0a0f';
-      voteBtn.style.borderColor = 'var(--gold)';
-      voteBtn.textContent = '🗳️ ¡VOTACIÓN ABIERTA! VOTAR AHORA';
+      voteBtn.className = 'btn btn-green';
+      voteBtn.textContent = 'VOTACIÓN ABIERTA - VOTAR AHORA';
     } else {
-      voteBtn.style.background = '#d93838';
-      voteBtn.style.color = '#ffffff';
-      voteBtn.style.borderColor = '#d93838';
-      voteBtn.textContent = '🔒 VOTACIÓN CERRADA';
+      voteBtn.className = 'btn btn-red';
+      voteBtn.textContent = 'VOTACIÓN CERRADA';
     }
   }
   
@@ -3948,7 +3944,7 @@ function toggleVoteBtn(type, pid) {
 async function submitPublicVote() {
   const btn = document.getElementById('vote-btn');
   if (btn) {
-    btn.innerHTML = '<span class="spinner"></span> ENVIANDO...';
+    btn.innerHTML = 'ENVIANDO...';
     btn.disabled = true;
   }
 
@@ -3996,7 +3992,11 @@ async function submitPublicVote() {
       Object.keys(allParticipants).forEach(pid => {
         const p = allParticipants[pid];
         const isMigratedActive = (activeEventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
-        const target = isMigratedActive ? p : (p.reservations?.[activeEventId] || {});
+        if (!isMigratedActive) {
+          if (!p.reservations) p.reservations = {};
+          if (!p.reservations[activeEventId]) p.reservations[activeEventId] = {};
+        }
+        const target = isMigratedActive ? p : p.reservations[activeEventId];
         
         if (!target.publicVotes) target.publicVotes = {};
         
@@ -4025,8 +4025,6 @@ async function submitPublicVote() {
     }
 
     localStorage.setItem('voted_public', JSON.stringify({ song: songVotes, perf: perfVotes }));
-    tempSelections = null;
-    tempSelectionsEventId = null;
 
     if (btn) {
       btn.innerHTML = (songVotes.length > 0 || perfVotes.length > 0) ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTOS';
@@ -4034,6 +4032,8 @@ async function submitPublicVote() {
     }
 
     showTemporaryAlert("¡Gracias por votar!", 2000, () => {
+      tempSelections = null;
+      tempSelectionsEventId = null;
       nav('program');
     });
 
