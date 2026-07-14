@@ -7899,26 +7899,32 @@ window.openProjectionWindow = openProjectionWindow;
 
 function toggleProjectionState() {
   if (isMobileDevice()) return; // Prevent projection toggling on mobile
+  console.log("[toggleProjectionState] Init. projectionWindowRef:", projectionWindowRef, "currentCastLayout:", currentCastLayout);
   
   let isWindowOpen = false;
   try {
     if (projectionWindowRef && !projectionWindowRef.closed) {
       isWindowOpen = true;
     }
+    console.log("[toggleProjectionState] Checked closed. isWindowOpen:", isWindowOpen);
   } catch (e) {
-    console.error("Error checking window state in toggle:", e);
+    console.error("[toggleProjectionState] Error checking window state in toggle:", e);
     // Si da excepción, asumimos que sigue abierto para no destruir la referencia ni reiniciar el diseño
     isWindowOpen = true;
   }
 
   if (isWindowOpen) {
+    console.log("[toggleProjectionState] Window is open. Focusing...");
     try {
       projectionWindowRef.focus();
-    } catch (e) {}
+    } catch (e) {
+      console.error("[toggleProjectionState] Focus exception:", e);
+    }
     return;
   }
 
   const startLayout = currentCastLayout || 'ranking';
+  console.log("[toggleProjectionState] Window is closed/null. Opening new window with startLayout:", startLayout);
   openProjectionWindow();
   setCastLayout(startLayout);
   
