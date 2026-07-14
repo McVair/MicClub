@@ -7274,8 +7274,14 @@ function ytRemoteVolumeChange(val) {
 // Seleccionar diseño de emisión a pantalla secundaria
 function setCastLayout(layout) {
   if (MODE === 'bar' && layout === 'video') return; // Bloquear video en modo bar
-  currentCastLayout = layout;
-  updateCastButtonsHighlight(layout);
+  
+  let finalLayout = layout;
+  if (layout === 'video' && !isYtPlaying && activeYtVideo) {
+    finalLayout = 'intro_tema';
+  }
+  
+  currentCastLayout = finalLayout;
+  updateCastButtonsHighlight(finalLayout);
   
   if (screensaverActive) {
     screensaverActive = false;
@@ -7523,12 +7529,8 @@ function onPlayerStateChange(event) {
     if (castChannel) {
       castChannel.postMessage({ type: 'yt_ended' });
     }
-    const mode = localState.settings?.playbackMode || 'theme';
-    if (mode === 'continuous') {
-      ytRemoteNext(true);
-    } else {
-      ytRemoteNext(false);
-    }
+    // Cargar siguiente tema pausado (mostrar intro) y esperar play
+    ytRemoteNext(false);
   }
 }
 
@@ -7689,12 +7691,7 @@ function handleCastMessage(data) {
     updatePlayBtnIcon();
     renderPlaylistQueue();
     if (!firebaseOk) {
-      const mode = localState.settings?.playbackMode || 'theme';
-      if (mode === 'continuous') {
-        ytRemoteNext(true);
-      } else {
-        ytRemoteNext(false);
-      }
+      ytRemoteNext(false);
     }
   } else if (data.type === 'sync_request') {
     if (MODE === 'pantalla') {
