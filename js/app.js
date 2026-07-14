@@ -7403,6 +7403,8 @@ function onPlayerReady(event) {
     if (projectionPlayer && typeof projectionPlayer.mute === 'function') {
       projectionPlayer.mute();
     }
+    const el = document.getElementById('pantalla-autoplay-overlay');
+    if (el) el.style.display = 'none';
     applyProyectorLayout('ranking');
     if (castChannel) {
       castChannel.postMessage({ type: 'projection_ready' });
