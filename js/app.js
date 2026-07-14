@@ -79,10 +79,10 @@ let tempSelectionsEventId = null;
 
 function getOrCreateVoterId() {
   try {
-    let voterId = sessionStorage.getItem('voter_id');
+    let voterId = localStorage.getItem('voter_id');
     if (!voterId) {
       voterId = 'voter_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      sessionStorage.setItem('voter_id', voterId);
+      localStorage.setItem('voter_id', voterId);
     }
     return voterId;
   } catch (e) {
