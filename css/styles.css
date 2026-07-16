@@ -1856,3 +1856,45 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   display: none !important;
 }
 
+/* Reducción al 50% de espacios en panel de Admin */
+#home-dashboard .btn-dash {
+  padding: 5px 10px !important;
+  min-height: 28px !important;
+  font-size: 11px !important;
+}
+#home-dashboard .card {
+  padding: 7px !important;
+  margin-bottom: 7px !important;
+}
+#home-dashboard .btn {
+  min-height: 30px !important;
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+}
+#home-dashboard .cast-btn {
+  padding: 4px 0 !important;
+  font-size: 10px !important;
+}
+#home-dashboard div[style*="margin-bottom:16px"] {
+  margin-bottom: 8px !important;
+}
+#home-dashboard div[style*="margin-bottom:12px"] {
+  margin-bottom: 6px !important;
+}
+#home-dashboard div[style*="margin-bottom:14px"] {
+  margin-bottom: 7px !important;
+}
+#home-dashboard div[style*="margin-bottom:8px"] {
+  margin-bottom: 4px !important;
+}
+#home-dashboard div[style*="gap:8px"] {
+  gap: 4px !important;
+}
+#home-dashboard div[style*="gap:6px"] {
+  gap: 3px !important;
+}
+#home-dashboard #events-control-panel {
+  gap: 4px !important;
+}
+
+

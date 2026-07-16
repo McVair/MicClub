@@ -3263,117 +3263,57 @@ function renderJuryRankingInRanking() {
 function updateShowMode() {
   const parts = sortedMicclub();
   
-  // Separate Consagrados (>150 pts) from active parts
-  const consagradosData = parts.filter(p => p.score > 150);
-  const activeParts = parts.filter(p => p.score <= 150);
-
-  // Render HTML strings
-  const consagradosHtml = consagradosData.map((p) => {
-    const badge = `👑`;
-    return `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:10px">
-      <div style="font-size:20px;min-width:30px;text-align:center;line-height:1">${badge}</div>
-      <div style="flex:1;font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--text);text-shadow:0 0 6px rgba(255,255,255,0.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
-      <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:700;color:var(--text);white-space:nowrap">${p.score}<span style="font-size:12px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> pts</span></div>
-    </div>`;
-  }).join('');
-
-  let currentRank = 0;
-  let currentScore = -1;
-  const activeHtml = activeParts.map((p, i) => {
-    if (p.score !== currentScore) {
-      currentRank = i + 1;
-      currentScore = p.score;
-    }
-    const pct    = Math.min(100, (p.score / META) * 100);
-    const isTop  = currentRank <= 3;
-    const rank   = getMedalHTML(currentRank);
-    const nameColor = 'var(--text)'; // All names are cream white
-    
-    const sizeClass = (currentRank === 1) ? '20' : '15';
-    const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
-    const ptsGlow = ''; // All scores have yellow glow
-    const suffixSize = sizeClass === '20' ? '12' : '9';
-    
-    return `<div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <div style="font-size:${sizeClass}px;min-width:30px;text-align:center;line-height:1">${rank}</div>
-        <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? '700' : '500'};font-size:${sizeClass}px;color:${nameColor};${nameGlow}white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</div>
-        <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:700;color:${nameColor};${ptsGlow}white-space:nowrap">${p.score}<span style="font-size:${suffixSize}px;font-weight:400;color:var(--text2);opacity:0.85;text-shadow:none"> pts</span></div>
-      </div>
-      <div style="padding-left:40px;margin-top:2px">
-        <div style="width:100%;height:4px;background:var(--bg4);border-radius:99px;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:${isTop ? 'linear-gradient(90deg,var(--gold-dark),var(--gold-light))' : 'rgba(160,144,112,.35)'};border-radius:99px;transition:width 1s ease"></div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // 1. Render on original show page
   const consagradosCard = document.getElementById('consagrados-card');
-  const consagradosRows = document.getElementById('consagrados-rows');
+  if (consagradosCard) consagradosCard.style.display = 'none';
   const showLayoutContainer = document.querySelector('.show-layout-container');
+  if (showLayoutContainer) showLayoutContainer.classList.remove('two-columns');
 
-  if (consagradosCard && consagradosRows) {
-    if (consagradosData.length > 0) {
-      consagradosCard.style.display = 'block';
-      if (showLayoutContainer) showLayoutContainer.classList.add('two-columns');
-      consagradosRows.innerHTML = consagradosHtml;
-    } else {
-      consagradosCard.style.display = 'none';
-      if (showLayoutContainer) showLayoutContainer.classList.remove('two-columns');
-    }
+  let rowsHtml = '';
+  if (!parts.length) {
+    rowsHtml = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
+  } else {
+    let currentRank = 0;
+    let currentScore = -1;
+    rowsHtml = parts.map((p, i) => {
+      if (p.score !== currentScore) {
+        currentRank = i + 1;
+        currentScore = p.score;
+      }
+      
+      const isConsagrado = p.score > 150;
+      const rankText = isConsagrado ? '👑' : getMedalHTML(currentRank);
+      
+      let fontSize = 18;
+      if (currentRank === 1 || isConsagrado) {
+        fontSize = 32;
+      } else if (currentRank === 2) {
+        fontSize = 28;
+      } else if (currentRank === 3) {
+        fontSize = 25;
+      }
+      
+      return `
+        <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; width: 100%; margin-bottom: 8px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: ${fontSize}px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background: none !important; -webkit-background-clip: initial !important; letter-spacing: 0.5px; font-weight: 500; display: flex; align-items: center; gap: 10px;">
+            <span style="min-width: 36px; text-align: center; display: inline-block;">${rankText}</span>
+            ${esc(p.name)}
+          </span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: ${fontSize}px; color: var(--gold) !important; -webkit-text-fill-color: var(--gold) !important; background: none !important; -webkit-background-clip: initial !important; font-weight: bold; white-space: nowrap;">
+            ${p.score} <span style="font-size: ${Math.round(fontSize * 0.6)}px; font-weight: 400; opacity: 0.8;">pts</span>
+          </span>
+        </div>
+      `;
+    }).join('');
   }
 
   const el = document.getElementById('show-rows');
   if (el) {
-    if (!activeParts.length) {
-      el.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
-    } else {
-      el.innerHTML = activeHtml;
-    }
+    el.innerHTML = rowsHtml;
   }
 
-  // 2. Render on public monitor screen (pantalla)
   const pShowRows = document.getElementById('pantalla-show-rows');
   if (pShowRows) {
-    if (!parts.length) {
-      pShowRows.innerHTML = '<div style="text-align:center;color:var(--text2);padding:32px">Esperando participantes...</div>';
-    } else {
-      let currentRank = 0;
-      let currentScore = -1;
-      const pantallaActiveHtml = parts.map((p, i) => {
-        if (p.score !== currentScore) {
-          currentRank = i + 1;
-          currentScore = p.score;
-        }
-        
-        const isConsagrado = p.score > 150;
-        const rankText = isConsagrado ? '👑' : getMedalHTML(currentRank);
-        
-        // Calcular el tamaño de fuente según la posición
-        let fontSize = 18;
-        if (currentRank === 1 || isConsagrado) {
-          fontSize = 32;
-        } else if (currentRank === 2) {
-          fontSize = 28;
-        } else if (currentRank === 3) {
-          fontSize = 25;
-        }
-        
-        return `
-          <div style="padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; width: 100%;">
-            <span style="font-family: 'Oswald', sans-serif; font-size: ${fontSize}px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background: none !important; -webkit-background-clip: initial !important; letter-spacing: 0.5px; font-weight: 500; display: flex; align-items: center; gap: 10px;">
-              <span style="min-width: 36px; text-align: center; display: inline-block;">${rankText}</span>
-              ${esc(p.name)}
-            </span>
-            <span style="font-family: 'Oswald', sans-serif; font-size: ${fontSize}px; color: var(--gold) !important; -webkit-text-fill-color: var(--gold) !important; background: none !important; -webkit-background-clip: initial !important; font-weight: bold; white-space: nowrap;">
-              ${p.score} <span style="font-size: ${Math.round(fontSize * 0.6)}px; font-weight: 400; opacity: 0.8;">pts</span>
-            </span>
-          </div>
-        `;
-      }).join('');
-      pShowRows.innerHTML = pantallaActiveHtml;
-    }
+    pShowRows.innerHTML = rowsHtml;
   }
 }
 
