@@ -2403,21 +2403,52 @@ window.triggerUploadPlaylist = triggerUploadPlaylist;
 window.handlePlaylistUpload = handlePlaylistUpload;
 
 function downloadReservations() {
+  const eventId = getAdminActiveEventId();
+  if (!eventId) {
+    mcAlert('No hay ningún evento activo o seleccionado.');
+    return;
+  }
+
+  const evData = localState.settings?.events?.[eventId];
+  const dateStr = evData ? new Date(evData.date).toLocaleDateString('es-AR') : new Date().toLocaleDateString('es-AR');
+  const eventName = evData ? evData.name : 'Evento';
+
   const parts = Object.values(allParticipants)
-    .filter(p => (parseInt(p.people) || 0) > 0)
-    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  if (!parts.length) { mcAlert('No hay reservas activas en este momento.'); return; }
-  
-  const lines = ['RESERVAS MIC CLUB\n' + new Date().toLocaleDateString('es-AR'), ''];
+    .map(p => {
+      const res = p.reservations?.[eventId] || {};
+      const isMigratedActive = (eventId === 'event1' && (!p.reservations || !p.reservations.event1) && (p.songConfirmed || (p.people && p.people > 0)));
+      const targetRes = isMigratedActive ? p : res;
+      const count = parseInt(targetRes.people) || 0;
+      return {
+        name: p.name || '(sin nombre)',
+        count: count
+      };
+    })
+    .filter(p => p.count > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!parts.length) {
+    mcAlert(`No hay reservas registradas para el evento "${eventName}" del ${dateStr}.`);
+    return;
+  }
+
+  const lines = [
+    `RESERVAS MIC CLUB - ${eventName.toUpperCase()}`,
+    `Fecha del Evento: ${dateStr}`,
+    `Exportado el: ${new Date().toLocaleString('es-AR')}`,
+    `Total de Reservas: ${parts.reduce((acc, p) => acc + p.count, 0)} lugares`,
+    '----------------------------------------',
+    ''
+  ];
+
   parts.forEach(p => {
-    const reservations = parseInt(p.people) || 0;
-    lines.push(`${p.name || '(sin nombre)'}: ${reservations}`);
+    lines.push(`${p.name}: ${p.count} lugares`);
   });
-  
+
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `reservas-micclub-${new Date().toISOString().slice(0,10)}.txt`;
+  a.download = `reservas-${eventId}-${new Date().toISOString().slice(0,10)}.txt`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
