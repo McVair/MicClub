@@ -1875,28 +1875,6 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   padding: 4px 0 !important;
   font-size: 10px !important;
 }
-#home-dashboard div[style*="margin-bottom:16px"] {
-  margin-bottom: 6px !important;
-}
-#home-dashboard div[style*="margin-bottom:12px"] {
-  margin-bottom: 6px !important;
-}
-#home-dashboard div[style*="margin-bottom:14px"] {
-  margin-bottom: 6px !important;
-}
-#home-dashboard div[style*="margin-bottom:8px"] {
-  margin-bottom: 6px !important;
-}
-#home-dashboard div[style*="gap:8px"] {
-  gap: 6px !important;
-}
-#home-dashboard div[style*="gap:6px"] {
-  gap: 6px !important;
-}
-#home-dashboard #events-control-panel {
-  gap: 6px !important;
-  margin-bottom: 6px !important;
-}
 
 /* Espaciado de 6px también en el Panel de Emisión */
 #home-dashboard #admin-cast-card {

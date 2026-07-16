@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.51">
+<link rel="stylesheet" href="css/styles.css?v=1.52">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -90,45 +90,45 @@ if ('serviceWorker' in navigator) {
         <div class="admin-main-column">
 
       <!-- Control de Eventos en Paralelo -->
-      <div id="events-control-panel" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px">
+      <div id="events-control-panel" style="margin-bottom:6px;display:flex;flex-direction:column;gap:6px">
       </div>
 
       <!-- Fila 2: Administrar Secciones -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px">
         <button class="btn-dash" onclick="navPush('program')" style="border-color:var(--gold);color:var(--gold)">Cargar Programa</button>
         <button class="btn-dash" onclick="navToConfig()" style="border-color:var(--gold);color:var(--gold)">Administrar Participantes</button>
         <button class="btn-dash" onclick="navPush('history')" style="border-color:var(--gold);color:var(--gold)">Ver Historial</button>
       </div>
 
       <!-- Fila 3: Reservas Bar y Ranking local -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <button class="btn-dash" onclick="downloadReservations()" style="border-color:var(--gold);color:var(--gold)">Reservas Bar</button>
         <button class="btn-dash" onclick="navPush('show')" style="border-color:var(--gold);color:var(--gold)">Ver Ranking</button>
       </div>
 
       <!-- Panel de Emisión / Proyección -->
-      <div class="card" id="admin-cast-card" style="padding:14px;margin-bottom:14px">
+      <div class="card" id="admin-cast-card" style="padding:8px;margin-bottom:6px">
         
         <!-- Fila 1: Emitir, Video -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
           <button id="cast-btn-emitir" class="btn btn-gold" onclick="toggleProjectionState()" style="width:100%;margin:0">Emitir</button>
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-video" onclick="setCastLayout('video')" style="font-size:11px;padding:8px 0;width:100%">Video</button>
         </div>
 
         <!-- Segunda Fila: Ranking -->
-        <div style="margin-bottom:8px">
+        <div style="margin-bottom:6px">
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:100%">Ranking</button>
         </div>
 
         <!-- Tercera Fila: Invitados, Participantes, Karaoke -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px">
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-guests" onclick="setCastLayout('guests')" style="font-size:11px;padding:8px 0;width:100%">Invitados</button>
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-parts" onclick="setCastLayout('parts')" style="font-size:11px;padding:8px 0;width:100%">Participantes</button>
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
         </div>
 
         <!-- Cuarta Fila: Votación -->
-        <div style="margin-bottom:8px">
+        <div style="margin-bottom:6px">
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:100%">Votación</button>
         </div>
 
@@ -143,7 +143,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Fila 1: Compartir Links (Debajo de Emisión) -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px">
         <button class="btn-dash" onclick="dashCopyLink('jury')" style="width:100%">Jurado</button>
         <button class="btn-dash" onclick="dashCopyLink('register')" style="width:100%">Reservas</button>
         <button class="btn-dash" onclick="dashCopyLink('vote')" style="width:100%">Programa</button>
