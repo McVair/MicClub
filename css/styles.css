@@ -1856,7 +1856,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   display: none !important;
 }
 
-/* Reducción de espacios: Compactar horizontal al 75% (gaps/márgenes) y hacer el vertical igual */
+/* Espaciado uniforme de exactamente 6px en todo el panel de Admin */
 #home-dashboard .btn-dash {
   padding: 6px 10px !important;
   min-height: 32px !important;
@@ -1864,7 +1864,7 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
 }
 #home-dashboard .card {
   padding: 8px !important;
-  margin-bottom: 4px !important;
+  margin-bottom: 6px !important;
 }
 #home-dashboard .btn {
   min-height: 30px !important;
@@ -1876,39 +1876,39 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   font-size: 10px !important;
 }
 #home-dashboard div[style*="margin-bottom:16px"] {
-  margin-bottom: 4px !important;
+  margin-bottom: 6px !important;
 }
 #home-dashboard div[style*="margin-bottom:12px"] {
-  margin-bottom: 4px !important;
+  margin-bottom: 6px !important;
 }
 #home-dashboard div[style*="margin-bottom:14px"] {
-  margin-bottom: 4px !important;
+  margin-bottom: 6px !important;
 }
 #home-dashboard div[style*="margin-bottom:8px"] {
-  margin-bottom: 4px !important;
+  margin-bottom: 6px !important;
 }
 #home-dashboard div[style*="gap:8px"] {
-  gap: 4px !important;
+  gap: 6px !important;
 }
 #home-dashboard div[style*="gap:6px"] {
-  gap: 4px !important;
+  gap: 6px !important;
 }
 #home-dashboard #events-control-panel {
-  gap: 4px !important;
-  margin-bottom: 4px !important;
+  gap: 6px !important;
+  margin-bottom: 6px !important;
 }
 
-/* Espaciado de 10px exclusivo para los botones del Panel de Emisión */
+/* Espaciado de 6px también en el Panel de Emisión */
 #home-dashboard #admin-cast-card {
-  padding: 10px !important;
-  margin-bottom: 4px !important;
+  padding: 8px !important;
+  margin-bottom: 6px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 10px !important;
+  gap: 6px !important;
 }
 #home-dashboard #admin-cast-card > div {
   margin-bottom: 0 !important;
-  gap: 10px !important;
+  gap: 6px !important;
 }
 #home-dashboard #admin-cast-card button {
   margin: 0 !important;
