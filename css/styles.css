@@ -1898,4 +1898,20 @@ body.mode-pantalla #pantalla-tab-content div[id^="pantalla-rank-"] > div > div >
   margin-bottom: 4px !important;
 }
 
+/* Espaciado de 10px exclusivo para los botones del Panel de Emisión */
+#home-dashboard #admin-cast-card {
+  padding: 10px !important;
+  margin-bottom: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+#home-dashboard #admin-cast-card > div {
+  margin-bottom: 0 !important;
+  gap: 10px !important;
+}
+#home-dashboard #admin-cast-card button {
+  margin: 0 !important;
+}
+
 
