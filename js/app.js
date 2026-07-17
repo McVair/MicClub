@@ -2202,57 +2202,208 @@ function downloadCombinedSongLinks() {
     return;
   }
   
-  const lines = [
-    `CANCIONES Y ENLACES - ${eventName.toUpperCase()}`,
-    `Fecha del Evento: ${dateStr}`,
-    `Exportado el: ${new Date().toLocaleString('es-AR')}`,
-    '========================================',
-    ''
+  const htmlParts = [
+    `<!DOCTYPE html>`,
+    `<html lang="es">`,
+    `<head>`,
+    `  <meta charset="UTF-8">`,
+    `  <meta name="viewport" content="width=device-width, initial-scale=1.0">`,
+    `  <title>Canciones - ${esc(eventName)}</title>`,
+    `  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">`,
+    `  <style>`,
+    `    :root {`,
+    `      --bg: #0a0a0f;`,
+    `      --bg2: #121118;`,
+    `      --bg3: #1a1924;`,
+    `      --gold: #dfac4a;`,
+    `      --gold-dark: #b8862b;`,
+    `      --text: #ffffff;`,
+    `      --text2: #a0a0b0;`,
+    `      --border: rgba(255, 255, 255, 0.06);`,
+    `    }`,
+    `    body {`,
+    `      background-color: var(--bg);`,
+    `      color: var(--text);`,
+    `      font-family: 'Inter', sans-serif;`,
+    `      margin: 0;`,
+    `      padding: 32px 16px 80px;`,
+    `      display: flex;`,
+    `      flex-direction: column;`,
+    `      align-items: center;`,
+    `    }`,
+    `    .container {`,
+    `      width: 100%;`,
+    `      max-width: 720px;`,
+    `    }`,
+    `    header {`,
+    `      text-align: center;`,
+    `      margin-bottom: 32px;`,
+    `      border-bottom: 1px solid var(--border);`,
+    `      padding-bottom: 24px;`,
+    `    }`,
+    `    h1 {`,
+    `      font-family: 'Oswald', sans-serif;`,
+    `      font-size: 32px;`,
+    `      color: var(--gold);`,
+    `      margin: 0 0 8px;`,
+    `      letter-spacing: 1px;`,
+    `      text-transform: uppercase;`,
+    `    }`,
+    `    .meta {`,
+    `      font-size: 13px;`,
+    `      color: var(--text2);`,
+    `      margin: 4px 0;`,
+    `      letter-spacing: 0.5px;`,
+    `    }`,
+    `    .section-title {`,
+    `      font-family: 'Oswald', sans-serif;`,
+    `      font-size: 20px;`,
+    `      color: #ffffff;`,
+    `      margin: 32px 0 16px;`,
+    `      letter-spacing: 1px;`,
+    `      text-transform: uppercase;`,
+    `      border-left: 4px solid var(--gold);`,
+    `      padding-left: 12px;`,
+    `    }`,
+    `    .list {`,
+    `      display: flex;`,
+    `      flex-direction: column;`,
+    `      gap: 10px;`,
+    `    }`,
+    `    .card {`,
+    `      background-color: var(--bg2);`,
+    `      border: 1px solid var(--border);`,
+    `      border-radius: 10px;`,
+    `      padding: 14px 18px;`,
+    `      display: flex;`,
+    `      flex-direction: column;`,
+    `      gap: 5px;`,
+    `      transition: transform 0.2s, border-color 0.2s;`,
+    `    }`,
+    `    .card:hover {`,
+    `      border-color: rgba(223, 172, 74, 0.35);`,
+    `      transform: translateY(-1px);`,
+    `    }`,
+    `    .singer {`,
+    `      font-family: 'Oswald', sans-serif;`,
+    `      font-size: 18px;`,
+    `      color: #ffffff;`,
+    `      font-weight: 500;`,
+    `      margin: 0;`,
+    `    }`,
+    `    .song {`,
+    `      font-size: 14px;`,
+    `      color: var(--text2);`,
+    `      margin: 0;`,
+    `    }`,
+    `    .song-title {`,
+    `      color: #ffffff;`,
+    `      font-weight: 500;`,
+    `    }`,
+    `    .link-container {`,
+    `      margin-top: 4px;`,
+    `    }`,
+    `    .youtube-link {`,
+    `      display: inline-flex;`,
+    `      align-items: center;`,
+    `      gap: 6px;`,
+    `      color: var(--gold);`,
+    `      text-decoration: none;`,
+    `      font-size: 13px;`,
+    `      font-weight: 500;`,
+    `      transition: color 0.2s;`,
+    `    }`,
+    `    .youtube-link:hover {`,
+    `      color: #ffffff;`,
+    `    }`,
+    `    .youtube-link svg {`,
+    `      fill: currentColor;`,
+    `      width: 14px;`,
+    `      height: 14px;`,
+    `    }`,
+    `  </style>`,
+    `</head>`,
+    `<body>`,
+    `  <div class="container">`,
+    `    <header>`,
+    `      <h1>${esc(eventName)}</h1>`,
+    `      <div class="meta">Fecha del Evento: ${esc(dateStr)}</div>`,
+    `      <div class="meta">Exportado el: ${esc(new Date().toLocaleString('es-AR'))}</div>`,
+    `    </header>`
   ];
-  
+
   if (guestArtists.length) {
-    lines.push('========================================');
-    lines.push('🌟 ARTISTAS INVITADOS');
-    lines.push('========================================');
+    htmlParts.push(`    <h2 class="section-title">🌟 Artistas Invitados</h2>`);
+    htmlParts.push(`    <div class="list">`);
     guestArtists.forEach(art => {
       const name = typeof art === 'object' ? (art.name || '(sin nombre)') : art;
       const song = typeof art === 'object' ? (art.song || 'Repertorio Especial') : 'Repertorio Especial';
       const link = typeof art === 'object' ? (art.link || art.url || '') : '';
-      lines.push(name);
-      lines.push(`  Canción: ${song}`);
-      if (link) lines.push(`  Link: ${link}`);
-      lines.push('');
+      htmlParts.push(`
+        <div class="card">
+          <div class="singer">${esc(name)}</div>
+          <div class="song">Canción: <span class="song-title">${esc(song)}</span></div>
+          ${link ? `
+          <div class="link-container">
+            <a class="youtube-link" href="${esc(link)}" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11C6.482 20.455 12 20.455 12 20.455s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              Ver en YouTube
+            </a>
+          </div>` : ''}
+        </div>
+      `);
     });
+    htmlParts.push(`    </div>`);
   }
 
   if (parts.length) {
-    lines.push('========================================');
-    lines.push('🎤 CANCIONES DE PARTICIPANTES MIC CLUB');
-    lines.push('========================================');
+    htmlParts.push(`    <h2 class="section-title">🎤 Participantes Mic Club</h2>`);
+    htmlParts.push(`    <div class="list">`);
     parts.forEach(p => {
-      lines.push(`${p.name || '(sin nombre)'}`);
-      if (p.songTitle) lines.push(`  Canción: ${p.songTitle}${p.songArtist ? ' — ' + p.songArtist : ''}`);
-      if (p.karaokeLink) lines.push(`  Link: ${p.karaokeLink}`);
-      lines.push('');
+      htmlParts.push(`
+        <div class="card">
+          <div class="singer">${esc(p.name || '(sin nombre)')}</div>
+          <div class="song">Canción: <span class="song-title">${esc(p.songTitle || '—')}${p.songArtist ? ' — ' + esc(p.songArtist) : ''}</span></div>
+          ${p.karaokeLink ? `
+          <div class="link-container">
+            <a class="youtube-link" href="${esc(p.karaokeLink)}" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11C6.482 20.455 12 20.455 12 20.455s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              Ver en YouTube
+            </a>
+          </div>` : ''}
+        </div>
+      `);
     });
+    htmlParts.push(`    </div>`);
   }
-  
+
   if (freeItems.length) {
-    lines.push('========================================');
-    lines.push('🎵 TEMAS DE KARAOKE LIBRE');
-    lines.push('========================================');
+    htmlParts.push(`    <h2 class="section-title">🎵 Karaoke Libre</h2>`);
+    htmlParts.push(`    <div class="list">`);
     freeItems.forEach(item => {
-      lines.push(`${item.name || '(sin nombre)'}`);
-      if (item.songTitle) lines.push(`  Canción: ${item.songTitle}${item.songArtist ? ' — ' + item.songArtist : ''}`);
-      if (item.youtubeLink) lines.push(`  Link: ${item.youtubeLink}`);
-      lines.push('');
+      htmlParts.push(`
+        <div class="card">
+          <div class="singer">${esc(item.name || '(sin nombre)')}</div>
+          <div class="song">Canción: <span class="song-title">${esc(item.songTitle || '—')}${item.songArtist ? ' — ' + esc(item.songArtist) : ''}</span></div>
+          ${item.youtubeLink ? `
+          <div class="link-container">
+            <a class="youtube-link" href="${esc(item.youtubeLink)}" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11C6.482 20.455 12 20.455 12 20.455s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              Ver en YouTube
+            </a>
+          </div>` : ''}
+        </div>
+      `);
     });
+    htmlParts.push(`    </div>`);
   }
+
+  htmlParts.push(`  </div>`, `</body>`, `</html>`);
   
-  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([htmlParts.join('\n')], { type: 'text/html;charset=utf-8' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `lista-completa-canciones-${activeEventId}-${new Date().toISOString().slice(0,10)}.txt`;
+  a.download = `lista-completa-canciones-${activeEventId}-${new Date().toISOString().slice(0,10)}.html`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
