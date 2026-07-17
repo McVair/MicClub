@@ -65,6 +65,26 @@ let localState = {
   settings: { adminPassword: ADMIN_PASS_DEFAULT, bonus: false, votingOpen: false, showRunning: false }
 };
 
+// Cargar caché local de inmediato al inicio para evitar pantallas en negro/vacías
+try {
+  const cachedDataStr = localStorage.getItem('micclub_data');
+  if (cachedDataStr) {
+    const parsed = JSON.parse(cachedDataStr);
+    if (parsed) {
+      localState = parsed;
+      allParticipants = localState.participants || {};
+      freeKaraokeList = localState.freeKaraoke || {};
+      bonusActive     = !!localState.settings?.bonus;
+      votingOpen      = !!localState.settings?.votingOpen;
+      showRunning     = !!localState.settings?.showRunning;
+      const ce = localState.settings?.currentEvent || {};
+      lastEventName = ce.name || '';
+    }
+  }
+} catch (e) {
+  console.warn('Error inicializando caché local:', e);
+}
+
 let revealedCategories = {
   'rank-pub-song': false,
   'rank-pub-perf': false,
@@ -5928,6 +5948,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
+  updateUI();
   if (window._firebaseReady) initFirebase();
   if (window.location.hash === '#show') nav('show');
   updateMobileLayout();
