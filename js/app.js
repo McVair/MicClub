@@ -2153,11 +2153,20 @@ function mcPrompt(msg, onOk, inputType = 'password', placeholder = 'Contraseña'
 
 // ── DESCARGA LISTA DE CANCIONES ──────────────────────────────────────────────
 function downloadCombinedSongLinks() {
-  const activeEventId = getCurrentEventId();
+  const activeEventId = getAdminActiveEventId();
+  if (!activeEventId) {
+    mcAlert('No hay ningún evento activo o seleccionado.');
+    return;
+  }
+
+  const evData = localState.settings?.events?.[activeEventId];
+  const dateStr = evData ? new Date(evData.date).toLocaleDateString('es-AR') : new Date().toLocaleDateString('es-AR');
+  const eventName = evData ? evData.name : 'Evento';
   
   // 1. Canciones Mic Club (Participantes)
   const parts = Object.values(allParticipants)
-    .filter(p => p.karaokeLink || p.songTitle)
+    .map(p => getParticipantForEvent(p, activeEventId))
+    .filter(p => p.songTitle || p.karaokeLink)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     
   // 2. Karaoke Libre
@@ -2166,16 +2175,36 @@ function downloadCombinedSongLinks() {
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   // 3. Artistas Invitados
-  const ev = activeEventId ? (localState.settings?.events?.[activeEventId] || {}) : {};
-  const guestArtists = ev.guestArtists || [];
+  const guestArtists = evData?.guestArtists || [];
 
   if (!parts.length && !freeItems.length && !guestArtists.length) {
-    mcAlert('No hay canciones cargadas aún.');
+    mcAlert(`No hay canciones registradas para el evento "${eventName}" del ${dateStr}.`);
     return;
   }
   
-  const lines = ['CANCIONES Y KARAOKE MIC CLUB\n' + new Date().toLocaleDateString('es-AR'), ''];
+  const lines = [
+    `CANCIONES Y ENLACES - ${eventName.toUpperCase()}`,
+    `Fecha del Evento: ${dateStr}`,
+    `Exportado el: ${new Date().toLocaleString('es-AR')}`,
+    '========================================',
+    ''
+  ];
   
+  if (guestArtists.length) {
+    lines.push('========================================');
+    lines.push('🌟 ARTISTAS INVITADOS');
+    lines.push('========================================');
+    guestArtists.forEach(art => {
+      const name = typeof art === 'object' ? (art.name || '(sin nombre)') : art;
+      const song = typeof art === 'object' ? (art.song || 'Repertorio Especial') : 'Repertorio Especial';
+      const link = typeof art === 'object' ? (art.link || art.url || '') : '';
+      lines.push(name);
+      lines.push(`  Canción: ${song}`);
+      if (link) lines.push(`  Link: ${link}`);
+      lines.push('');
+    });
+  }
+
   if (parts.length) {
     lines.push('========================================');
     lines.push('🎤 CANCIONES DE PARTICIPANTES MIC CLUB');
@@ -2195,19 +2224,7 @@ function downloadCombinedSongLinks() {
     freeItems.forEach(item => {
       lines.push(`${item.name || '(sin nombre)'}`);
       if (item.songTitle) lines.push(`  Canción: ${item.songTitle}${item.songArtist ? ' — ' + item.songArtist : ''}`);
-      if (item.link) lines.push(`  Link: ${item.link}`);
-      lines.push('');
-    });
-  }
-
-  if (guestArtists.length) {
-    lines.push('========================================');
-    lines.push('🌟 ARTISTAS INVITADOS');
-    lines.push('========================================');
-    guestArtists.forEach(art => {
-      lines.push(`${art.name || '(sin nombre)'}`);
-      lines.push(`  Canción: ${art.song || 'Repertorio Especial'}`);
-      if (art.link || art.url) lines.push(`  Link: ${art.link || art.url}`);
+      if (item.youtubeLink) lines.push(`  Link: ${item.youtubeLink}`);
       lines.push('');
     });
   }
@@ -2215,7 +2232,7 @@ function downloadCombinedSongLinks() {
   const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `lista-completa-canciones-${new Date().toISOString().slice(0,10)}.txt`;
+  a.download = `lista-completa-canciones-${activeEventId}-${new Date().toISOString().slice(0,10)}.txt`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
