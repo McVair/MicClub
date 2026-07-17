@@ -7801,10 +7801,9 @@ if (MODE === 'pantalla') {
   // Aplicar el diseño inicial de inmediato sin esperar a YouTube
   if (IS_BAR_PROJECTION) {
     applyProyectorLayout('ranking');
-  } else if (localState.settings?.castLayout) {
-    applyProyectorLayout(localState.settings.castLayout);
   } else {
-    applyProyectorLayout('video');
+    const startLayout = urlParams.get('layout') || localState.settings?.castLayout || 'ranking';
+    applyProyectorLayout(startLayout);
   }
 
   // Definir el callback antes de inyectar el script para evitar race conditions
@@ -7922,7 +7921,10 @@ function checkProjectionWindowClosed() {
 }
 
 function openProjectionWindow() {
-  const url = (MODE === 'bar') ? '?mode=pantalla&source=bar' : '?mode=pantalla';
+  const layout = currentCastLayout || 'ranking';
+  const url = (MODE === 'bar') 
+    ? `?mode=pantalla&source=bar&layout=${layout}` 
+    : `?mode=pantalla&layout=${layout}`;
   const name = ((MODE === 'bar') ? 'micclub_projection_bar' : 'micclub_projection') + '_' + Date.now();
   const w = window.screen.width || 1920;
   const h = window.screen.height || 1080;

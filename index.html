@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.52">
+<link rel="stylesheet" href="css/styles.css?v=1.53">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -27,6 +27,13 @@ if ('serviceWorker' in navigator) {
 <script type="module" src="js/firebase.js"></script>
 </head>
 <body>
+<script>
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode') || 'home';
+    document.body.classList.add('mode-' + mode);
+  })();
+</script>
 
 <!-- ── BACK BAR (fixed bottom, shows when navigating from home) ── -->
 <div id="back-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:10px 16px 18px;background:linear-gradient(0deg,var(--bg) 70%,transparent);z-index:200">
@@ -1145,6 +1152,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=2.00" defer></script>
+<script src="js/app.js?v=2.01" defer></script>
 </body>
 </html>

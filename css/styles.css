@@ -42,6 +42,17 @@ body::before {
 #app { padding-top: 8px; }
 .page { display: none; padding: 14px 14px 90px; max-width: 680px; margin: 0 auto; }
 .page.active { display: block; }
+body.mode-pantalla #page-pantalla,
+body.mode-bar #page-bar,
+body.mode-register #page-register,
+body.mode-vote #page-program,
+body.mode-jury #page-jury,
+body.mode-ranking #page-ranking,
+body.mode-micclub #page-show,
+body.mode-admin #page-admin,
+body.mode-home #page-home {
+  display: block !important;
+}
 
 /* ── DASHBOARD BUTTONS ── */
 .btn-dash {
