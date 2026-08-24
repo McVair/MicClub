@@ -3776,7 +3776,7 @@ function showReservationSuccess(ppl, eventId) {
   const eventVenue = ev.venue || '';
   
   const spotsText = ppl === 1 ? '1 lugar' : `${ppl} lugares`;
-  const totalAmount = ppl * 6000;
+  const totalAmount = ppl * 7000;
   const summaryText = ppl === 1 ? '1 persona' : `${ppl} personas`;
   
   const countEl = document.getElementById('success-spots-count');
