@@ -200,6 +200,7 @@ function buildBaseURL() {
 }
 
 function nav(page) {
+  document.body.classList.add('app-ready');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
@@ -546,7 +547,7 @@ async function saveAndExit() {
 function updateBackBtn() {
   const bar = document.getElementById('back-bar');
   if (!bar) return;
-  const isShown = (MODE === 'home' && navStack.length > 0 && currentPage !== 'pantalla');
+  const isShown = ((MODE === 'home' || (MODE === 'vote' && currentPage !== 'program')) && navStack.length > 0 && currentPage !== 'pantalla' && currentPage !== 'vote-primavera');
   bar.style.display = isShown ? 'block' : 'none';
   
   const bottomNavToggle = document.getElementById('mobile-nav-toggle-container');
@@ -1346,7 +1347,7 @@ function getPantallaStateHash() {
   const primaveraCols = JSON.stringify(localState.settings?.primaveraVisibleColumns || {});
   const nextEventImg = localState.settings?.nextEventImage || '';
   const freeList = JSON.stringify(activeEventId ? (freeKaraokeList[activeEventId] || {}) : {});
-  const primaveraVotesStr = JSON.stringify(activeEventId ? (localState.primaveraVotes?.[activeEventId] || {}) : {});
+  const primaveraVotesStr = JSON.stringify(activeEventId ? (localState.settings?.primaveraVotes?.[activeEventId] || localState.primaveraVotes?.[activeEventId] || {}) : {});
   const activeVideoKey = activeYtVideo ? `${activeYtVideo.source}-${activeYtVideo.id}-${activeYtVideo.ytId}` : 'none';
   
   return [
@@ -4339,7 +4340,7 @@ window.getPrimaveraCandidates = getPrimaveraCandidates;
 
 function getDevicePrimaveraVote(voterId, eventId) {
   if (!voterId || !eventId) return { rey: null, reina: null, outfit: null };
-  const evVotes = localState.primaveraVotes?.[eventId] || {};
+  const evVotes = localState.settings?.primaveraVotes?.[eventId] || localState.primaveraVotes?.[eventId] || {};
   const v = evVotes[voterId];
   if (v) {
     return {
@@ -4504,19 +4505,23 @@ async function submitPrimaveraVote() {
 
   try {
     if (firebaseOk) {
-      await dbSet(dbRef(db, `primaveraVotes/${activeEventId}/${voterId}`), votePayload);
-    } else {
-      if (!localState.primaveraVotes) localState.primaveraVotes = {};
-      if (!localState.primaveraVotes[activeEventId]) localState.primaveraVotes[activeEventId] = {};
-      localState.primaveraVotes[activeEventId][voterId] = votePayload;
-      saveLocal();
+      await dbSet(dbRef(db, `settings/primaveraVotes/${activeEventId}/${voterId}`), votePayload);
     }
+    if (!localState.settings) localState.settings = {};
+    if (!localState.settings.primaveraVotes) localState.settings.primaveraVotes = {};
+    if (!localState.settings.primaveraVotes[activeEventId]) localState.settings.primaveraVotes[activeEventId] = {};
+    localState.settings.primaveraVotes[activeEventId][voterId] = votePayload;
+
+    if (!localState.primaveraVotes) localState.primaveraVotes = {};
+    if (!localState.primaveraVotes[activeEventId]) localState.primaveraVotes[activeEventId] = {};
+    localState.primaveraVotes[activeEventId][voterId] = votePayload;
+    saveLocal();
 
     try {
       localStorage.setItem(`voted_primavera_${activeEventId}`, JSON.stringify(votePayload));
     } catch (e) {}
 
-    showTemporaryAlert('🌸 ¡Tu voto de Primavera fue registrado con éxito!', 2200, () => {
+    showTemporaryAlert('🌸 ¡Tu voto de Primavera fue registrado con éxito!', 1800, () => {
       loadPrimaveraVoteOpts();
       nav('program');
     });
@@ -6572,7 +6577,7 @@ async function submitFreeKaraoke() {
     if (inputYt)     inputYt.value = '';
 
     mcAlert('✅ ¡Te inscribiste correctamente al Karaoke Libre!');
-    navBack();
+    nav('program');
   } catch(e) {
     console.error(e);
     if (errEl) {
@@ -6800,7 +6805,7 @@ function renderPantallaContent() {
 
 function renderPantallaPrimaveraResults(container, eventId) {
   const activeEventId = eventId || getCurrentEventId();
-  const votesObj = (activeEventId && localState.primaveraVotes?.[activeEventId]) ? localState.primaveraVotes[activeEventId] : {};
+  const votesObj = (activeEventId && (localState.settings?.primaveraVotes?.[activeEventId] || localState.primaveraVotes?.[activeEventId])) ? (localState.settings?.primaveraVotes?.[activeEventId] || localState.primaveraVotes[activeEventId]) : {};
   
   const tally = {
     rey: {},

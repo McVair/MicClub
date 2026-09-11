@@ -18,6 +18,10 @@
     "freeKaraoke": {
       ".read": true,
       ".write": true
+    },
+    "primaveraVotes": {
+      ".read": true,
+      ".write": true
     }
   }
 }

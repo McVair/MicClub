@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.54">
+<link rel="stylesheet" href="css/styles.css?v=1.55">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -540,6 +540,9 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── REGISTRO KARAOKE LIBRE ─────────── -->
   <div id="page-karaoke-free-register" class="page">
+    <div style="margin-bottom:14px">
+      <button class="btn btn-secondary btn-sm" onclick="nav('program')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;border-radius:8px">← VOLVER AL PROGRAMA</button>
+    </div>
     <div class="hero" style="padding-bottom:6px">
       <div class="hero-title" style="font-size:clamp(30px,9vw,48px)" id="free-karaoke-title">QUIERO PARTICIPAR</div>
       <div class="hero-sub" id="free-karaoke-sub" style="color:var(--gold);text-transform:uppercase;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:1px">Quiero participar del karaoke</div>
@@ -574,6 +577,7 @@ if ('serviceWorker' in navigator) {
       </div>
       <div id="free-karaoke-form-err" class="alert alert-error mt-12" style="display:none"></div>
       <button class="btn btn-gold mt-12" onclick="submitFreeKaraoke()" style="width:100%;min-height:50px;font-size:15px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0.5px">🚀 INSCRIBIRME</button>
+      <button class="btn btn-secondary mt-8" onclick="nav('program')" style="width:100%;min-height:44px;font-size:13px;border-radius:8px">← VOLVER AL PROGRAMA</button>
     </div>
 
     <!-- Lista pública de inscriptos -->
@@ -650,6 +654,9 @@ if ('serviceWorker' in navigator) {
 
   <!-- ─────────── VOTACIÓN PRIMAVERA ─────────── -->
   <div id="page-vote-primavera" class="page" style="padding-bottom:120px">
+    <div style="margin-bottom:14px">
+      <button class="btn btn-secondary btn-sm" onclick="nav('program')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;border-radius:8px">← VOLVER AL PROGRAMA</button>
+    </div>
     <div class="hero" style="padding-bottom:12px;text-align:center">
       <div class="hero-title" style="font-size:clamp(26px,7vw,38px);color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px">🌸 VOTACIÓN PRIMAVERA</div>
       <div class="hero-sub" style="color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;letter-spacing:0.5px">
@@ -692,7 +699,10 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <div id="primavera-submit-bar" style="position:fixed;bottom:0;left:0;right:0;padding:12px;background:rgba(22, 21, 26, 0.95);border-top:1px solid rgba(255, 255, 255, 0.05);z-index:1000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:block;">
-        <button class="btn btn-green" id="primavera-submit-btn" onclick="submitPrimaveraVote()" style="width:100%;margin:0;font-size:15px;font-weight:700">ENVIAR VOTO PRIMAVERA</button>
+        <div style="max-width:680px;margin:0 auto;display:flex;gap:10px">
+          <button class="btn btn-secondary" onclick="nav('program')" style="flex:1;min-height:48px;font-weight:600;font-size:13px;letter-spacing:0.5px;border-radius:8px">← VOLVER</button>
+          <button class="btn btn-green" id="primavera-submit-btn" onclick="submitPrimaveraVote()" style="flex:2;min-height:48px;margin:0;font-size:15px;font-weight:700;border-radius:8px">ENVIAR VOTO</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1225,6 +1235,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=2.05" defer></script>
+<script src="js/app.js?v=2.06" defer></script>
 </body>
 </html>
