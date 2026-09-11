@@ -62,6 +62,8 @@ let jurySelectedId  = { song: null, perf: null, hinchada: null };
 let juryCurrentScores = { song: {}, perf: {}, hinchada: {} };
 let localState = {
   participants: {},
+  freeKaraoke: {},
+  primaveraVotes: {},
   settings: { adminPassword: ADMIN_PASS_DEFAULT, bonus: false, votingOpen: false, showRunning: false }
 };
 
@@ -74,6 +76,7 @@ try {
       localState = parsed;
       allParticipants = localState.participants || {};
       freeKaraokeList = localState.freeKaraoke || {};
+      if (!localState.primaveraVotes) localState.primaveraVotes = {};
       bonusActive     = !!localState.settings?.bonus;
       votingOpen      = !!localState.settings?.votingOpen;
       showRunning     = !!localState.settings?.showRunning;
@@ -97,6 +100,8 @@ let showingReservationSuccess = false;
 
 let tempSelections = null;
 let tempSelectionsEventId = null;
+let tempPrimaveraSelections = null;
+let tempPrimaveraEventId = null;
 
 function getOrCreateVoterId() {
   try {
@@ -231,6 +236,7 @@ function nav(page) {
   if (page === 'jury')           renderJurySelectors();
   if (page === 'register')       resetRegisterPage();
   if (page === 'vote-public')    loadPublicVoteOpts();
+  if (page === 'vote-primavera') loadPrimaveraVoteOpts();
   if (page === 'program')        updateProgramPage();
   if (page === 'admin' && adminLoggedIn) {
     document.getElementById('admin-login').style.display = 'none';
@@ -573,6 +579,10 @@ function initFirebase() {
       freeKaraokeList = snap.val() || {};
       updateUI();
     });
+    dbOnValue(dbRef(db, 'primaveraVotes'), snap => {
+      localState.primaveraVotes = snap.val() || {};
+      updateUI();
+    });
     dbOnValue(dbRef(db, 'settings'), snap => {
       const s = snap.val() || {};
       firebaseSettingsLoaded = true;
@@ -768,6 +778,7 @@ function setupLocal() {
   if (s) { try { localState = JSON.parse(s); } catch(e) {} }
   allParticipants = localState.participants || {};
   freeKaraokeList = localState.freeKaraoke || {};
+  if (!localState.primaveraVotes) localState.primaveraVotes = {};
   bonusActive     = !!localState.settings?.bonus;
   votingOpen      = !!localState.settings?.votingOpen;
   showRunning     = !!localState.settings?.showRunning;
@@ -1334,7 +1345,7 @@ function getPantallaStateHash() {
   const votingCols = JSON.stringify(localState.settings?.votingVisibleColumns || {});
   const nextEventImg = localState.settings?.nextEventImage || '';
   const freeList = JSON.stringify(activeEventId ? (freeKaraokeList[activeEventId] || {}) : {});
-  
+  const primaveraVotesStr = JSON.stringify(activeEventId ? (localState.primaveraVotes?.[activeEventId] || {}) : {});
   const activeVideoKey = activeYtVideo ? `${activeYtVideo.source}-${activeYtVideo.id}-${activeYtVideo.ytId}` : 'none';
   
   return [
@@ -1345,6 +1356,7 @@ function getPantallaStateHash() {
     votingCols,
     nextEventImg,
     freeList,
+    primaveraVotesStr,
     screensaverActive,
     activeVideoKey
   ].join('##');
@@ -1364,6 +1376,7 @@ function updateUI() {
   handleVotingState();
   updateEventInfoBanners();
   if (MODE === 'vote') loadPublicVoteOpts();
+  if (currentPage === 'vote-primavera' || MODE === 'vote-primavera') loadPrimaveraVoteOpts();
   if (adminLoggedIn || MODE === 'bar') { 
     if (adminLoggedIn) {
       renderAdminParticipants(); 
@@ -4281,6 +4294,232 @@ async function submitPublicVote() {
   }
 }
 
+// ── VOTACIÓN PRIMAVERA ────────────────────────────────────────────────────────
+function getPrimaveraCandidates(eventId) {
+  const activeEventId = eventId || getCurrentEventId();
+  if (!activeEventId) return [];
+  
+  const candidatesMap = new Map();
+  
+  // 1. Participantes de Mic Club
+  const mcParts = getEnrichedParticipantsList(activeEventId)
+    .filter(p => p.songConfirmed || p.songTitle || (p.people && p.people > 0));
+  
+  mcParts.forEach(p => {
+    const rawName = (p.name || '').trim();
+    if (!rawName) return;
+    const key = rawName.toLowerCase();
+    if (!candidatesMap.has(key)) {
+      candidatesMap.set(key, { id: 'mc_' + p.id, name: rawName, sources: ['Mic Club'] });
+    } else {
+      const existing = candidatesMap.get(key);
+      if (!existing.sources.includes('Mic Club')) existing.sources.push('Mic Club');
+    }
+  });
+
+  // 2. Participantes de Karaoke Libre
+  const freeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
+  Object.entries(freeList).forEach(([id, item]) => {
+    const rawName = (item.name || '').trim();
+    if (!rawName) return;
+    const key = rawName.toLowerCase();
+    if (!candidatesMap.has(key)) {
+      candidatesMap.set(key, { id: 'free_' + id, name: rawName, sources: ['Karaoke Libre'] });
+    } else {
+      const existing = candidatesMap.get(key);
+      if (!existing.sources.includes('Karaoke Libre')) existing.sources.push('Karaoke Libre');
+    }
+  });
+
+  return Array.from(candidatesMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+}
+window.getPrimaveraCandidates = getPrimaveraCandidates;
+
+function getDevicePrimaveraVote(voterId, eventId) {
+  if (!voterId || !eventId) return { rey: null, reina: null, outfit: null };
+  const evVotes = localState.primaveraVotes?.[eventId] || {};
+  const v = evVotes[voterId];
+  if (v) {
+    return {
+      rey: v.rey || null,
+      reina: v.reina || null,
+      outfit: v.outfit || null
+    };
+  }
+  try {
+    const raw = localStorage.getItem(`voted_primavera_${eventId}`);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { rey: null, reina: null, outfit: null };
+}
+
+function loadPrimaveraVoteOpts() {
+  const areaEl   = document.getElementById('primavera-vote-area');
+  const closedEl = document.getElementById('primavera-closed-banner');
+  const doneEl   = document.getElementById('primavera-vote-done');
+  const submitBtn = document.getElementById('primavera-submit-btn');
+  const tbody    = document.getElementById('primavera-table-body');
+
+  if (closedEl) closedEl.style.display = 'none';
+  if (doneEl)   doneEl.style.display   = 'none';
+
+  if (!votingOpen) {
+    if (areaEl)   areaEl.style.display   = 'none';
+    if (closedEl) closedEl.style.display = 'block';
+    return;
+  }
+
+  if (areaEl) areaEl.style.display = 'block';
+
+  const activeEventId = getCurrentEventId();
+  const voterId = getOrCreateVoterId();
+
+  if (tempPrimaveraEventId !== activeEventId) {
+    tempPrimaveraSelections = null;
+    tempPrimaveraEventId = activeEventId;
+  }
+
+  const dbVote = getDevicePrimaveraVote(voterId, activeEventId);
+  if (!tempPrimaveraSelections && activeEventId) {
+    tempPrimaveraSelections = { ...dbVote };
+  }
+
+  const hasVoted = !!(dbVote.rey || dbVote.reina || dbVote.outfit);
+  if (hasVoted) {
+    if (doneEl) {
+      doneEl.style.display = 'block';
+      doneEl.textContent = '✅ ¡Tu voto fue registrado! Podés modificarlo mientras la votación esté abierta.';
+    }
+    if (submitBtn) submitBtn.textContent = 'ACTUALIZAR VOTO';
+  } else {
+    if (submitBtn) submitBtn.textContent = 'ENVIAR VOTO PRIMAVERA';
+  }
+
+  const candidates = getPrimaveraCandidates(activeEventId);
+  if (!tbody) return;
+
+  if (!candidates.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align:center;padding:24px;color:var(--text2)">
+          No hay participantes registrados todavía para esta fecha.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = candidates.map(cand => {
+    const isRey = tempPrimaveraSelections?.rey === cand.name;
+    const isReina = tempPrimaveraSelections?.reina === cand.name;
+    const isOutfit = tempPrimaveraSelections?.outfit === cand.name;
+    const sourceLabel = cand.sources.join(' · ');
+
+    return `
+      <tr id="pv-row-${cand.id}">
+        <td class="primavera-name-cell">
+          ${esc(cand.name)}
+          <span class="cand-source">${esc(sourceLabel)}</span>
+        </td>
+        <td>
+          <button type="button" class="primavera-choice-btn${isRey ? ' selected' : ''}" onclick="togglePrimaveraChoice('rey', '${esc(cand.name)}')" title="Votar Rey">
+            ${isRey ? '✓' : ''}
+          </button>
+        </td>
+        <td>
+          <button type="button" class="primavera-choice-btn${isReina ? ' selected' : ''}" onclick="togglePrimaveraChoice('reina', '${esc(cand.name)}')" title="Votar Reina">
+            ${isReina ? '✓' : ''}
+          </button>
+        </td>
+        <td>
+          <button type="button" class="primavera-choice-btn${isOutfit ? ' selected' : ''}" onclick="togglePrimaveraChoice('outfit', '${esc(cand.name)}')" title="Votar Mejor Outfit">
+            ${isOutfit ? '✓' : ''}
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+window.loadPrimaveraVoteOpts = loadPrimaveraVoteOpts;
+
+function togglePrimaveraChoice(category, candidateName) {
+  const activeEventId = getCurrentEventId();
+  if (!tempPrimaveraSelections && activeEventId) {
+    const voterId = getOrCreateVoterId();
+    tempPrimaveraSelections = getDevicePrimaveraVote(voterId, activeEventId);
+  }
+  if (!tempPrimaveraSelections) {
+    tempPrimaveraSelections = { rey: null, reina: null, outfit: null };
+  }
+
+  if (tempPrimaveraSelections[category] === candidateName) {
+    tempPrimaveraSelections[category] = null;
+  } else {
+    tempPrimaveraSelections[category] = candidateName;
+  }
+
+  loadPrimaveraVoteOpts();
+}
+window.togglePrimaveraChoice = togglePrimaveraChoice;
+
+async function submitPrimaveraVote() {
+  const btn = document.getElementById('primavera-submit-btn');
+  if (btn) {
+    btn.innerHTML = 'ENVIANDO...';
+    btn.disabled = true;
+  }
+
+  const activeEventId = getCurrentEventId();
+  if (!activeEventId) {
+    mcAlert('No hay evento activo seleccionado');
+    if (btn) { btn.innerHTML = 'ENVIAR VOTO PRIMAVERA'; btn.disabled = false; }
+    return;
+  }
+
+  if (!tempPrimaveraSelections || (!tempPrimaveraSelections.rey && !tempPrimaveraSelections.reina && !tempPrimaveraSelections.outfit)) {
+    mcAlert('Por favor seleccioná al menos un participante para votar (Rey, Reina o Mejor Outfit).');
+    if (btn) { btn.innerHTML = 'ENVIAR VOTO PRIMAVERA'; btn.disabled = false; }
+    return;
+  }
+
+  const voterId = getOrCreateVoterId();
+  const votePayload = {
+    rey: tempPrimaveraSelections.rey || null,
+    reina: tempPrimaveraSelections.reina || null,
+    outfit: tempPrimaveraSelections.outfit || null,
+    updatedAt: Date.now()
+  };
+
+  try {
+    if (firebaseOk) {
+      await dbSet(dbRef(db, `primaveraVotes/${activeEventId}/${voterId}`), votePayload);
+    } else {
+      if (!localState.primaveraVotes) localState.primaveraVotes = {};
+      if (!localState.primaveraVotes[activeEventId]) localState.primaveraVotes[activeEventId] = {};
+      localState.primaveraVotes[activeEventId][voterId] = votePayload;
+      saveLocal();
+    }
+
+    try {
+      localStorage.setItem(`voted_primavera_${activeEventId}`, JSON.stringify(votePayload));
+    } catch (e) {}
+
+    showTemporaryAlert('🌸 ¡Tu voto de Primavera fue registrado con éxito!', 2200, () => {
+      loadPrimaveraVoteOpts();
+      nav('program');
+    });
+  } catch (err) {
+    console.error('Error enviando voto primavera:', err);
+    mcAlert('Ocurrió un error al guardar tu voto. Por favor intentá nuevamente.');
+  } finally {
+    if (btn) {
+      btn.innerHTML = 'ACTUALIZAR VOTO';
+      btn.disabled = false;
+    }
+  }
+}
+window.submitPrimaveraVote = submitPrimaveraVote;
+
 // ── JURADO ────────────────────────────────────────────────────────────────────
 let modalParticipantId = null;
 
@@ -6078,6 +6317,8 @@ document.addEventListener('DOMContentLoaded', () => {
     nav('register');
   } else if (MODE === 'vote') {
     nav('program');
+  } else if (MODE === 'vote-primavera') {
+    nav('vote-primavera');
   } else if (MODE === 'jury') {
     nav('jury');
   } else if (MODE === 'admin') {
@@ -6360,7 +6601,8 @@ function setPantallaTab(tab) {
       votos: 2,
       ranking: 3,
       proximo: 4,
-      karaoke: 5
+      karaoke: 5,
+      primavera: 6
     };
     const activeBtn = buttons[tabBtnMap[tab]];
     if (activeBtn) {
@@ -6370,10 +6612,10 @@ function setPantallaTab(tab) {
     }
   }
   
-  // Fuegos artificiales en pestaña de Resultados Votación y Ranking
+  // Fuegos artificiales en pestaña de Resultados Votación, Ranking y Primavera
   const canvas = document.getElementById('pantalla-celebration-canvas');
   if (canvas) {
-    if (tab === 'votos' || tab === 'ranking') {
+    if (tab === 'votos' || tab === 'ranking' || tab === 'primavera') {
       canvas.style.display = 'block';
       startCelebration();
     } else {
@@ -6400,6 +6642,9 @@ function renderPantallaContent() {
   } else if (pantallaTab === 'votos') {
     if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
     if (elDetails) elDetails.textContent = 'resultados de la votacion';
+  } else if (pantallaTab === 'primavera') {
+    if (elName) elName.textContent = 'VOTACIÓN PRIMAVERA';
+    if (elDetails) elDetails.textContent = ev ? `${ev.name} · Premiación` : 'Resultados en Vivo';
   } else {
     const layoutTitles = {
       artistas: 'ARTISTAS INVITADOS',
@@ -6524,7 +6769,103 @@ function renderPantallaContent() {
       </div>
     `;
   }
+  else if (pantallaTab === 'primavera') {
+    renderPantallaPrimaveraResults(container, activeEventId);
+  }
 }
+
+function renderPantallaPrimaveraResults(container, eventId) {
+  const activeEventId = eventId || getCurrentEventId();
+  const votesObj = (activeEventId && localState.primaveraVotes?.[activeEventId]) ? localState.primaveraVotes[activeEventId] : {};
+  
+  const tally = {
+    rey: {},
+    reina: {},
+    outfit: {}
+  };
+  
+  Object.values(votesObj).forEach(ballot => {
+    if (!ballot) return;
+    if (ballot.rey) {
+      tally.rey[ballot.rey] = (tally.rey[ballot.rey] || 0) + 1;
+    }
+    if (ballot.reina) {
+      tally.reina[ballot.reina] = (tally.reina[ballot.reina] || 0) + 1;
+    }
+    if (ballot.outfit) {
+      tally.outfit[ballot.outfit] = (tally.outfit[ballot.outfit] || 0) + 1;
+    }
+  });
+
+  function getPodium(catVotes) {
+    const list = Object.entries(catVotes).map(([name, count]) => ({ name, count }));
+    list.sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+    });
+    let curRank = 0;
+    let curCount = -1;
+    return list.map((item, idx) => {
+      if (item.count !== curCount) {
+        curRank = idx + 1;
+        curCount = item.count;
+      }
+      return { ...item, rank: curRank };
+    });
+  }
+
+  const reyPodium = getPodium(tally.rey);
+  const reinaPodium = getPodium(tally.reina);
+  const outfitPodium = getPodium(tally.outfit);
+
+  function renderCategoryPodium(title, emoji, podium) {
+    let listHtml = '';
+    if (!podium.length) {
+      listHtml = '<div style="color:rgba(255,255,255,0.6); font-size:13px; font-family:\'Inter\',sans-serif; text-align:center; padding:32px 0; letter-spacing:0.5px">Esperando votos...</div>';
+    } else {
+      listHtml = podium.slice(0, 5).map(item => {
+        const isTop = item.rank <= 3;
+        const medal = getMedalHTML(item.rank);
+        const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
+        const nameGlow = isTop ? 'text-shadow:0 0 6px rgba(255,255,255,0.35);' : '';
+        const sizeClass = item.rank === 1 ? '20' : '15';
+        const suffixSize = item.rank === 1 ? '12' : '10';
+        return `
+          <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="font-size:${sizeClass}px;min-width:30px;text-align:center;line-height:1">${medal}</div>
+              <div style="flex:1;font-family:'Inter',sans-serif;font-weight:${isTop ? 700 : 500};font-size:${sizeClass}px;color:${nameColor};${nameGlow}overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
+              <div style="font-family:'Inter',sans-serif;font-size:${sizeClass}px;font-weight:700;color:var(--gold);white-space:nowrap">
+                ${item.count}<span style="font-size:${suffixSize}px;font-weight:400;color:var(--text2);opacity:0.85"> ${item.count === 1 ? 'voto' : 'votos'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    return `
+      <div class="result-column-card" style="margin:0;display:flex;flex-direction:column;min-width:240px">
+        <div class="result-column-header" style="background:linear-gradient(135deg, rgba(223, 172, 74, 0.15) 0%, rgba(22, 21, 26, 0.9) 100%);border-bottom:1px solid rgba(223, 172, 74, 0.3)">
+          <div class="column-category-title" style="font-size:18px;letter-spacing:1.5px">${emoji} ${title}</div>
+          <div class="column-source-tag source-public">🌸 PRIMAVERA</div>
+        </div>
+        <div style="padding: 10px 14px; flex: 1;">
+          ${listHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
+      ${renderCategoryPodium('REY DE LA PRIMAVERA', '👑', reyPodium)}
+      ${renderCategoryPodium('REINA DE LA PRIMAVERA', '👑', reinaPodium)}
+      ${renderCategoryPodium('MEJOR OUTFIT', '✨', outfitPodium)}
+    </div>
+  `;
+}
+window.renderPantallaPrimaveraResults = renderPantallaPrimaveraResults;
 
 function updatePantallaContent() {
   const container = document.getElementById('pantalla-main-content');
@@ -7476,7 +7817,7 @@ function isCurrentlyCasting() {
 
 // Destacar el botón del diseño activo en el admin
 function updateCastButtonsHighlight(layout) {
-  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote', 'guests'];
+  const layouts = ['video', 'ranking', 'parts', 'free', 'flyer', 'blank', 'vote', 'guests', 'primavera'];
   const emitting = isCurrentlyCasting();
   layouts.forEach(l => {
     const btn = document.getElementById(`cast-btn-${l}`);
@@ -7776,6 +8117,7 @@ function applyProyectorLayout(layout) {
     else if (layout === 'vote') setPantallaTab('votos');
     else if (layout === 'guests') setPantallaTab('artistas');
     else if (layout === 'intro_tema') setPantallaTab('intro_tema');
+    else if (layout === 'primavera') setPantallaTab('primavera');
   }
 }
 

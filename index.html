@@ -12,7 +12,7 @@
 <title>MIC CLUB · Las Alas de Mi Voz</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=1.53">
+<link rel="stylesheet" href="css/styles.css?v=1.54">
 <script>
 // Limpia Service Workers de proyectos anteriores (ej: Construct 3)
 if ('serviceWorker' in navigator) {
@@ -134,9 +134,10 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
         </div>
 
-        <!-- Cuarta Fila: Votación -->
-        <div style="margin-bottom:6px">
+        <!-- Cuarta Fila: Votación General y Votación Primavera -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
           <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:100%">Votación</button>
+          <button class="btn btn-sm btn-outline cast-btn" id="cast-btn-primavera" onclick="setCastLayout('primavera')" style="font-size:11px;padding:8px 0;width:100%">🌸 Primavera</button>
         </div>
 
         <!-- Quinta Fila: 5 botones de Votación (se muestran dinámicamente) -->
@@ -463,6 +464,13 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
 
+    <!-- Botón Votación Primavera -->
+    <div style="margin:20px 0;text-align:center">
+      <button class="btn btn-gold" onclick="navPush('vote-primavera')" style="width:100%;font-size:15px;font-weight:700;letter-spacing:1px;padding:14px;box-shadow:0 0 15px rgba(223,172,74,0.3)">
+        🌸 VOTACIÓN PRIMAVERA
+      </button>
+    </div>
+
     <!-- Footer -->
     <div style="text-align:center;padding:12px 0 20px;opacity:0.8">
       <div style="font-family:'Inter',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)">MIC CLUB</div>
@@ -633,6 +641,55 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 
+  <!-- ─────────── VOTACIÓN PRIMAVERA ─────────── -->
+  <div id="page-vote-primavera" class="page" style="padding-bottom:120px">
+    <div class="hero" style="padding-bottom:12px;text-align:center">
+      <div class="hero-title" style="font-size:clamp(26px,7vw,38px);color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px">🌸 VOTACIÓN PRIMAVERA</div>
+      <div class="hero-sub" style="color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;letter-spacing:0.5px">
+        Elegí 1 candidato por categoría: Rey, Reina y Mejor Outfit
+      </div>
+    </div>
+
+    <!-- Votación cerrada -->
+    <div id="primavera-closed-banner" style="display:none;text-align:center;padding:24px 16px">
+      <div style="font-size:38px;margin-bottom:10px">🌸</div>
+      <div style="font-family:'Inter',sans-serif;font-size:22px;letter-spacing:2px;color:#e8a0ac;margin-bottom:6px">LA VOTACIÓN ESTÁ CERRADA</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6">La votación de Primavera se habilitará durante el show.</div>
+    </div>
+
+    <!-- Voto registrado (banner sobre el formulario) -->
+    <div id="primavera-vote-done" class="alert alert-success" style="display:none;margin-bottom:12px">
+      ✅ ¡Tu voto fue registrado! Podés modificarlo mientras la votación esté abierta.
+    </div>
+
+    <div id="primavera-vote-area">
+      <!-- Tabla de 4 columnas -->
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;border:1px solid rgba(223,172,74,0.3)">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table class="primavera-table">
+            <thead>
+              <tr>
+                <th style="text-align:left;min-width:130px;padding-left:14px">Participante</th>
+                <th style="text-align:center;width:70px">👑<br>Rey</th>
+                <th style="text-align:center;width:70px">👑<br>Reina</th>
+                <th style="text-align:center;width:80px">✨<br>Outfit</th>
+              </tr>
+            </thead>
+            <tbody id="primavera-table-body">
+              <tr>
+                <td colspan="4" style="text-align:center;padding:24px;color:var(--text2)">Cargando participantes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="primavera-submit-bar" style="position:fixed;bottom:0;left:0;right:0;padding:12px;background:rgba(22, 21, 26, 0.95);border-top:1px solid rgba(255, 255, 255, 0.05);z-index:1000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:block;">
+        <button class="btn btn-green" id="primavera-submit-btn" onclick="submitPrimaveraVote()" style="width:100%;margin:0;font-size:15px;font-weight:700">ENVIAR VOTO PRIMAVERA</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ─────────── RANKING ─────────── -->
   <div id="page-ranking" class="page">
     <!-- Lienzo de Fuegos Artificiales para Celebración -->
@@ -722,6 +779,7 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('ranking')">Ranking Mic Club</button>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('proximo')">Próximo Evento</button>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('karaoke')">Karaoke Libre</button>
+          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('primavera')">Votación Primavera</button>
         </div>
         
         <!-- Auspiciantes (Siempre visibles abajo en el sidebar) -->
@@ -1012,10 +1070,11 @@ if ('serviceWorker' in navigator) {
         <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-free" onclick="setCastLayout('free')" style="font-size:11px;padding:8px 0;width:100%">Karaoke</button>
       </div>
 
-      <!-- Tercera Fila: Ranking, Votación -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <!-- Tercera Fila: Ranking, Votación, Primavera -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
         <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-ranking" onclick="setCastLayout('ranking')" style="font-size:11px;padding:8px 0;width:100%">Ranking</button>
         <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-vote" onclick="setCastLayout('vote')" style="font-size:11px;padding:8px 0;width:100%">Votación</button>
+        <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-primavera" onclick="setCastLayout('primavera')" style="font-size:11px;padding:8px 0;width:100%">🌸 Primavera</button>
       </div>
 
       <!-- Cuarta Fila: Video, Próximo evento -->
@@ -1152,6 +1211,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=2.03" defer></script>
+<script src="js/app.js?v=2.04" defer></script>
 </body>
 </html>
