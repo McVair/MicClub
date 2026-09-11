@@ -42,18 +42,6 @@ body::before {
 #app { padding-top: 8px; }
 .page { display: none; padding: 14px 14px 90px; max-width: 680px; margin: 0 auto; }
 .page.active { display: block; }
-body.mode-pantalla:not(.app-ready) #page-pantalla,
-body.mode-bar:not(.app-ready) #page-bar,
-body.mode-register:not(.app-ready) #page-register,
-body.mode-vote:not(.app-ready) #page-program,
-body.mode-vote-primavera:not(.app-ready) #page-vote-primavera,
-body.mode-jury:not(.app-ready) #page-jury,
-body.mode-ranking:not(.app-ready) #page-ranking,
-body.mode-micclub:not(.app-ready) #page-show,
-body.mode-admin:not(.app-ready) #page-admin,
-body.mode-home:not(.app-ready) #page-home {
-  display: block !important;
-}
 
 /* Pantalla Autoplay Overlay - strictly hidden everywhere except active pantalla page in pantalla mode */
 #pantalla-autoplay-overlay {
