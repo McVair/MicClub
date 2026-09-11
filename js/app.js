@@ -206,6 +206,17 @@ function nav(page) {
   if (el) el.classList.add('active');
   currentPage = page;
 
+  // Control estricto del overlay de emisión: ocultarlo en cualquier página que no sea pantalla
+  const autoplayOverlay = document.getElementById('pantalla-autoplay-overlay');
+  if (autoplayOverlay) {
+    if (page !== 'pantalla') {
+      autoplayOverlay.style.display = 'none';
+      autoplayOverlay.classList.add('hidden-autoplay');
+    } else if (MODE === 'pantalla' && !IS_BAR_PROJECTION && !autoplayOverlay.classList.contains('hidden-autoplay')) {
+      autoplayOverlay.style.display = 'flex';
+    }
+  }
+
   if (page === 'home' || page === 'admin') {
     switchMobileSection('admin');
   }
@@ -6368,6 +6379,13 @@ document.addEventListener('DOMContentLoaded', () => {
     nav('home');
   }
 
+  if (MODE !== 'pantalla') {
+    const autoplayOverlay = document.getElementById('pantalla-autoplay-overlay');
+    if (autoplayOverlay) {
+      autoplayOverlay.style.display = 'none';
+      autoplayOverlay.classList.add('hidden-autoplay');
+    }
+  }
 
   updateUI();
   if (window._firebaseReady) initFirebase();
@@ -7994,7 +8012,10 @@ function onPlayerReady(event) {
       projectionPlayer.mute();
     }
     const el = document.getElementById('pantalla-autoplay-overlay');
-    if (el) el.style.display = 'none';
+    if (el) {
+      el.classList.add('hidden-autoplay');
+      el.style.display = 'none';
+    }
     applyProyectorLayout('ranking');
     if (castChannel) {
       castChannel.postMessage({ type: 'projection_ready' });
@@ -8438,7 +8459,10 @@ window.setAdminSelectedEventSlot = setAdminSelectedEventSlot;
 
 function activateAutoplay() {
   const el = document.getElementById('pantalla-autoplay-overlay');
-  if (el) el.style.display = 'none';
+  if (el) {
+    el.classList.add('hidden-autoplay');
+    el.style.display = 'none';
+  }
   if (projectionPlayer && projectionPlayerReady && typeof projectionPlayer.playVideo === 'function') {
     projectionPlayer.playVideo();
   }

@@ -55,6 +55,14 @@ body.mode-home:not(.app-ready) #page-home {
   display: block !important;
 }
 
+/* Pantalla Autoplay Overlay - strictly hidden everywhere except active pantalla page in pantalla mode */
+#pantalla-autoplay-overlay {
+  display: none !important;
+}
+body.mode-pantalla #page-pantalla.active #pantalla-autoplay-overlay:not(.hidden-autoplay) {
+  display: flex !important;
+}
+
 /* ── DASHBOARD BUTTONS ── */
 .btn-dash {
   background: var(--bg3);
