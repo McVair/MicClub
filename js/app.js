@@ -1343,6 +1343,7 @@ function getPantallaStateHash() {
     .join('|');
   
   const votingCols = JSON.stringify(localState.settings?.votingVisibleColumns || {});
+  const primaveraCols = JSON.stringify(localState.settings?.primaveraVisibleColumns || {});
   const nextEventImg = localState.settings?.nextEventImage || '';
   const freeList = JSON.stringify(activeEventId ? (freeKaraokeList[activeEventId] || {}) : {});
   const primaveraVotesStr = JSON.stringify(activeEventId ? (localState.primaveraVotes?.[activeEventId] || {}) : {});
@@ -1354,6 +1355,7 @@ function getPantallaStateHash() {
     parts.join('|'),
     allParts,
     votingCols,
+    primaveraCols,
     nextEventImg,
     freeList,
     primaveraVotesStr,
@@ -4476,13 +4478,23 @@ async function submitPrimaveraVote() {
     return;
   }
 
-  if (!tempPrimaveraSelections || (!tempPrimaveraSelections.rey && !tempPrimaveraSelections.reina && !tempPrimaveraSelections.outfit)) {
-    mcAlert('Por favor seleccioná al menos un participante para votar (Rey, Reina o Mejor Outfit).');
-    if (btn) { btn.innerHTML = 'ENVIAR VOTO PRIMAVERA'; btn.disabled = false; }
-    return;
-  }
+  const missing = [];
+  if (!tempPrimaveraSelections?.rey) missing.push('Rey de la Primavera (👑)');
+  if (!tempPrimaveraSelections?.reina) missing.push('Reina de la Primavera (👑)');
+  if (!tempPrimaveraSelections?.outfit) missing.push('Mejor Outfit (✨)');
 
   const voterId = getOrCreateVoterId();
+  const dbVote = getDevicePrimaveraVote(voterId, activeEventId);
+  const hasVoted = !!(dbVote.rey && dbVote.reina && dbVote.outfit);
+
+  if (missing.length > 0) {
+    mcAlert(`Es obligatorio votar en todas las categorías. Te falta elegir:\n• ${missing.join('\n• ')}`);
+    if (btn) {
+      btn.innerHTML = hasVoted ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTO PRIMAVERA';
+      btn.disabled = false;
+    }
+    return;
+  }
   const votePayload = {
     rey: tempPrimaveraSelections.rey || null,
     reina: tempPrimaveraSelections.reina || null,
@@ -4991,13 +5003,25 @@ function resetVotingVisibleColumns() {
     juryPerf: false,
     juryHinchada: false
   };
+  localState.settings.primaveraVisibleColumns = {
+    rey: false,
+    reina: false,
+    outfit: false
+  };
   if (firebaseOk) {
-    dbUpdate(dbRef(db, 'settings'), { votingVisibleColumns: localState.settings.votingVisibleColumns });
+    dbUpdate(dbRef(db, 'settings'), {
+      votingVisibleColumns: localState.settings.votingVisibleColumns,
+      primaveraVisibleColumns: localState.settings.primaveraVisibleColumns
+    });
   }
   if (castChannel) {
     castChannel.postMessage({
       type: 'sync_voting_columns',
       votingVisibleColumns: localState.settings.votingVisibleColumns
+    });
+    castChannel.postMessage({
+      type: 'sync_primavera_columns',
+      primaveraVisibleColumns: localState.settings.primaveraVisibleColumns
     });
   }
   updateUI();
@@ -6818,12 +6842,20 @@ function renderPantallaPrimaveraResults(container, eventId) {
   const reinaPodium = getPodium(tally.reina);
   const outfitPodium = getPodium(tally.outfit);
 
-  function renderCategoryPodium(title, emoji, podium) {
-    let listHtml = '';
-    if (!podium.length) {
-      listHtml = '<div style="color:rgba(255,255,255,0.6); font-size:13px; font-family:\'Inter\',sans-serif; text-align:center; padding:32px 0; letter-spacing:0.5px">Esperando votos...</div>';
+  function renderCategoryPodium(title, emoji, catKey, podium) {
+    const isRevealed = !!localState.settings?.primaveraVisibleColumns?.[catKey];
+
+    let contentHtml = '';
+    if (!isRevealed) {
+      contentHtml = `
+        <div class="reveal-podium-card" style="text-align:center; padding: 45px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+          <div style="font-family:'Inter',sans-serif; font-size: 24px; letter-spacing: 1px; background: linear-gradient(135deg, #FCE0AD 0%, #DFAC4A 45%, #C68B29 85%, #8E5B12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; color: transparent; text-shadow: 0 0 12px rgba(223, 172, 74, 0.25); line-height: 1.2;">Los ganadores son...</div>
+        </div>
+      `;
+    } else if (!podium.length) {
+      contentHtml = '<div style="color:rgba(255,255,255,0.6); font-size:13px; font-family:\'Inter\',sans-serif; text-align:center; padding:32px 0; letter-spacing:0.5px">Esperando votos...</div>';
     } else {
-      listHtml = podium.slice(0, 5).map(item => {
+      contentHtml = podium.slice(0, 5).map(item => {
         const isTop = item.rank <= 3;
         const medal = getMedalHTML(item.rank);
         const nameColor = isTop ? 'var(--text)' : 'var(--text2)';
@@ -6851,7 +6883,7 @@ function renderPantallaPrimaveraResults(container, eventId) {
           <div class="column-source-tag source-public">🌸 PRIMAVERA</div>
         </div>
         <div style="padding: 10px 14px; flex: 1;">
-          ${listHtml}
+          ${contentHtml}
         </div>
       </div>
     `;
@@ -6859,9 +6891,9 @@ function renderPantallaPrimaveraResults(container, eventId) {
 
   container.innerHTML = `
     <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
-      ${renderCategoryPodium('REY DE LA PRIMAVERA', '👑', reyPodium)}
-      ${renderCategoryPodium('REINA DE LA PRIMAVERA', '👑', reinaPodium)}
-      ${renderCategoryPodium('MEJOR OUTFIT', '✨', outfitPodium)}
+      ${renderCategoryPodium('REY DE LA PRIMAVERA', '👑', 'rey', reyPodium)}
+      ${renderCategoryPodium('REINA DE LA PRIMAVERA', '👑', 'reina', reinaPodium)}
+      ${renderCategoryPodium('MEJOR OUTFIT', '✨', 'outfit', outfitPodium)}
     </div>
   `;
 }
@@ -7846,6 +7878,24 @@ function updateCastButtonsHighlight(layout) {
       votingContainer.style.setProperty('display', 'none', 'important');
     }
   }
+
+  const primaveraContainer = document.getElementById('primavera-reveal-buttons-container');
+  if (primaveraContainer) {
+    if (layout === 'primavera') {
+      primaveraContainer.style.setProperty('display', 'grid', 'important');
+    } else {
+      primaveraContainer.style.setProperty('display', 'none', 'important');
+    }
+  }
+
+  const barPrimaveraContainer = document.getElementById('bar-primavera-reveal-buttons-container');
+  if (barPrimaveraContainer) {
+    if (layout === 'primavera') {
+      barPrimaveraContainer.style.setProperty('display', 'grid', 'important');
+    } else {
+      barPrimaveraContainer.style.setProperty('display', 'none', 'important');
+    }
+  }
 }
 
 // Dar formato de mm:ss a un número de segundos
@@ -8138,6 +8188,12 @@ function handleProyectorMessage(data) {
     if (!localState.settings) localState.settings = {};
     localState.settings.votingVisibleColumns = data.votingVisibleColumns;
     if (pantallaTab === 'votos') {
+      renderPantallaContent();
+    }
+  } else if (data.type === 'sync_primavera_columns') {
+    if (!localState.settings) localState.settings = {};
+    localState.settings.primaveraVisibleColumns = data.primaveraVisibleColumns;
+    if (pantallaTab === 'primavera') {
       renderPantallaContent();
     }
   } else if (data.type === 'yt_load' || data.type === 'yt_cue') {
@@ -8732,6 +8788,38 @@ function toggleVotingColumn(columnKey) {
 }
 window.toggleVotingColumn = toggleVotingColumn;
 
+function togglePrimaveraColumn(columnKey) {
+  if (!localState.settings) localState.settings = {};
+  if (!localState.settings.primaveraVisibleColumns) {
+    localState.settings.primaveraVisibleColumns = { rey: false, reina: false, outfit: false };
+  }
+  
+  const currentCols = localState.settings.primaveraVisibleColumns;
+  const nextVal = !currentCols[columnKey];
+  currentCols[columnKey] = nextVal;
+  
+  if (firebaseOk) {
+    dbUpdate(dbRef(db, 'settings/primaveraVisibleColumns'), { [columnKey]: nextVal });
+    setCastLayout('primavera');
+  } else {
+    updateUI();
+    setCastLayout('primavera');
+    if (projectionWindowRef && !projectionWindowRef.closed) {
+      try {
+        projectionWindowRef.applyProyectorLayout(currentCastLayout || 'primavera');
+      } catch (err) { console.error('Error applying proyector layout offline:', err); }
+    }
+  }
+  
+  if (castChannel) {
+    castChannel.postMessage({
+      type: 'sync_primavera_columns',
+      primaveraVisibleColumns: localState.settings.primaveraVisibleColumns
+    });
+  }
+}
+window.togglePrimaveraColumn = togglePrimaveraColumn;
+
 function updateVotingVisibleColumnsButtonsUI() {
   const cols = localState.settings?.votingVisibleColumns || {};
   const map = {
@@ -8748,6 +8836,21 @@ function updateVotingVisibleColumnsButtonsUI() {
     if (btn) {
       btn.classList.toggle('active', isVisible);
     }
+  });
+
+  const pCols = localState.settings?.primaveraVisibleColumns || {};
+  const pMap = {
+    rey: 'btn-primavera-col-rey',
+    reina: 'btn-primavera-col-reina',
+    outfit: 'btn-primavera-col-outfit'
+  };
+
+  Object.entries(pMap).forEach(([key, id]) => {
+    const isVisible = !!pCols[key];
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.toggle('active', isVisible);
+    const barBtn = document.getElementById('bar-' + id);
+    if (barBtn) barBtn.classList.toggle('active', isVisible);
   });
 }
 window.updateVotingVisibleColumnsButtonsUI = updateVotingVisibleColumnsButtonsUI;

@@ -148,6 +148,13 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-juryPerf" onclick="toggleVotingColumn('juryPerf')">Perfo<br>Jurado</button>
           <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-vote-col-juryHinchada" onclick="toggleVotingColumn('juryHinchada')">Mejor<br>Hinchada</button>
         </div>
+
+        <!-- Quinta Fila B: 3 botones de Revelar Primavera (se muestran dinámicamente) -->
+        <div id="primavera-reveal-buttons-container" style="display:none;grid-template-columns:repeat(3,1fr);gap:6px">
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-primavera-col-rey" onclick="togglePrimaveraColumn('rey')">👑<br>Rey</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-primavera-col-reina" onclick="togglePrimaveraColumn('reina')">👑<br>Reina</button>
+          <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="btn-primavera-col-outfit" onclick="togglePrimaveraColumn('outfit')">✨<br>Outfit</button>
+        </div>
       </div>
 
       <!-- Fila 1: Compartir Links (Debajo de Emisión) -->
@@ -1082,6 +1089,13 @@ if ('serviceWorker' in navigator) {
         <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-video" style="font-size:11px;padding:8px 0;width:100%;background:linear-gradient(135deg, #444 0%, #222 100%) !important;color:#777 !important;border:1px solid rgba(255,255,255,0.1) !important;pointer-events:none;cursor:not-allowed;opacity:0.6" disabled>Video</button>
         <button class="btn btn-sm btn-outline cast-btn" id="bar-cast-btn-flyer" onclick="setCastLayout('flyer')" style="font-size:11px;padding:8px 0;width:100%">Próximo Evento</button>
       </div>
+
+      <!-- Quinta Fila B: 3 botones de Revelar Primavera para Bar -->
+      <div id="bar-primavera-reveal-buttons-container" style="display:none;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">
+        <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="bar-btn-primavera-col-rey" onclick="togglePrimaveraColumn('rey')" style="font-size:11px;padding:8px 0;width:100%">👑 Rey</button>
+        <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="bar-btn-primavera-col-reina" onclick="togglePrimaveraColumn('reina')" style="font-size:11px;padding:8px 0;width:100%">👑 Reina</button>
+        <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal" id="bar-btn-primavera-col-outfit" onclick="togglePrimaveraColumn('outfit')" style="font-size:11px;padding:8px 0;width:100%">✨ Outfit</button>
+      </div>
     </div>
 
     <!-- Botón Descargar Reservas exclusivo para Bar -->
@@ -1211,6 +1225,6 @@ if ('serviceWorker' in navigator) {
 <!-- Librerías externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- App -->
-<script src="js/app.js?v=2.04" defer></script>
+<script src="js/app.js?v=2.05" defer></script>
 </body>
 </html>
