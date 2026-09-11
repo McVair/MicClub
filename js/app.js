@@ -2679,6 +2679,7 @@ function homeLogin() {
     document.getElementById('home-login-gate').style.display  = 'none';
     document.getElementById('home-dashboard').style.display   = 'block';
     updateDashboard();
+    updateMobileLayout();
   } else if (pass === adminPass) {
     adminLoggedIn = true;
     isSuperAdmin = false;
@@ -2686,6 +2687,7 @@ function homeLogin() {
     document.getElementById('home-login-gate').style.display  = 'none';
     document.getElementById('home-dashboard').style.display   = 'block';
     updateDashboard();
+    updateMobileLayout();
   } else {
     const err = document.getElementById('home-login-err');
     if (err) { err.style.display = 'block'; err.textContent = 'Contraseña incorrecta'; }
