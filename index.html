@@ -385,13 +385,13 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Auspiciantes (Grilla Superior) -->
-    <div style="margin-top:8px;margin-bottom:16px">
+    <div id="program-mod-sponsors-top" style="margin-top:8px;margin-bottom:16px">
       <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
       <div class="sponsors-grid" id="program-sponsors-top" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px"></div>
     </div>
 
     <!-- Descripción del Programa -->
-    <div class="card" style="margin-bottom:16px">
+    <div id="program-mod-description" class="card" style="margin-bottom:16px">
       <div class="card-title">PROGRAMA OFICIAL</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:12px;font-style:italic">Una experiencia donde cada voz tiene un lugar.</div>
       <p style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:12px">
@@ -401,29 +401,27 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Cronograma -->
-    <div class="card" style="margin-bottom:16px">
+    <div id="program-mod-schedule" class="card" style="margin-bottom:16px">
       <div class="card-title">CRONOGRAMA</div>
       
       <!-- 1. Apertura -->
-      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+      <div id="program-mod-apertura" style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">1. APERTURA</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">Bienvenida oficial + presentación de la temática.</div>
       </div>
 
       <!-- 2. Show de Artistas Invitados -->
-      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+      <div id="program-mod-guests" style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">2. SHOW DE ARTISTAS INVITADOS</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:6px">Artistas que llegan para encender la noche y compartir su universo con la comunidad MIC CLUB.</div>
         <div id="program-guest-artists" style="margin-top:10px;background:var(--bg3);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,0.02)"></div>
       </div>
 
       <!-- 3. Participantes Mic Club -->
-      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+      <div id="program-mod-participants" style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">3. PARTICIPANTES MIC CLUB</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px;margin-bottom:8px">Llegó el momento más importante: la comunidad toma el escenario. Cada participante viene a dejar su huella, compartir su voz y vivir su momento. Porque en MIC CLUB no hay espectadores. Todos pueden convertirse en protagonistas.</div>
         
-
-
         <!-- Lista pública compacta -->
         <div id="program-participants-list-wrap" style="display:none">
           <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--gold);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📋 Lista de Inscriptos (<span id="program-participants-count">0</span>)</div>
@@ -432,19 +430,19 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- 4. Votación -->
-      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+      <div id="program-mod-voting" style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">4. VOTACIÓN DEL PÚBLICO + DELIBERACIÓN</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">10 minutos donde cada voto puede cambiar la historia de la noche.</div>
       </div>
 
       <!-- 5. Premiación -->
-      <div style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
+      <div id="program-mod-awards" style="margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:10px">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">5. PREMIACIÓN OFICIAL</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">Puntajes en pantalla, ganadores, actualización de Puntos MIC acumulados. Revelación de la próxima temática. Un cierre para celebrar a quienes se animaron a subir al escenario.</div>
       </div>
 
       <!-- 6. Karaoke Abierto -->
-      <div style="padding-bottom:4px">
+      <div id="program-mod-karaoke" style="padding-bottom:4px">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--text)">6. KARAOKE ABIERTO</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px">El escenario se libera. Cantá, celebrá, improvisá y seguí compartiendo la música con esta comunidad que no para de crecer. Porque a veces las mejores canciones suceden después del final.</div>
         
@@ -472,13 +470,13 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- Auspiciantes (Grilla Inferior) -->
-    <div style="margin-bottom:16px">
+    <div id="program-mod-sponsors-bottom" style="margin-bottom:16px">
       <div style="font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;text-align:center">Auspician esta experiencia</div>
       <div class="sponsors-grid" id="program-sponsors-bottom" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:12px"></div>
     </div>
 
     <!-- ¿Querés ser parte? -->
-    <div class="card" style="margin-bottom:16px">
+    <div id="program-mod-join" class="card" style="margin-bottom:16px">
       <div class="card-title" style="font-size:20px">¿QUERÉS SER PARTE DE LAS PRÓXIMAS EDICIONES?</div>
       <ul style="font-size:13px;color:var(--text);margin-left:18px;line-height:1.8;margin-bottom:14px;padding-left:0">
         <li>Sumate como participante</li>
@@ -494,15 +492,15 @@ if ('serviceWorker' in navigator) {
       </div>
     </div>
 
-    <!-- Botón Votación Primavera -->
-    <div style="margin:20px 0;text-align:center">
-      <button class="btn btn-gold" onclick="navPush('vote-primavera')" style="width:100%;font-size:15px;font-weight:700;letter-spacing:1px;padding:14px;box-shadow:0 0 15px rgba(223,172,74,0.3)">
-        🌸 VOTACIÓN PRIMAVERA
+    <!-- Botón Votación Extra -->
+    <div id="program-mod-extra-vote" style="margin:20px 0;text-align:center">
+      <button class="btn btn-gold" id="btn-nav-extra-vote" onclick="navPush('vote-primavera')" style="width:100%;font-size:15px;font-weight:700;letter-spacing:1px;padding:14px;box-shadow:0 0 15px rgba(223,172,74,0.3)">
+        🌸 VOTACIÓN ESPECIAL
       </button>
     </div>
 
     <!-- Footer -->
-    <div style="text-align:center;padding:12px 0 20px;opacity:0.8">
+    <div id="program-mod-footer" style="text-align:center;padding:12px 0 20px;opacity:0.8">
       <div style="font-family:'Inter',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)">MIC CLUB</div>
       <div style="font-size:10px;color:var(--text2);margin-top:4px;letter-spacing:1px;text-transform:uppercase">Tu voz puede ser la próxima en hacer historia.</div>
     </div>
@@ -552,6 +550,49 @@ if ('serviceWorker' in navigator) {
             <button class="btn btn-danger btn-sm" onclick="deleteNextEventImage()" style="min-height:auto;padding:4px 8px;font-size:11px;width:auto">Eliminar Flyer</button>
           </div>
         </div>
+      </div>
+
+      <!-- Configuración Modular del Programa -->
+      <div style="background:rgba(223,172,74,.05);border:1px solid var(--border);border-radius:8px;padding:13px;margin-top:14px">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">📋 SECCIONES VISIBLES DEL PROGRAMA</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Activá o desactivá las partes del programa que querés que el público vea en este show:</div>
+        <div id="admin-program-modules-list" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:8px;font-size:12px">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Configuración de Cupo Karaoke Libre -->
+      <div style="background:rgba(223,172,74,.05);border:1px solid var(--border);border-radius:8px;padding:13px;margin-top:14px">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🎤 CUPO DE KARAOKE LIBRE</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Límite máximo de participantes/canciones para anotarse al Karaoke Libre en esta fecha:</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="admin-free-karaoke-cap-input" min="1" max="100" placeholder="20" style="width:110px;margin-bottom:0;box-sizing:border-box">
+          <button class="btn btn-gold btn-sm" onclick="saveFreeKaraokeCapacityAdmin()" style="margin:0">Guardar Cupo</button>
+        </div>
+      </div>
+
+      <!-- Configuración de Votación Extra -->
+      <div style="background:rgba(223,172,74,.05);border:1px solid var(--border);border-radius:8px;padding:13px;margin-top:14px">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🏆 CONFIGURACIÓN DE VOTACIÓN EXTRA</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Definí el nombre y las categorías de la votación complementaria de este show:</div>
+        
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nombre / Título de la Votación</label>
+          <input type="text" id="admin-extra-vote-title" placeholder="Ej: Votación Primavera / Premios de la Noche" style="width:100%;margin-bottom:4px;box-sizing:border-box">
+        </div>
+
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;font-weight:700">Categorías de Votación</div>
+        <div id="admin-extra-vote-cats-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+          <!-- Lista dinámica de categorías -->
+        </div>
+
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;padding:8px;background:var(--bg3);border-radius:6px;border:1px solid rgba(255,255,255,0.05)">
+          <input type="text" id="admin-new-cat-emoji" placeholder="Emoji (👑)" style="width:75px;margin-bottom:0;text-align:center;box-sizing:border-box">
+          <input type="text" id="admin-new-cat-name" placeholder="Categoría (ej: Mejor Actitud)" style="flex:1;margin-bottom:0;box-sizing:border-box">
+          <button class="btn btn-gold btn-sm" onclick="addExtraVoteCategoryAdmin()" style="margin:0;white-space:nowrap">➕ Agregar</button>
+        </div>
+
+        <button class="btn btn-gold btn-sm" onclick="saveExtraVoteConfigAdmin()" style="width:100%">Guardar Votación Extra</button>
       </div>
     </div>
 
@@ -681,17 +722,17 @@ if ('serviceWorker' in navigator) {
       <button class="btn btn-secondary btn-sm" onclick="nav('program')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;border-radius:8px">← VOLVER AL PROGRAMA</button>
     </div>
     <div class="hero" style="padding-bottom:12px;text-align:center">
-      <div class="hero-title" style="font-size:clamp(26px,7vw,38px);color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px">🌸 VOTACIÓN PRIMAVERA</div>
-      <div class="hero-sub" style="color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;letter-spacing:0.5px">
-        Elegí 1 candidato por categoría: Rey, Reina y Mejor Outfit
+      <div id="extra-vote-title" class="hero-title" style="font-size:clamp(26px,7vw,38px);color:var(--gold);font-family:'Oswald',sans-serif;letter-spacing:2px">🌸 VOTACIÓN ESPECIAL</div>
+      <div id="extra-vote-sub" class="hero-sub" style="color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;letter-spacing:0.5px">
+        Elegí 1 candidato por categoría
       </div>
     </div>
 
     <!-- Votación cerrada -->
     <div id="primavera-closed-banner" style="display:none;text-align:center;padding:24px 16px">
-      <div style="font-size:38px;margin-bottom:10px">🌸</div>
+      <div style="font-size:38px;margin-bottom:10px">🏆</div>
       <div style="font-family:'Inter',sans-serif;font-size:22px;letter-spacing:2px;color:#e8a0ac;margin-bottom:6px">LA VOTACIÓN ESTÁ CERRADA</div>
-      <div style="font-size:14px;color:var(--text2);line-height:1.6">La votación de Primavera se habilitará durante el show.</div>
+      <div id="extra-vote-closed-msg" style="font-size:14px;color:var(--text2);line-height:1.6">La votación se habilitará durante el show.</div>
     </div>
 
     <!-- Voto registrado (banner sobre el formulario) -->
@@ -700,11 +741,11 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <div id="primavera-vote-area">
-      <!-- Tabla de 4 columnas -->
+      <!-- Tabla de N columnas -->
       <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;border:1px solid rgba(223,172,74,0.3)">
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
           <table class="primavera-table">
-            <thead>
+            <thead id="primavera-table-head">
               <tr>
                 <th style="text-align:left;min-width:130px;padding-left:14px">Participante</th>
                 <th style="text-align:center;width:70px">👑<br>Rey</th>

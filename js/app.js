@@ -5,7 +5,8 @@ console.log("MIC CLUB v1.51 Loaded!");
 const isIframe = (window.self !== window.top);
 
 const ADMIN_PASS_DEFAULT = '3984';
-const META = 150;
+const META = 120;
+
 
 const SONG_CRITERIA = [
   { key: 'afinacion', label: 'Afinación',               desc: 'Precisión tonal y entonación', max: 10 },
@@ -1338,6 +1339,325 @@ function updateRegistrationPageUI() {
   }
 }
 
+// ── PROGRAMA MODULAR ─────────────────────────────────────────────────────────
+const PROGRAM_MODULES_DEF = [
+  { key: 'sponsorsTop', label: 'Auspiciantes (Cabecera)', elId: 'program-mod-sponsors-top' },
+  { key: 'description', label: '¿Qué es Mic Club? (Descripción)', elId: 'program-mod-description' },
+  { key: 'apertura', label: 'Cronograma: Apertura', elId: 'program-mod-apertura' },
+  { key: 'guests', label: 'Cronograma: Artistas Invitados', elId: 'program-mod-guests' },
+  { key: 'participants', label: 'Cronograma: Participantes', elId: 'program-mod-participants' },
+  { key: 'voting', label: 'Cronograma: Votación', elId: 'program-mod-voting' },
+  { key: 'awards', label: 'Cronograma: Premiación', elId: 'program-mod-awards' },
+  { key: 'karaoke', label: 'Cronograma: Karaoke Libre', elId: 'program-mod-karaoke' },
+  { key: 'sponsorsBottom', label: 'Auspiciantes (Pie)', elId: 'program-mod-sponsors-bottom' },
+  { key: 'joinCommunity', label: '¿Querés ser parte? (Comunidad)', elId: 'program-mod-join' },
+  { key: 'extraVote', label: 'Botón Votación Especial / Extra', elId: 'program-mod-extra-vote' },
+  { key: 'footer', label: 'Pie de página (Footer)', elId: 'program-mod-footer' }
+];
+
+const DEFAULT_PROGRAM_MODULES = {
+  sponsorsTop: true,
+  description: true,
+  apertura: true,
+  guests: true,
+  participants: true,
+  voting: true,
+  awards: true,
+  karaoke: true,
+  sponsorsBottom: true,
+  joinCommunity: true,
+  extraVote: true,
+  footer: true
+};
+
+function getProgramModules(eventId) {
+  const ev = eventId ? (localState.settings?.events?.[eventId] || null) : null;
+  const evMods = ev?.programModules;
+  const globalMods = localState.settings?.programModules;
+  const mods = evMods || globalMods || {};
+  const res = {};
+  PROGRAM_MODULES_DEF.forEach(def => {
+    res[def.key] = (mods[def.key] !== undefined) ? !!mods[def.key] : DEFAULT_PROGRAM_MODULES[def.key];
+  });
+  return res;
+}
+window.getProgramModules = getProgramModules;
+
+function applyProgramModularVisibility(eventId) {
+  const mods = getProgramModules(eventId);
+  let anyScheduleStepVisible = false;
+
+  PROGRAM_MODULES_DEF.forEach(def => {
+    const el = document.getElementById(def.elId);
+    if (!el) return;
+    const isVisible = mods[def.key];
+    el.style.display = isVisible ? '' : 'none';
+    if (['apertura', 'guests', 'participants', 'voting', 'awards', 'karaoke'].includes(def.key) && isVisible) {
+      anyScheduleStepVisible = true;
+    }
+  });
+
+  const schedCard = document.getElementById('program-mod-schedule');
+  if (schedCard) {
+    schedCard.style.display = anyScheduleStepVisible ? '' : 'none';
+  }
+}
+window.applyProgramModularVisibility = applyProgramModularVisibility;
+
+function renderProgramModulesAdmin() {
+  const container = document.getElementById('admin-program-modules-list');
+  if (!container) return;
+  const eventId = programSelectedEventId || getCurrentEventId();
+  const mods = getProgramModules(eventId);
+
+  container.innerHTML = PROGRAM_MODULES_DEF.map(def => {
+    const checked = mods[def.key] ? 'checked' : '';
+    return `
+      <label style="display:flex;align-items:center;gap:8px;background:var(--bg3);padding:8px 10px;border-radius:6px;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,0.03)">
+        <input type="checkbox" ${checked} onchange="toggleProgramModuleAdmin('${def.key}', this.checked)" style="accent-color:var(--gold);width:16px;height:16px;cursor:pointer">
+        <span style="color:var(--text);font-size:12px">${esc(def.label)}</span>
+      </label>
+    `;
+  }).join('');
+}
+window.renderProgramModulesAdmin = renderProgramModulesAdmin;
+
+async function toggleProgramModuleAdmin(key, isVisible) {
+  const eventId = programSelectedEventId || getCurrentEventId();
+  if (!eventId) return;
+  const currentMods = getProgramModules(eventId);
+  currentMods[key] = !!isVisible;
+
+  try {
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db, `settings/events/${eventId}`), { programModules: currentMods });
+    }
+    if (!localState.settings) localState.settings = {};
+    if (!localState.settings.events) localState.settings.events = {};
+    if (!localState.settings.events[eventId]) localState.settings.events[eventId] = {};
+    localState.settings.events[eventId].programModules = currentMods;
+    saveLocal();
+    applyProgramModularVisibility(eventId);
+  } catch (err) {
+    console.error('Error toggling program module:', err);
+    mcAlert('Error al actualizar visibilidad de sección.');
+  }
+}
+window.toggleProgramModuleAdmin = toggleProgramModuleAdmin;
+
+// ── CUPO KARAOKE LIBRE ────────────────────────────────────────────────────────
+function getFreeKaraokeCapacity(eventId) {
+  const ev = eventId ? localState.settings?.events?.[eventId] : (getCurrentEvent() || null);
+  const cap = ev?.freeKaraokeCapacity ?? localState.settings?.freeKaraokeCapacity;
+  const num = parseInt(cap);
+  return (isNaN(num) || num <= 0) ? 20 : num;
+}
+window.getFreeKaraokeCapacity = getFreeKaraokeCapacity;
+
+async function saveFreeKaraokeCapacityAdmin() {
+  const input = document.getElementById('admin-free-karaoke-cap-input');
+  const val = parseInt(input?.value);
+  if (isNaN(val) || val <= 0) {
+    mcAlert('Por favor ingresá un número válido mayor a 0.');
+    return;
+  }
+  const eventId = programSelectedEventId || getCurrentEventId();
+  try {
+    if (eventId) {
+      if (firebaseOk) {
+        await dbUpdate(dbRef(db, `settings/events/${eventId}`), { freeKaraokeCapacity: val });
+        await dbUpdate(dbRef(db, 'settings'), { freeKaraokeCapacity: val });
+      }
+      if (!localState.settings) localState.settings = {};
+      if (!localState.settings.events) localState.settings.events = {};
+      if (!localState.settings.events[eventId]) localState.settings.events[eventId] = {};
+      localState.settings.events[eventId].freeKaraokeCapacity = val;
+      localState.settings.freeKaraokeCapacity = val;
+    } else {
+      if (firebaseOk) {
+        await dbUpdate(dbRef(db, 'settings'), { freeKaraokeCapacity: val });
+      }
+      if (!localState.settings) localState.settings = {};
+      localState.settings.freeKaraokeCapacity = val;
+    }
+    saveLocal();
+    updateFreeKaraokePages();
+    mcAlert(`✅ Cupo de Karaoke Libre actualizado a ${val}.`);
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al guardar el cupo.');
+  }
+}
+window.saveFreeKaraokeCapacityAdmin = saveFreeKaraokeCapacityAdmin;
+
+// ── VOTACIÓN EXTRA / COMPLEMENTARIA ───────────────────────────────────────────
+const DEFAULT_EXTRA_VOTE = {
+  enabled: true,
+  title: 'Votación Especial',
+  categories: [
+    { id: 'rey', name: 'Rey', emoji: '👑' },
+    { id: 'reina', name: 'Reina', emoji: '👑' },
+    { id: 'outfit', name: 'Outfit', emoji: '✨' }
+  ]
+};
+
+function getExtraVoteConfig(eventId) {
+  const ev = eventId ? localState.settings?.events?.[eventId] : (getCurrentEvent() || null);
+  const cfg = ev?.extraVote || localState.settings?.extraVote;
+  if (!cfg) return { ...DEFAULT_EXTRA_VOTE, categories: [...DEFAULT_EXTRA_VOTE.categories] };
+  const title = (cfg.title || 'Votación Especial').trim();
+  let categories = Array.isArray(cfg.categories) ? cfg.categories : DEFAULT_EXTRA_VOTE.categories;
+  if (!categories.length) categories = DEFAULT_EXTRA_VOTE.categories;
+  return {
+    enabled: cfg.enabled !== false,
+    title,
+    categories: categories.map((c, i) => ({
+      id: c.id || ('cat_' + i),
+      name: c.name || `Categoría ${i+1}`,
+      emoji: c.emoji || '🏆'
+    }))
+  };
+}
+window.getExtraVoteConfig = getExtraVoteConfig;
+
+let adminExtraVoteWorkingCats = null;
+
+function renderExtraVoteAdmin() {
+  const eventId = programSelectedEventId || getCurrentEventId();
+  const cfg = getExtraVoteConfig(eventId);
+  const titleInput = document.getElementById('admin-extra-vote-title');
+  if (titleInput && (!titleInput.value || document.activeElement !== titleInput)) {
+    titleInput.value = cfg.title;
+  }
+  if (!adminExtraVoteWorkingCats) {
+    adminExtraVoteWorkingCats = [...cfg.categories];
+  }
+  const listEl = document.getElementById('admin-extra-vote-cats-list');
+  if (listEl) {
+    listEl.innerHTML = adminExtraVoteWorkingCats.map((cat, idx) => `
+      <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.04)">
+        <span style="font-size:16px">${esc(cat.emoji || '🏆')}</span>
+        <span style="flex:1;font-size:12px;color:var(--text);font-weight:600">${esc(cat.name)}</span>
+        <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:2px 8px;font-size:11px;min-height:auto" onclick="deleteExtraVoteCategoryAdmin(${idx})">Eliminar</button>
+      </div>
+    `).join('') || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:6px">Sin categorías (agregá al menos una)</div>';
+  }
+}
+window.renderExtraVoteAdmin = renderExtraVoteAdmin;
+
+function addExtraVoteCategoryAdmin() {
+  const emojiInp = document.getElementById('admin-new-cat-emoji');
+  const nameInp = document.getElementById('admin-new-cat-name');
+  const emoji = (emojiInp?.value || '🏆').trim() || '🏆';
+  const name = (nameInp?.value || '').trim();
+  if (!name) {
+    mcAlert('Por favor ingresá un nombre para la categoría.');
+    return;
+  }
+  if (!adminExtraVoteWorkingCats) {
+    const eventId = programSelectedEventId || getCurrentEventId();
+    adminExtraVoteWorkingCats = [...getExtraVoteConfig(eventId).categories];
+  }
+  const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 15) || ('cat_' + Date.now());
+  let uniqueId = id;
+  let counter = 1;
+  while (adminExtraVoteWorkingCats.some(c => c.id === uniqueId)) {
+    uniqueId = `${id}_${counter++}`;
+  }
+  adminExtraVoteWorkingCats.push({ id: uniqueId, name, emoji });
+  if (emojiInp) emojiInp.value = '';
+  if (nameInp) nameInp.value = '';
+  renderExtraVoteAdmin();
+}
+window.addExtraVoteCategoryAdmin = addExtraVoteCategoryAdmin;
+
+function deleteExtraVoteCategoryAdmin(idx) {
+  if (!adminExtraVoteWorkingCats) return;
+  if (adminExtraVoteWorkingCats.length <= 1) {
+    mcAlert('Debe quedar al menos 1 categoría.');
+    return;
+  }
+  adminExtraVoteWorkingCats.splice(idx, 1);
+  renderExtraVoteAdmin();
+}
+window.deleteExtraVoteCategoryAdmin = deleteExtraVoteCategoryAdmin;
+
+async function saveExtraVoteConfigAdmin() {
+  const titleInp = document.getElementById('admin-extra-vote-title');
+  const title = (titleInp?.value || 'Votación Especial').trim() || 'Votación Especial';
+  if (!adminExtraVoteWorkingCats || !adminExtraVoteWorkingCats.length) {
+    mcAlert('Debe haber al menos 1 categoría configurada.');
+    return;
+  }
+  const payload = {
+    enabled: true,
+    title,
+    categories: adminExtraVoteWorkingCats
+  };
+  const eventId = programSelectedEventId || getCurrentEventId();
+  try {
+    if (eventId) {
+      if (firebaseOk) {
+        await dbUpdate(dbRef(db, `settings/events/${eventId}`), { extraVote: payload });
+        await dbUpdate(dbRef(db, 'settings'), { extraVote: payload });
+      }
+      if (!localState.settings) localState.settings = {};
+      if (!localState.settings.events) localState.settings.events = {};
+      if (!localState.settings.events[eventId]) localState.settings.events[eventId] = {};
+      localState.settings.events[eventId].extraVote = payload;
+      localState.settings.extraVote = payload;
+    } else {
+      if (firebaseOk) {
+        await dbUpdate(dbRef(db, 'settings'), { extraVote: payload });
+      }
+      if (!localState.settings) localState.settings = {};
+      localState.settings.extraVote = payload;
+    }
+    saveLocal();
+    updateProgramPage();
+    if (currentPage === 'vote-primavera') loadPrimaveraVoteOpts();
+    renderPrimaveraRevealButtons();
+    mcAlert('✅ Configuración de Votación Extra guardada con éxito.');
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al guardar configuración de votación extra.');
+  }
+}
+window.saveExtraVoteConfigAdmin = saveExtraVoteConfigAdmin;
+
+function renderPrimaveraRevealButtons() {
+  const activeEventId = getCurrentEventId();
+  const cfg = getExtraVoteConfig(activeEventId);
+  const adminContainer = document.getElementById('primavera-reveal-buttons-container');
+  const barContainer = document.getElementById('bar-primavera-reveal-buttons-container');
+  const cols = localState.settings?.primaveraVisibleColumns || {};
+
+  const renderBtns = (isBar) => cfg.categories.map(cat => {
+    const id = isBar ? `bar-btn-primavera-col-${cat.id}` : `btn-primavera-col-${cat.id}`;
+    const isActive = !!cols[cat.id];
+    return `
+      <button class="btn btn-sm btn-outline cast-btn btn-vote-reveal${isActive ? ' active' : ''}" id="${id}" onclick="togglePrimaveraColumn('${cat.id}')" style="font-size:11px;padding:8px 0;width:100%">
+        ${cat.emoji}<br>${esc(cat.name)}
+      </button>
+    `;
+  }).join('');
+
+  if (adminContainer) {
+    adminContainer.style.gridTemplateColumns = `repeat(${Math.max(1, cfg.categories.length)}, 1fr)`;
+    adminContainer.innerHTML = renderBtns(false);
+  }
+  if (barContainer) {
+    barContainer.style.gridTemplateColumns = `repeat(${Math.max(1, cfg.categories.length)}, 1fr)`;
+    barContainer.innerHTML = renderBtns(true);
+  }
+
+  const btnPrimaveraCast = document.getElementById('cast-btn-primavera');
+  const barBtnPrimaveraCast = document.getElementById('bar-cast-btn-primavera');
+  if (btnPrimaveraCast) btnPrimaveraCast.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
+  if (barBtnPrimaveraCast) barBtnPrimaveraCast.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
+}
+window.renderPrimaveraRevealButtons = renderPrimaveraRevealButtons;
+
 let lastPantallaStateHash = '';
 function getPantallaStateHash() {
   const activeEventId = getCurrentEventId();
@@ -1359,6 +1679,7 @@ function getPantallaStateHash() {
   const nextEventImg = localState.settings?.nextEventImage || '';
   const freeList = JSON.stringify(activeEventId ? (freeKaraokeList[activeEventId] || {}) : {});
   const primaveraVotesStr = JSON.stringify(activeEventId ? (localState.settings?.primaveraVotes?.[activeEventId] || localState.primaveraVotes?.[activeEventId] || {}) : {});
+  const extraVoteCfgStr = JSON.stringify(getExtraVoteConfig(activeEventId));
   const activeVideoKey = activeYtVideo ? `${activeYtVideo.source}-${activeYtVideo.id}-${activeYtVideo.ytId}` : 'none';
   
   return [
@@ -1371,10 +1692,12 @@ function getPantallaStateHash() {
     nextEventImg,
     freeList,
     primaveraVotesStr,
+    extraVoteCfgStr,
     screensaverActive,
     activeVideoKey
   ].join('##');
 }
+
 
 // ── UI CENTRAL ────────────────────────────────────────────────────────────────
 function updateUI() {
@@ -1593,6 +1916,15 @@ function updateProgramPage() {
   }
 
   updateFreeKaraokePages();
+  applyProgramModularVisibility(programSelectedEventId || currentActiveId);
+
+  // Botón Votación Extra dinámico
+  const extraCfg = getExtraVoteConfig(programSelectedEventId || currentActiveId);
+  const btnExtra = document.getElementById('btn-nav-extra-vote');
+  if (btnExtra) {
+    btnExtra.textContent = `${extraCfg.categories[0]?.emoji || '🏆'} ${extraCfg.title.toUpperCase()}`;
+  }
+
   renderProgramAdminPanel();
 }
 
@@ -1631,8 +1963,22 @@ function renderProgramAdminPanel() {
     `;
   }).join('');
   
-  document.getElementById('admin-sponsors-list').innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin auspiciantes</div>';
-  document.getElementById('admin-artists-list').innerHTML = artistsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin artistas invitados</div>';
+  const spList = document.getElementById('admin-sponsors-list');
+  if (spList) spList.innerHTML = sponsorsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin auspiciantes</div>';
+  const artList = document.getElementById('admin-artists-list');
+  if (artList) artList.innerHTML = artistsHtml || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:10px">Sin artistas invitados</div>';
+
+  // 1. Secciones Visibles del Programa (Modular)
+  renderProgramModulesAdmin();
+
+  // 2. Cupo de Karaoke Libre
+  const capInput = document.getElementById('admin-free-karaoke-cap-input');
+  if (capInput && (!capInput.value || document.activeElement !== capInput)) {
+    capInput.value = getFreeKaraokeCapacity(eventId);
+  }
+
+  // 3. Votación Extra (Configuración y Categorías)
+  renderExtraVoteAdmin();
 }
 
 function addSponsorAdmin() {
@@ -3030,9 +3376,26 @@ function showEventStartForm(slot) {
         <input id="ev-venue" type="text" placeholder="Ej: El Bar" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
       </div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div>
+        <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Cupo Reservas (0 ilim.)</label>
+        <input id="ev-capacity" type="number" placeholder="Ej: 50" min="0" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Cupo Karaoke Libre</label>
+        <input id="ev-free-cap" type="number" placeholder="20" value="20" min="1" max="100" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
+      </div>
+    </div>
     <div style="margin-bottom:4px">
-      <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Capacidad / Cupo de reservas (0 o vacío para ilimitado)</label>
-      <input id="ev-capacity" type="number" placeholder="Ej: 50" min="0" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:12px 14px;outline:none;box-sizing:border-box">
+      <label style="display:block;font-family:'Inter',sans-serif;font-size:10px;letter-spacing:2px;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Secciones Visibles del Programa</label>
+      <div style="max-height:160px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg2);padding:8px;border-radius:6px;border:1px solid var(--border)">
+        ${PROGRAM_MODULES_DEF.map(def => `
+          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);cursor:pointer">
+            <input type="checkbox" id="ev-mod-${def.key}" checked style="accent-color:var(--gold)">
+            <span>${esc(def.label)}</span>
+          </label>
+        `).join('')}
+      </div>
     </div>`;
   showCustomModal({
     title: 'INICIAR EVENTO',
@@ -3045,18 +3408,37 @@ function showEventStartForm(slot) {
       const time     = (document.getElementById('ev-time')?.value  || '').trim();
       const venue    = (document.getElementById('ev-venue')?.value || '').trim();
       const capacity = parseInt(document.getElementById('ev-capacity')?.value) || 0;
-      await startShow(slot, name, date, time, venue, capacity);
+      const freeCap  = parseInt(document.getElementById('ev-free-cap')?.value) || 20;
+      const progMods = {};
+      PROGRAM_MODULES_DEF.forEach(def => {
+        const chk = document.getElementById(`ev-mod-${def.key}`);
+        progMods[def.key] = chk ? chk.checked : true;
+      });
+      await startShow(slot, name, date, time, venue, capacity, freeCap, progMods);
     }
   });
 }
 
-async function startShow(slot, name, date, time, venue, capacity) {
+async function startShow(slot, name, date, time, venue, capacity, freeKaraokeCapacity, programModules) {
   try {
-    const evData = { id: slot, name, date, time, venue, capacity, startedAt: Date.now() };
+    const finalFreeCap = freeKaraokeCapacity || 20;
+    const finalProgMods = programModules || { ...DEFAULT_PROGRAM_MODULES };
+    const evData = {
+      id: slot,
+      name,
+      date,
+      time,
+      venue,
+      capacity,
+      freeKaraokeCapacity: finalFreeCap,
+      programModules: finalProgMods,
+      startedAt: Date.now()
+    };
     
     if (!localState.settings) localState.settings = {};
     if (!localState.settings.events) localState.settings.events = {};
     localState.settings.events[slot] = evData;
+    localState.settings.freeKaraokeCapacity = finalFreeCap;
     
     const ev1 = localState.settings.events.event1;
     const ev2 = localState.settings.events.event2;
@@ -3070,6 +3452,7 @@ async function startShow(slot, name, date, time, venue, capacity) {
       'settings/showRunning': true,
       'settings/votingOpen': false,
       'settings/votingCloseAt': null,
+      'settings/freeKaraokeCapacity': finalFreeCap,
       [`settings/events/${slot}`]: evData,
       'settings/currentEvent': closest,
       'settings/activeEventSlot': activeSlot
@@ -3081,6 +3464,7 @@ async function startShow(slot, name, date, time, venue, capacity) {
       localState.settings.showRunning = true;
       localState.settings.votingOpen = false;
       localState.settings.votingCloseAt = null;
+      localState.settings.freeKaraokeCapacity = finalFreeCap;
       localState.settings.currentEvent = closest;
       localState.settings.activeEventSlot = activeSlot;
       saveLocal();
@@ -3089,6 +3473,8 @@ async function startShow(slot, name, date, time, venue, capacity) {
     handleVotingState();
     updateRanking();
     updateDashboard();
+    updateFreeKaraokePages();
+    applyProgramModularVisibility(slot);
     mcAlert(`✅ Evento iniciado correctamente en la ranura ${slot === 'event1' ? 'Evento 1' : 'Evento 2'}.`);
   } catch(e) {
     console.error(e);
@@ -3497,7 +3883,7 @@ function updateShowMode() {
         currentScore = p.score;
       }
       
-      const isConsagrado = p.score > 150;
+      const isConsagrado = p.score >= META;
       const rankText = isConsagrado ? '👑' : getMedalHTML(currentRank);
       
       let fontSize = 18;
@@ -4352,21 +4738,31 @@ function getPrimaveraCandidates(eventId) {
 window.getPrimaveraCandidates = getPrimaveraCandidates;
 
 function getDevicePrimaveraVote(voterId, eventId) {
-  if (!voterId || !eventId) return { rey: null, reina: null, outfit: null };
+  const cfg = getExtraVoteConfig(eventId);
+  const empty = {};
+  cfg.categories.forEach(c => { empty[c.id] = null; });
+  if (!voterId || !eventId) return empty;
   const evVotes = localState.settings?.primaveraVotes?.[eventId] || localState.primaveraVotes?.[eventId] || {};
   const v = evVotes[voterId];
   if (v) {
-    return {
-      rey: v.rey || null,
-      reina: v.reina || null,
-      outfit: v.outfit || null
-    };
+    const res = {};
+    cfg.categories.forEach(c => {
+      res[c.id] = v[c.id] || null;
+    });
+    return res;
   }
   try {
     const raw = localStorage.getItem(`voted_primavera_${eventId}`);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const res = {};
+      cfg.categories.forEach(c => {
+        res[c.id] = parsed[c.id] || null;
+      });
+      return res;
+    }
   } catch (e) {}
-  return { rey: null, reina: null, outfit: null };
+  return empty;
 }
 
 function loadPrimaveraVoteOpts() {
@@ -4374,7 +4770,18 @@ function loadPrimaveraVoteOpts() {
   const closedEl = document.getElementById('primavera-closed-banner');
   const doneEl   = document.getElementById('primavera-vote-done');
   const submitBtn = document.getElementById('primavera-submit-btn');
+  const thead    = document.getElementById('primavera-table-head');
   const tbody    = document.getElementById('primavera-table-body');
+  const activeEventId = getCurrentEventId();
+  const cfg = getExtraVoteConfig(activeEventId);
+
+  // Titulares dinámicos
+  const titleEl = document.getElementById('extra-vote-title');
+  const subEl = document.getElementById('extra-vote-sub');
+  const closedMsgEl = document.getElementById('extra-vote-closed-msg');
+  if (titleEl) titleEl.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title.toUpperCase()}`;
+  if (subEl) subEl.textContent = `Elegí 1 candidato por categoría: ${cfg.categories.map(c => `${c.emoji} ${c.name}`).join(', ')}`;
+  if (closedMsgEl) closedMsgEl.textContent = `La ${cfg.title.toLowerCase()} se habilitará durante el show.`;
 
   if (closedEl) closedEl.style.display = 'none';
   if (doneEl)   doneEl.style.display   = 'none';
@@ -4387,7 +4794,6 @@ function loadPrimaveraVoteOpts() {
 
   if (areaEl) areaEl.style.display = 'block';
 
-  const activeEventId = getCurrentEventId();
   const voterId = getOrCreateVoterId();
 
   if (tempPrimaveraEventId !== activeEventId) {
@@ -4400,7 +4806,7 @@ function loadPrimaveraVoteOpts() {
     tempPrimaveraSelections = { ...dbVote };
   }
 
-  const hasVoted = !!(dbVote.rey || dbVote.reina || dbVote.outfit);
+  const hasVoted = cfg.categories.some(cat => !!dbVote[cat.id]);
   if (hasVoted) {
     if (doneEl) {
       doneEl.style.display = 'block';
@@ -4408,16 +4814,28 @@ function loadPrimaveraVoteOpts() {
     }
     if (submitBtn) submitBtn.textContent = 'ACTUALIZAR VOTO';
   } else {
-    if (submitBtn) submitBtn.textContent = 'ENVIAR VOTO PRIMAVERA';
+    if (submitBtn) submitBtn.textContent = `ENVIAR VOTO ${cfg.title.toUpperCase()}`;
+  }
+
+  if (thead) {
+    thead.innerHTML = `
+      <tr>
+        <th style="text-align:left;min-width:130px;padding-left:14px">Participante</th>
+        ${cfg.categories.map(cat => `
+          <th style="text-align:center;width:70px">${cat.emoji}<br>${esc(cat.name)}</th>
+        `).join('')}
+      </tr>
+    `;
   }
 
   const candidates = getPrimaveraCandidates(activeEventId);
   if (!tbody) return;
 
   if (!candidates.length) {
+    const colSpan = cfg.categories.length + 1;
     tbody.innerHTML = `
       <tr>
-        <td colspan="4" style="text-align:center;padding:24px;color:var(--text2)">
+        <td colspan="${colSpan}" style="text-align:center;padding:24px;color:var(--text2)">
           No hay participantes registrados todavía para esta fecha.
         </td>
       </tr>
@@ -4426,10 +4844,17 @@ function loadPrimaveraVoteOpts() {
   }
 
   tbody.innerHTML = candidates.map(cand => {
-    const isRey = tempPrimaveraSelections?.rey === cand.name;
-    const isReina = tempPrimaveraSelections?.reina === cand.name;
-    const isOutfit = tempPrimaveraSelections?.outfit === cand.name;
     const sourceLabel = cand.sources.join(' · ');
+    const buttonsCols = cfg.categories.map(cat => {
+      const isSelected = tempPrimaveraSelections?.[cat.id] === cand.name;
+      return `
+        <td>
+          <button type="button" class="primavera-choice-btn${isSelected ? ' selected' : ''}" onclick="togglePrimaveraChoice('${cat.id}', '${esc(cand.name)}')" title="Votar ${esc(cat.name)}">
+            ${isSelected ? '✓' : ''}
+          </button>
+        </td>
+      `;
+    }).join('');
 
     return `
       <tr id="pv-row-${cand.id}">
@@ -4437,21 +4862,7 @@ function loadPrimaveraVoteOpts() {
           ${esc(cand.name)}
           <span class="cand-source">${esc(sourceLabel)}</span>
         </td>
-        <td>
-          <button type="button" class="primavera-choice-btn${isRey ? ' selected' : ''}" onclick="togglePrimaveraChoice('rey', '${esc(cand.name)}')" title="Votar Rey">
-            ${isRey ? '✓' : ''}
-          </button>
-        </td>
-        <td>
-          <button type="button" class="primavera-choice-btn${isReina ? ' selected' : ''}" onclick="togglePrimaveraChoice('reina', '${esc(cand.name)}')" title="Votar Reina">
-            ${isReina ? '✓' : ''}
-          </button>
-        </td>
-        <td>
-          <button type="button" class="primavera-choice-btn${isOutfit ? ' selected' : ''}" onclick="togglePrimaveraChoice('outfit', '${esc(cand.name)}')" title="Votar Mejor Outfit">
-            ${isOutfit ? '✓' : ''}
-          </button>
-        </td>
+        ${buttonsCols}
       </tr>
     `;
   }).join('');
@@ -4465,7 +4876,7 @@ function togglePrimaveraChoice(category, candidateName) {
     tempPrimaveraSelections = getDevicePrimaveraVote(voterId, activeEventId);
   }
   if (!tempPrimaveraSelections) {
-    tempPrimaveraSelections = { rey: null, reina: null, outfit: null };
+    tempPrimaveraSelections = {};
   }
 
   if (tempPrimaveraSelections[category] === candidateName) {
@@ -4480,41 +4891,45 @@ window.togglePrimaveraChoice = togglePrimaveraChoice;
 
 async function submitPrimaveraVote() {
   const btn = document.getElementById('primavera-submit-btn');
+  const activeEventId = getCurrentEventId();
+  const cfg = getExtraVoteConfig(activeEventId);
+
   if (btn) {
     btn.innerHTML = 'ENVIANDO...';
     btn.disabled = true;
   }
 
-  const activeEventId = getCurrentEventId();
   if (!activeEventId) {
     mcAlert('No hay evento activo seleccionado');
-    if (btn) { btn.innerHTML = 'ENVIAR VOTO PRIMAVERA'; btn.disabled = false; }
+    if (btn) { btn.innerHTML = `ENVIAR VOTO ${cfg.title.toUpperCase()}`; btn.disabled = false; }
     return;
   }
 
   const missing = [];
-  if (!tempPrimaveraSelections?.rey) missing.push('Rey de la Primavera (👑)');
-  if (!tempPrimaveraSelections?.reina) missing.push('Reina de la Primavera (👑)');
-  if (!tempPrimaveraSelections?.outfit) missing.push('Mejor Outfit (✨)');
+  cfg.categories.forEach(cat => {
+    if (!tempPrimaveraSelections?.[cat.id]) {
+      missing.push(`${cat.name} (${cat.emoji})`);
+    }
+  });
 
   const voterId = getOrCreateVoterId();
   const dbVote = getDevicePrimaveraVote(voterId, activeEventId);
-  const hasVoted = !!(dbVote.rey && dbVote.reina && dbVote.outfit);
+  const hasVoted = cfg.categories.every(cat => !!dbVote[cat.id]);
 
   if (missing.length > 0) {
     mcAlert(`Es obligatorio votar en todas las categorías. Te falta elegir:\n• ${missing.join('\n• ')}`);
     if (btn) {
-      btn.innerHTML = hasVoted ? 'ACTUALIZAR VOTO' : 'ENVIAR VOTO PRIMAVERA';
+      btn.innerHTML = hasVoted ? 'ACTUALIZAR VOTO' : `ENVIAR VOTO ${cfg.title.toUpperCase()}`;
       btn.disabled = false;
     }
     return;
   }
   const votePayload = {
-    rey: tempPrimaveraSelections.rey || null,
-    reina: tempPrimaveraSelections.reina || null,
-    outfit: tempPrimaveraSelections.outfit || null,
     updatedAt: Date.now()
   };
+  cfg.categories.forEach(cat => {
+    votePayload[cat.id] = tempPrimaveraSelections[cat.id] || null;
+  });
 
   try {
     if (firebaseOk) {
@@ -4534,12 +4949,12 @@ async function submitPrimaveraVote() {
       localStorage.setItem(`voted_primavera_${activeEventId}`, JSON.stringify(votePayload));
     } catch (e) {}
 
-    showTemporaryAlert('🌸 ¡Tu voto de Primavera fue registrado con éxito!', 1800, () => {
+    showTemporaryAlert(`🏆 ¡Tu voto para ${cfg.title} fue registrado con éxito!`, 1800, () => {
       loadPrimaveraVoteOpts();
       nav('program');
     });
   } catch (err) {
-    console.error('Error enviando voto primavera:', err);
+    console.error('Error enviando voto:', err);
     mcAlert('Ocurrió un error al guardar tu voto. Por favor intentá nuevamente.');
   } finally {
     if (btn) {
@@ -5021,11 +5436,10 @@ function resetVotingVisibleColumns() {
     juryPerf: false,
     juryHinchada: false
   };
-  localState.settings.primaveraVisibleColumns = {
-    rey: false,
-    reina: false,
-    outfit: false
-  };
+  const pCols = {};
+  const extraCfg = getExtraVoteConfig(getCurrentEventId());
+  extraCfg.categories.forEach(c => { pCols[c.id] = false; });
+  localState.settings.primaveraVisibleColumns = pCols;
   if (firebaseOk) {
     dbUpdate(dbRef(db, 'settings'), {
       votingVisibleColumns: localState.settings.votingVisibleColumns,
@@ -6405,7 +6819,8 @@ function updateFreeKaraokePages() {
   const sortedFreeItems = Object.entries(currentEventFreeList)
     .map(([id, item]) => ({ id, ...item }))
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  const isFull = sortedFreeItems.length >= 20;
+  const activeCap = getFreeKaraokeCapacity(activeEventId);
+  const isFull = sortedFreeItems.length >= activeCap;
 
   // 1. Programa Público
   const progSection = document.getElementById('program-free-karaoke-section');
@@ -6419,7 +6834,8 @@ function updateFreeKaraokePages() {
       const viewSortedFreeItems = Object.entries(viewEventFreeList)
         .map(([id, item]) => ({ id, ...item }))
         .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-      const viewIsFull = viewSortedFreeItems.length >= 20;
+      const viewCap = getFreeKaraokeCapacity(viewEventId);
+      const viewIsFull = viewSortedFreeItems.length >= viewCap;
       const viewEventDate = viewEventId ? (localState.settings?.events?.[viewEventId]?.date || '') : '';
 
       const dateEl = document.getElementById('program-free-karaoke-date');
@@ -6447,7 +6863,7 @@ function updateFreeKaraokePages() {
       const listEl = document.getElementById('program-free-karaoke-list');
       
       if (listWrap) listWrap.style.display = viewSortedFreeItems.length > 0 ? 'block' : 'none';
-      if (countEl) countEl.textContent = `${viewSortedFreeItems.length}/20`;
+      if (countEl) countEl.textContent = `${viewSortedFreeItems.length}/${viewCap}`;
       if (listEl) {
         listEl.innerHTML = viewSortedFreeItems.map((item, index) => {
           const isLast = index === viewSortedFreeItems.length - 1;
@@ -6480,7 +6896,7 @@ function updateFreeKaraokePages() {
   }
 
   const badgeEl = document.getElementById('free-karaoke-count-badge');
-  if (badgeEl) badgeEl.textContent = `${sortedFreeItems.length}/20`;
+  if (badgeEl) badgeEl.textContent = `${sortedFreeItems.length}/${activeCap}`;
 
   const pubListEl = document.getElementById('free-karaoke-public-list');
   if (pubListEl) {
@@ -6496,7 +6912,7 @@ function updateFreeKaraokePages() {
 
   // 3. Panel de Administración
   const adminCountEl = document.getElementById('admin-free-karaoke-count');
-  if (adminCountEl) adminCountEl.textContent = `${sortedFreeItems.length}/20`;
+  if (adminCountEl) adminCountEl.textContent = `${sortedFreeItems.length}/${activeCap}`;
 
   const adminListEl = document.getElementById('admin-free-karaoke-list');
   if (adminListEl) {
@@ -6550,8 +6966,9 @@ async function submitFreeKaraoke() {
   const activeEventId = getCurrentEventId();
   const currentEventFreeList = activeEventId ? (freeKaraokeList[activeEventId] || {}) : {};
   const count = Object.keys(currentEventFreeList).length;
-  if (count >= 20) {
-    mcAlert('Lo sentimos, el cupo de 20 canciones para el Karaoke Libre de esta fecha ya está completo.');
+  const activeCap = getFreeKaraokeCapacity(activeEventId);
+  if (count >= activeCap) {
+    mcAlert(`Lo sentimos, el cupo de ${activeCap} canciones para el Karaoke Libre de esta fecha ya está completo.`);
     return;
   }
 
@@ -6692,8 +7109,9 @@ function renderPantallaContent() {
     if (elName) elName.textContent = ev ? ev.name : 'VOTACIÓN';
     if (elDetails) elDetails.textContent = 'resultados de la votacion';
   } else if (pantallaTab === 'primavera') {
-    if (elName) elName.textContent = 'VOTACIÓN PRIMAVERA';
-    if (elDetails) elDetails.textContent = ev ? `${ev.name} · Premiación` : 'Resultados en Vivo';
+    const cfg = getExtraVoteConfig(activeEventId);
+    if (elName) elName.textContent = cfg.title.toUpperCase();
+    if (elDetails) elDetails.textContent = ev ? (ev.name + ' · Premiación') : 'Resultados en Vivo';
   } else {
     const layoutTitles = {
       artistas: 'ARTISTAS INVITADOS',
@@ -6825,25 +7243,22 @@ function renderPantallaContent() {
 
 function renderPantallaPrimaveraResults(container, eventId) {
   const activeEventId = eventId || getCurrentEventId();
+  const cfg = getExtraVoteConfig(activeEventId);
   const votesObj = (activeEventId && (localState.settings?.primaveraVotes?.[activeEventId] || localState.primaveraVotes?.[activeEventId])) ? (localState.settings?.primaveraVotes?.[activeEventId] || localState.primaveraVotes[activeEventId]) : {};
   
-  const tally = {
-    rey: {},
-    reina: {},
-    outfit: {}
-  };
+  const tally = {};
+  cfg.categories.forEach(cat => {
+    tally[cat.id] = {};
+  });
   
   Object.values(votesObj).forEach(ballot => {
     if (!ballot) return;
-    if (ballot.rey) {
-      tally.rey[ballot.rey] = (tally.rey[ballot.rey] || 0) + 1;
-    }
-    if (ballot.reina) {
-      tally.reina[ballot.reina] = (tally.reina[ballot.reina] || 0) + 1;
-    }
-    if (ballot.outfit) {
-      tally.outfit[ballot.outfit] = (tally.outfit[ballot.outfit] || 0) + 1;
-    }
+    cfg.categories.forEach(cat => {
+      const voteVal = ballot[cat.id];
+      if (voteVal) {
+        tally[cat.id][voteVal] = (tally[cat.id][voteVal] || 0) + 1;
+      }
+    });
   });
 
   function getPodium(catVotes) {
@@ -6863,12 +7278,8 @@ function renderPantallaPrimaveraResults(container, eventId) {
     });
   }
 
-  const reyPodium = getPodium(tally.rey);
-  const reinaPodium = getPodium(tally.reina);
-  const outfitPodium = getPodium(tally.outfit);
-
-  function renderCategoryPodium(title, emoji, catKey, podium) {
-    const isRevealed = !!localState.settings?.primaveraVisibleColumns?.[catKey];
+  function renderCategoryPodium(cat, podium) {
+    const isRevealed = !!localState.settings?.primaveraVisibleColumns?.[cat.id];
 
     let contentHtml = '';
     if (!isRevealed) {
@@ -6904,8 +7315,8 @@ function renderPantallaPrimaveraResults(container, eventId) {
     return `
       <div class="result-column-card" style="margin:0;display:flex;flex-direction:column;min-width:240px">
         <div class="result-column-header" style="background:linear-gradient(135deg, rgba(223, 172, 74, 0.15) 0%, rgba(22, 21, 26, 0.9) 100%);border-bottom:1px solid rgba(223, 172, 74, 0.3)">
-          <div class="column-category-title" style="font-size:18px;letter-spacing:1.5px">${emoji} ${title}</div>
-          <div class="column-source-tag source-public">🌸 PRIMAVERA</div>
+          <div class="column-category-title" style="font-size:18px;letter-spacing:1.5px">${cat.emoji} ${esc(cat.name.toUpperCase())}</div>
+          <div class="column-source-tag source-public">${esc(cfg.title.toUpperCase())}</div>
         </div>
         <div style="padding: 10px 14px; flex: 1;">
           ${contentHtml}
@@ -6916,9 +7327,7 @@ function renderPantallaPrimaveraResults(container, eventId) {
 
   container.innerHTML = `
     <div class="results-layout-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; width: 100%; animation: fadeUp 0.5s ease-out forwards;">
-      ${renderCategoryPodium('REY DE LA PRIMAVERA', '👑', 'rey', reyPodium)}
-      ${renderCategoryPodium('REINA DE LA PRIMAVERA', '👑', 'reina', reinaPodium)}
-      ${renderCategoryPodium('MEJOR OUTFIT', '✨', 'outfit', outfitPodium)}
+      ${cfg.categories.map(cat => renderCategoryPodium(cat, getPodium(tally[cat.id] || {}))).join('')}
     </div>
   `;
 }
@@ -7907,6 +8316,7 @@ function updateCastButtonsHighlight(layout) {
   const primaveraContainer = document.getElementById('primavera-reveal-buttons-container');
   if (primaveraContainer) {
     if (layout === 'primavera') {
+      renderPrimaveraRevealButtons();
       primaveraContainer.style.setProperty('display', 'grid', 'important');
     } else {
       primaveraContainer.style.setProperty('display', 'none', 'important');
@@ -7916,6 +8326,7 @@ function updateCastButtonsHighlight(layout) {
   const barPrimaveraContainer = document.getElementById('bar-primavera-reveal-buttons-container');
   if (barPrimaveraContainer) {
     if (layout === 'primavera') {
+      renderPrimaveraRevealButtons();
       barPrimaveraContainer.style.setProperty('display', 'grid', 'important');
     } else {
       barPrimaveraContainer.style.setProperty('display', 'none', 'important');
@@ -8869,20 +9280,7 @@ function updateVotingVisibleColumnsButtonsUI() {
     }
   });
 
-  const pCols = localState.settings?.primaveraVisibleColumns || {};
-  const pMap = {
-    rey: 'btn-primavera-col-rey',
-    reina: 'btn-primavera-col-reina',
-    outfit: 'btn-primavera-col-outfit'
-  };
-
-  Object.entries(pMap).forEach(([key, id]) => {
-    const isVisible = !!pCols[key];
-    const btn = document.getElementById(id);
-    if (btn) btn.classList.toggle('active', isVisible);
-    const barBtn = document.getElementById('bar-' + id);
-    if (barBtn) barBtn.classList.toggle('active', isVisible);
-  });
+  renderPrimaveraRevealButtons();
 }
 window.updateVotingVisibleColumnsButtonsUI = updateVotingVisibleColumnsButtonsUI;
 
