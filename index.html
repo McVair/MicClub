@@ -554,9 +554,22 @@ if ('serviceWorker' in navigator) {
 
       <!-- Configuración Modular del Programa -->
       <div style="background:rgba(223,172,74,.05);border:1px solid var(--border);border-radius:8px;padding:13px;margin-top:14px">
-        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">📋 SECCIONES VISIBLES DEL PROGRAMA</div>
-        <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Activá o desactivá las partes del programa que querés que el público vea en este show:</div>
-        <div id="admin-program-modules-list" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:8px;font-size:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold)">📋 SECCIONES VISIBLES DEL PROGRAMA</div>
+          <div id="admin-program-modules-counter"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Activá o desactivá las partes del programa que querés que el público vea en este show. Los cambios impactan en vivo:</div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:12px;background:rgba(0,0,0,0.25);padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.05)">
+          <div style="font-size:11px;color:var(--text2)">Acciones rápidas:</div>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="btn btn-sm btn-outline" onclick="setAllProgramModulesAdmin(true)" style="font-size:11px;padding:4px 10px;min-height:auto;border-color:var(--gold);color:var(--gold)">👁️ Mostrar Todas</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="setAllProgramModulesAdmin(false)" style="font-size:11px;padding:4px 10px;min-height:auto;border-color:rgba(255,255,255,0.2);color:var(--text2)">🚫 Ocultar Todas</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="scrollToProgramTop()" style="font-size:11px;padding:4px 10px;min-height:auto">⬆️ Ver Programa</button>
+          </div>
+        </div>
+
+        <div id="admin-program-modules-list" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:8px;font-size:12px">
           <!-- Generado dinámicamente -->
         </div>
       </div>
@@ -573,7 +586,10 @@ if ('serviceWorker' in navigator) {
 
       <!-- Configuración de Votación Extra -->
       <div style="background:rgba(223,172,74,.05);border:1px solid var(--border);border-radius:8px;padding:13px;margin-top:14px">
-        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">🏆 CONFIGURACIÓN DE VOTACIÓN EXTRA</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--gold)">🏆 CONFIGURACIÓN DE VOTACIÓN EXTRA</div>
+          <div id="admin-extra-vote-status-badge"></div>
+        </div>
         <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Definí el nombre y las categorías de la votación complementaria de este show:</div>
         
         <div class="form-group" style="margin-bottom:12px">
@@ -589,10 +605,13 @@ if ('serviceWorker' in navigator) {
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;padding:8px;background:var(--bg3);border-radius:6px;border:1px solid rgba(255,255,255,0.05)">
           <input type="text" id="admin-new-cat-emoji" placeholder="Emoji (👑)" style="width:75px;margin-bottom:0;text-align:center;box-sizing:border-box">
           <input type="text" id="admin-new-cat-name" placeholder="Categoría (ej: Mejor Actitud)" style="flex:1;margin-bottom:0;box-sizing:border-box">
-          <button class="btn btn-gold btn-sm" onclick="addExtraVoteCategoryAdmin()" style="margin:0;white-space:nowrap">➕ Agregar</button>
+          <button type="button" class="btn btn-gold btn-sm" onclick="addExtraVoteCategoryAdmin()" style="margin:0;white-space:nowrap">➕ Agregar</button>
         </div>
 
-        <button class="btn btn-gold btn-sm" onclick="saveExtraVoteConfigAdmin()" style="width:100%">Guardar Votación Extra</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn btn-gold btn-sm" onclick="saveExtraVoteConfigAdmin()" style="flex:2;min-width:180px;margin:0">💾 Guardar Votación Extra</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="deleteEntireExtraVoteAdmin()" style="flex:1;min-width:140px;margin:0;border-color:var(--red);color:var(--red)">🗑️ Eliminar Votación</button>
+        </div>
       </div>
     </div>
 
@@ -860,7 +879,7 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('ranking')">Ranking Mic Club</button>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('proximo')">Próximo Evento</button>
           <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('karaoke')">Karaoke Libre</button>
-          <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('primavera')">Votación Primavera</button>
+          <button class="btn btn-outline" id="pantalla-tab-btn-primavera" style="text-align: left; justify-content: flex-start; padding-left: 15px;" onclick="setPantallaTab('primavera')">Votación Primavera</button>
         </div>
         
         <!-- Auspiciantes (Siempre visibles abajo en el sidebar) -->

@@ -1354,6 +1354,7 @@ const PROGRAM_MODULES_DEF = [
   { key: 'extraVote', label: 'Botón Votación Especial / Extra', elId: 'program-mod-extra-vote' },
   { key: 'footer', label: 'Pie de página (Footer)', elId: 'program-mod-footer' }
 ];
+window.PROGRAM_MODULES_DEF = PROGRAM_MODULES_DEF;
 
 const DEFAULT_PROGRAM_MODULES = {
   sponsorsTop: true,
@@ -1371,7 +1372,8 @@ const DEFAULT_PROGRAM_MODULES = {
 };
 
 function getProgramModules(eventId) {
-  const ev = eventId ? (localState.settings?.events?.[eventId] || null) : null;
+  const targetId = eventId || programSelectedEventId || getCurrentEventId() || 'event1';
+  const ev = targetId ? (localState.settings?.events?.[targetId] || null) : null;
   const evMods = ev?.programModules;
   const globalMods = localState.settings?.programModules;
   const mods = evMods || globalMods || {};
@@ -1384,13 +1386,18 @@ function getProgramModules(eventId) {
 window.getProgramModules = getProgramModules;
 
 function applyProgramModularVisibility(eventId) {
-  const mods = getProgramModules(eventId);
+  const targetId = eventId || programSelectedEventId || getCurrentEventId() || 'event1';
+  const mods = getProgramModules(targetId);
+  const extraCfg = getExtraVoteConfig(targetId);
   let anyScheduleStepVisible = false;
 
   PROGRAM_MODULES_DEF.forEach(def => {
     const el = document.getElementById(def.elId);
     if (!el) return;
-    const isVisible = mods[def.key];
+    let isVisible = !!mods[def.key];
+    if (def.key === 'extraVote') {
+      isVisible = isVisible && extraCfg.enabled && extraCfg.categories.length > 0;
+    }
     el.style.display = isVisible ? '' : 'none';
     if (['apertura', 'guests', 'participants', 'voting', 'awards', 'karaoke'].includes(def.key) && isVisible) {
       anyScheduleStepVisible = true;
@@ -1404,46 +1411,163 @@ function applyProgramModularVisibility(eventId) {
 }
 window.applyProgramModularVisibility = applyProgramModularVisibility;
 
+function showModuleToast(htmlText) {
+  let toast = document.getElementById('mc-modular-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'mc-modular-toast';
+    toast.style.position = 'fixed';
+    toast.style.bottom = '85px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'rgba(18, 17, 24, 0.96)';
+    toast.style.border = '1px solid var(--gold)';
+    toast.style.borderRadius = '30px';
+    toast.style.padding = '10px 20px';
+    toast.style.color = '#fff';
+    toast.style.fontSize = '12px';
+    toast.style.fontWeight = '600';
+    toast.style.zIndex = '99999';
+    toast.style.boxShadow = '0 8px 25px rgba(0,0,0,0.7), 0 0 15px rgba(223,172,74,0.3)';
+    toast.style.pointerEvents = 'none';
+    toast.style.textAlign = 'center';
+    toast.style.maxWidth = '90vw';
+    toast.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = htmlText;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  if (window._modToastTimeout) clearTimeout(window._modToastTimeout);
+  window._modToastTimeout = setTimeout(() => {
+    if (toast) {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(10px)';
+    }
+  }, 1900);
+}
+window.showModuleToast = showModuleToast;
+
 function renderProgramModulesAdmin() {
   const container = document.getElementById('admin-program-modules-list');
   if (!container) return;
-  const eventId = programSelectedEventId || getCurrentEventId();
+  const eventId = programSelectedEventId || getCurrentEventId() || 'event1';
   const mods = getProgramModules(eventId);
 
+  let visibleCount = 0;
+  PROGRAM_MODULES_DEF.forEach(def => {
+    if (mods[def.key]) visibleCount++;
+  });
+
+  const counterEl = document.getElementById('admin-program-modules-counter');
+  if (counterEl) {
+    const isAll = visibleCount === PROGRAM_MODULES_DEF.length;
+    const isNone = visibleCount === 0;
+    const color = isNone ? '#ff6b7a' : (isAll ? '#2ecc71' : 'var(--gold)');
+    const bg = isNone ? 'rgba(230,57,70,0.15)' : (isAll ? 'rgba(46,204,113,0.15)' : 'rgba(223,172,74,0.15)');
+    const border = isNone ? 'rgba(230,57,70,0.35)' : (isAll ? 'rgba(46,204,113,0.35)' : 'rgba(223,172,74,0.35)');
+    counterEl.innerHTML = `
+      <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:${bg};color:${color};font-weight:700;border:1px solid ${border}">
+        ${visibleCount} de ${PROGRAM_MODULES_DEF.length} visibles
+      </span>
+    `;
+  }
+
   container.innerHTML = PROGRAM_MODULES_DEF.map(def => {
-    const checked = mods[def.key] ? 'checked' : '';
+    const isVisible = !!mods[def.key];
+    const cardBg = isVisible 
+      ? 'linear-gradient(135deg, rgba(223, 172, 74, 0.12) 0%, rgba(22, 21, 26, 0.8) 100%)' 
+      : 'rgba(22, 21, 26, 0.35)';
+    const cardBorder = isVisible 
+      ? '1.5px solid rgba(223, 172, 74, 0.55)' 
+      : '1.5px dashed rgba(255, 255, 255, 0.12)';
+    const cardOpacity = isVisible ? '1' : '0.65';
+    
+    const badge = isVisible
+      ? `<span style="background:var(--gold);color:#0d0c10;font-size:10px;font-weight:800;padding:2px 7px;border-radius:12px;letter-spacing:0.5px">👁️ VISIBLE</span>`
+      : `<span style="background:rgba(230,57,70,0.18);color:#ff6b7a;border:1px solid rgba(230,57,70,0.35);font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;letter-spacing:0.5px">🚫 OCULTO</span>`;
+
     return `
-      <label style="display:flex;align-items:center;gap:8px;background:var(--bg3);padding:8px 10px;border-radius:6px;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,0.03)">
-        <input type="checkbox" ${checked} onchange="toggleProgramModuleAdmin('${def.key}', this.checked)" style="accent-color:var(--gold);width:16px;height:16px;cursor:pointer">
-        <span style="color:var(--text);font-size:12px">${esc(def.label)}</span>
-      </label>
+      <div onclick="toggleProgramModuleAdmin('${def.key}')" style="background:${cardBg};border:${cardBorder};opacity:${cardOpacity};padding:10px 12px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:all 0.15s ease" title="Clic para mostrar u ocultar">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;padding-right:8px">
+          <input type="checkbox" ${isVisible ? 'checked' : ''} onclick="event.stopPropagation(); toggleProgramModuleAdmin('${def.key}', this.checked)" style="accent-color:var(--gold);width:17px;height:17px;cursor:pointer">
+          <span style="color:${isVisible ? '#ffffff' : 'var(--text2)'};font-size:12px;font-weight:${isVisible ? '600' : '400'}">${esc(def.label)}</span>
+        </div>
+        <div>
+          ${badge}
+        </div>
+      </div>
     `;
   }).join('');
 }
 window.renderProgramModulesAdmin = renderProgramModulesAdmin;
 
 async function toggleProgramModuleAdmin(key, isVisible) {
-  const eventId = programSelectedEventId || getCurrentEventId();
-  if (!eventId) return;
+  const eventId = programSelectedEventId || getCurrentEventId() || 'event1';
   const currentMods = getProgramModules(eventId);
-  currentMods[key] = !!isVisible;
+  const val = (isVisible !== undefined) ? !!isVisible : !currentMods[key];
+  currentMods[key] = val;
+
+  // Actualización optimista inmediata en localState y DOM
+  if (!localState.settings) localState.settings = {};
+  if (!localState.settings.events) localState.settings.events = {};
+  if (!localState.settings.events[eventId]) localState.settings.events[eventId] = {};
+  localState.settings.events[eventId].programModules = currentMods;
+  localState.settings.programModules = currentMods;
+  saveLocal();
+  applyProgramModularVisibility(eventId);
+  renderProgramModulesAdmin();
+
+  const def = PROGRAM_MODULES_DEF.find(d => d.key === key);
+  const name = def ? def.label : key;
+  showModuleToast(`${val ? '👁️' : '🚫'} <b>${esc(name)}</b> ahora está <b>${val ? 'VISIBLE' : 'OCULTO'}</b> para el público.`);
 
   try {
     if (firebaseOk) {
       await dbUpdate(dbRef(db, `settings/events/${eventId}`), { programModules: currentMods });
+      await dbUpdate(dbRef(db, 'settings'), { programModules: currentMods });
     }
-    if (!localState.settings) localState.settings = {};
-    if (!localState.settings.events) localState.settings.events = {};
-    if (!localState.settings.events[eventId]) localState.settings.events[eventId] = {};
-    localState.settings.events[eventId].programModules = currentMods;
-    saveLocal();
-    applyProgramModularVisibility(eventId);
   } catch (err) {
-    console.error('Error toggling program module:', err);
-    mcAlert('Error al actualizar visibilidad de sección.');
+    console.error('Error toggling program module in Firebase:', err);
   }
 }
 window.toggleProgramModuleAdmin = toggleProgramModuleAdmin;
+
+async function setAllProgramModulesAdmin(makeVisible) {
+  const eventId = programSelectedEventId || getCurrentEventId() || 'event1';
+  const newMods = {};
+  PROGRAM_MODULES_DEF.forEach(def => {
+    newMods[def.key] = !!makeVisible;
+  });
+
+  if (!localState.settings) localState.settings = {};
+  if (!localState.settings.events) localState.settings.events = {};
+  if (!localState.settings.events[eventId]) localState.settings.events[eventId] = {};
+  localState.settings.events[eventId].programModules = newMods;
+  localState.settings.programModules = newMods;
+  saveLocal();
+  applyProgramModularVisibility(eventId);
+  renderProgramModulesAdmin();
+
+  showModuleToast(makeVisible ? '👁️ <b>Todas las secciones</b> están ahora <b>VISIBLES</b>' : '🚫 <b>Todas las secciones</b> fueron <b>OCULTADAS</b>');
+
+  try {
+    if (firebaseOk) {
+      await dbUpdate(dbRef(db, `settings/events/${eventId}`), { programModules: newMods });
+      await dbUpdate(dbRef(db, 'settings'), { programModules: newMods });
+    }
+  } catch(e) {
+    console.error(e);
+    mcAlert('Error al actualizar secciones: ' + e.message);
+  }
+}
+window.setAllProgramModulesAdmin = setAllProgramModulesAdmin;
+
+function scrollToProgramTop() {
+  const el = document.getElementById('page-program');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+window.scrollToProgramTop = scrollToProgramTop;
 
 // ── CUPO KARAOKE LIBRE ────────────────────────────────────────────────────────
 function getFreeKaraokeCapacity(eventId) {
@@ -1502,16 +1626,24 @@ const DEFAULT_EXTRA_VOTE = {
 };
 
 function getExtraVoteConfig(eventId) {
-  const ev = eventId ? localState.settings?.events?.[eventId] : (getCurrentEvent() || null);
-  const cfg = ev?.extraVote || localState.settings?.extraVote;
+  const targetId = eventId || programSelectedEventId || getCurrentEventId() || 'event1';
+  const ev = targetId ? (localState.settings?.events?.[targetId] || null) : (getCurrentEvent() || null);
+  const cfg = ev?.extraVote ?? localState.settings?.extraVote;
   if (!cfg) return { ...DEFAULT_EXTRA_VOTE, categories: [...DEFAULT_EXTRA_VOTE.categories] };
-  const title = (cfg.title || 'Votación Especial').trim();
-  let categories = Array.isArray(cfg.categories) ? cfg.categories : DEFAULT_EXTRA_VOTE.categories;
-  if (!categories.length) categories = DEFAULT_EXTRA_VOTE.categories;
+  const isExplicitlyDisabled = cfg.enabled === false;
+  const rawCats = Array.isArray(cfg.categories) ? cfg.categories : [];
+  if (isExplicitlyDisabled || rawCats.length === 0) {
+    return {
+      enabled: false,
+      title: (cfg.title || 'Votación Especial').trim() || 'Votación Especial',
+      categories: []
+    };
+  }
+  const title = (cfg.title || 'Votación Especial').trim() || 'Votación Especial';
   return {
-    enabled: cfg.enabled !== false,
+    enabled: true,
     title,
-    categories: categories.map((c, i) => ({
+    categories: rawCats.map((c, i) => ({
       id: c.id || ('cat_' + i),
       name: c.name || `Categoría ${i+1}`,
       emoji: c.emoji || '🏆'
@@ -1521,26 +1653,48 @@ function getExtraVoteConfig(eventId) {
 window.getExtraVoteConfig = getExtraVoteConfig;
 
 let adminExtraVoteWorkingCats = null;
+let adminExtraVoteWorkingEventId = null;
 
 function renderExtraVoteAdmin() {
-  const eventId = programSelectedEventId || getCurrentEventId();
+  const eventId = programSelectedEventId || getCurrentEventId() || 'event1';
   const cfg = getExtraVoteConfig(eventId);
   const titleInput = document.getElementById('admin-extra-vote-title');
   if (titleInput && (!titleInput.value || document.activeElement !== titleInput)) {
     titleInput.value = cfg.title;
   }
-  if (!adminExtraVoteWorkingCats) {
+  if (adminExtraVoteWorkingEventId !== eventId || adminExtraVoteWorkingCats === null) {
+    adminExtraVoteWorkingEventId = eventId;
     adminExtraVoteWorkingCats = [...cfg.categories];
   }
+
+  const isEnabled = cfg.enabled && adminExtraVoteWorkingCats.length > 0;
+  const statusEl = document.getElementById('admin-extra-vote-status-badge');
+  if (statusEl) {
+    if (isEnabled) {
+      statusEl.innerHTML = `<span style="background:rgba(46,204,113,0.15);color:#2ecc71;border:1px solid rgba(46,204,113,0.4);font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">🟢 ACTIVA (${adminExtraVoteWorkingCats.length} cat.)</span>`;
+    } else {
+      statusEl.innerHTML = `<span style="background:rgba(230,57,70,0.15);color:#ff6b7a;border:1px solid rgba(230,57,70,0.4);font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">🔴 DESACTIVADA (Sin categorías)</span>`;
+    }
+  }
+
   const listEl = document.getElementById('admin-extra-vote-cats-list');
   if (listEl) {
-    listEl.innerHTML = adminExtraVoteWorkingCats.map((cat, idx) => `
-      <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.04)">
-        <span style="font-size:16px">${esc(cat.emoji || '🏆')}</span>
-        <span style="flex:1;font-size:12px;color:var(--text);font-weight:600">${esc(cat.name)}</span>
-        <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:2px 8px;font-size:11px;min-height:auto" onclick="deleteExtraVoteCategoryAdmin(${idx})">Eliminar</button>
-      </div>
-    `).join('') || '<div style="font-size:11px;color:var(--text2);text-align:center;padding:6px">Sin categorías (agregá al menos una)</div>';
+    if (adminExtraVoteWorkingCats.length === 0) {
+      listEl.innerHTML = `
+        <div style="font-size:12px;color:var(--text2);text-align:center;padding:12px 10px;background:rgba(255,255,255,0.02);border-radius:6px;border:1px dashed rgba(255,255,255,0.12);line-height:1.5">
+          🚫 <b style="color:var(--text)">Sin categorías configuradas.</b><br>
+          <span style="font-size:11px;color:var(--text3)">La votación especial está desactivada y su botón no se muestra en el programa.<br>Agregá categorías abajo para activarla en este show.</span>
+        </div>
+      `;
+    } else {
+      listEl.innerHTML = adminExtraVoteWorkingCats.map((cat, idx) => `
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.05)">
+          <span style="font-size:16px">${esc(cat.emoji || '🏆')}</span>
+          <span style="flex:1;font-size:12px;color:var(--text);font-weight:600">${esc(cat.name)}</span>
+          <button class="btn btn-sm btn-outline" style="border-color:var(--red);color:var(--red);padding:2px 8px;font-size:11px;min-height:auto" onclick="deleteExtraVoteCategoryAdmin(${idx})">Eliminar</button>
+        </div>
+      `).join('');
+    }
   }
 }
 window.renderExtraVoteAdmin = renderExtraVoteAdmin;
@@ -1554,8 +1708,9 @@ function addExtraVoteCategoryAdmin() {
     mcAlert('Por favor ingresá un nombre para la categoría.');
     return;
   }
-  if (!adminExtraVoteWorkingCats) {
-    const eventId = programSelectedEventId || getCurrentEventId();
+  const eventId = programSelectedEventId || getCurrentEventId() || 'event1';
+  if (adminExtraVoteWorkingEventId !== eventId || !adminExtraVoteWorkingCats) {
+    adminExtraVoteWorkingEventId = eventId;
     adminExtraVoteWorkingCats = [...getExtraVoteConfig(eventId).categories];
   }
   const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 15) || ('cat_' + Date.now());
@@ -1573,28 +1728,49 @@ window.addExtraVoteCategoryAdmin = addExtraVoteCategoryAdmin;
 
 function deleteExtraVoteCategoryAdmin(idx) {
   if (!adminExtraVoteWorkingCats) return;
-  if (adminExtraVoteWorkingCats.length <= 1) {
-    mcAlert('Debe quedar al menos 1 categoría.');
-    return;
-  }
   adminExtraVoteWorkingCats.splice(idx, 1);
   renderExtraVoteAdmin();
+  if (adminExtraVoteWorkingCats.length === 0) {
+    showModuleToast('⚠️ Eliminaste todas las categorías. Hacé clic en "Guardar Votación" para confirmar la desactivación.');
+  }
 }
 window.deleteExtraVoteCategoryAdmin = deleteExtraVoteCategoryAdmin;
+
+async function deleteEntireExtraVoteAdmin() {
+  const ok = window.confirm('¿Seguro que querés eliminar la votación especial para este evento? El botón de votación del programa y los controles de pantalla se ocultarán.');
+  if (!ok) return;
+  adminExtraVoteWorkingCats = [];
+  const titleInp = document.getElementById('admin-extra-vote-title');
+  const title = (titleInp?.value || 'Votación Especial').trim() || 'Votación Especial';
+  await persistExtraVoteConfigAdmin(false, title, []);
+  renderExtraVoteAdmin();
+  mcAlert('🗑️ Votación especial eliminada y botón ocultado para este evento.');
+}
+window.deleteEntireExtraVoteAdmin = deleteEntireExtraVoteAdmin;
 
 async function saveExtraVoteConfigAdmin() {
   const titleInp = document.getElementById('admin-extra-vote-title');
   const title = (titleInp?.value || 'Votación Especial').trim() || 'Votación Especial';
-  if (!adminExtraVoteWorkingCats || !adminExtraVoteWorkingCats.length) {
-    mcAlert('Debe haber al menos 1 categoría configurada.');
+  const cats = adminExtraVoteWorkingCats || [];
+
+  if (cats.length === 0) {
+    await persistExtraVoteConfigAdmin(false, title, []);
+    mcAlert('🗑️ Al no tener categorías, la votación especial fue desactivada y su botón eliminado del programa.');
     return;
   }
+
+  await persistExtraVoteConfigAdmin(true, title, cats);
+  mcAlert('✅ Configuración de Votación Extra guardada con éxito.');
+}
+window.saveExtraVoteConfigAdmin = saveExtraVoteConfigAdmin;
+
+async function persistExtraVoteConfigAdmin(enabled, title, categories) {
   const payload = {
-    enabled: true,
-    title,
-    categories: adminExtraVoteWorkingCats
+    enabled: !!enabled && categories.length > 0,
+    title: title || 'Votación Especial',
+    categories: categories || []
   };
-  const eventId = programSelectedEventId || getCurrentEventId();
+  const eventId = programSelectedEventId || getCurrentEventId() || 'event1';
   try {
     if (eventId) {
       if (firebaseOk) {
@@ -1614,20 +1790,24 @@ async function saveExtraVoteConfigAdmin() {
       localState.settings.extraVote = payload;
     }
     saveLocal();
+    adminExtraVoteWorkingCats = [...payload.categories];
     updateProgramPage();
-    if (currentPage === 'vote-primavera') loadPrimaveraVoteOpts();
+    applyProgramModularVisibility(eventId);
     renderPrimaveraRevealButtons();
-    mcAlert('✅ Configuración de Votación Extra guardada con éxito.');
+    if (currentPage === 'vote-primavera') loadPrimaveraVoteOpts();
+    return true;
   } catch(e) {
-    console.error(e);
-    mcAlert('Error al guardar configuración de votación extra.');
+    console.error('Error saving extra vote config:', e);
+    mcAlert('Error al guardar configuración: ' + e.message);
+    return false;
   }
 }
-window.saveExtraVoteConfigAdmin = saveExtraVoteConfigAdmin;
+window.persistExtraVoteConfigAdmin = persistExtraVoteConfigAdmin;
 
 function renderPrimaveraRevealButtons() {
   const activeEventId = getCurrentEventId();
   const cfg = getExtraVoteConfig(activeEventId);
+  const isExtraEnabled = cfg.enabled && cfg.categories.length > 0;
   const adminContainer = document.getElementById('primavera-reveal-buttons-container');
   const barContainer = document.getElementById('bar-primavera-reveal-buttons-container');
   const cols = localState.settings?.primaveraVisibleColumns || {};
@@ -1643,18 +1823,45 @@ function renderPrimaveraRevealButtons() {
   }).join('');
 
   if (adminContainer) {
-    adminContainer.style.gridTemplateColumns = `repeat(${Math.max(1, cfg.categories.length)}, 1fr)`;
-    adminContainer.innerHTML = renderBtns(false);
+    if (!isExtraEnabled) {
+      adminContainer.style.display = 'none';
+      adminContainer.innerHTML = '';
+    } else {
+      adminContainer.style.gridTemplateColumns = `repeat(${Math.max(1, cfg.categories.length)}, 1fr)`;
+      adminContainer.innerHTML = renderBtns(false);
+    }
   }
   if (barContainer) {
-    barContainer.style.gridTemplateColumns = `repeat(${Math.max(1, cfg.categories.length)}, 1fr)`;
-    barContainer.innerHTML = renderBtns(true);
+    if (!isExtraEnabled) {
+      barContainer.style.display = 'none';
+      barContainer.innerHTML = '';
+    } else {
+      barContainer.style.gridTemplateColumns = `repeat(${Math.max(1, cfg.categories.length)}, 1fr)`;
+      barContainer.innerHTML = renderBtns(true);
+    }
   }
 
   const btnPrimaveraCast = document.getElementById('cast-btn-primavera');
   const barBtnPrimaveraCast = document.getElementById('bar-cast-btn-primavera');
-  if (btnPrimaveraCast) btnPrimaveraCast.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
-  if (barBtnPrimaveraCast) barBtnPrimaveraCast.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
+  if (btnPrimaveraCast) {
+    btnPrimaveraCast.style.display = isExtraEnabled ? '' : 'none';
+    if (isExtraEnabled) {
+      btnPrimaveraCast.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
+    }
+  }
+  if (barBtnPrimaveraCast) {
+    barBtnPrimaveraCast.style.display = isExtraEnabled ? '' : 'none';
+    if (isExtraEnabled) {
+      barBtnPrimaveraCast.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
+    }
+  }
+  const pantallaTabBtn = document.getElementById('pantalla-tab-btn-primavera');
+  if (pantallaTabBtn) {
+    pantallaTabBtn.style.display = isExtraEnabled ? '' : 'none';
+    if (isExtraEnabled) {
+      pantallaTabBtn.textContent = `${cfg.categories[0]?.emoji || '🏆'} ${cfg.title}`;
+    }
+  }
 }
 window.renderPrimaveraRevealButtons = renderPrimaveraRevealButtons;
 
@@ -4775,6 +4982,17 @@ function loadPrimaveraVoteOpts() {
   const activeEventId = getCurrentEventId();
   const cfg = getExtraVoteConfig(activeEventId);
 
+  // Si la votación especial no está habilitada o no tiene categorías
+  if (!cfg.enabled || cfg.categories.length === 0) {
+    if (areaEl)   areaEl.style.display   = 'none';
+    if (closedEl) {
+      closedEl.style.display = 'block';
+      const closedMsgEl = document.getElementById('extra-vote-closed-msg');
+      if (closedMsgEl) closedMsgEl.textContent = 'Esta votación especial no está habilitada para este evento.';
+    }
+    return;
+  }
+
   // Titulares dinámicos
   const titleEl = document.getElementById('extra-vote-title');
   const subEl = document.getElementById('extra-vote-sub');
@@ -7050,6 +7268,12 @@ async function deleteFreeKaraokeItem(itemId) {
 
 // ── PANTALLA PÚBLICA DE PRESENTACIÓN ──────────────────────────────────────────
 function setPantallaTab(tab) {
+  const activeEventId = getCurrentEventId();
+  const extraCfg = getExtraVoteConfig(activeEventId);
+  const isExtraEnabled = extraCfg.enabled && extraCfg.categories.length > 0;
+  if (tab === 'primavera' && !isExtraEnabled) {
+    tab = 'artistas';
+  }
   pantallaTab = tab;
   
   // Actualizar estilos de los botones en el sidebar
