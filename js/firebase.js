@@ -24,18 +24,23 @@ const firebaseConfig = {
 };
 // ──────────────────────────────────────────────────
 
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+try {
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
 
-// Exponemos las funciones al scope global para que app.js las use
-window._db        = db;
-window._dbRef     = ref;
-window._dbSet     = set;
-window._dbGet     = get;
-window._dbOnValue = onValue;
-window._dbPush    = push;
-window._dbUpdate  = update;
-window._dbRemove  = remove;
-window._firebaseReady = true;
+  // Exponemos las funciones al scope global para que app.js las use
+  window._db        = db;
+  window._dbRef     = ref;
+  window._dbSet     = set;
+  window._dbGet     = get;
+  window._dbOnValue = onValue;
+  window._dbPush    = push;
+  window._dbUpdate  = update;
+  window._dbRemove  = remove;
+  window._firebaseReady = true;
 
-document.dispatchEvent(new Event('firebaseReady'));
+  document.dispatchEvent(new Event('firebaseReady'));
+} catch (err) {
+  console.warn('⚠️ Error al conectar con Firebase Cloud SDK:', err);
+  window._firebaseReady = false;
+}

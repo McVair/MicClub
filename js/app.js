@@ -31,12 +31,19 @@ const JURY_CAT_META = {
 };
 // ── JUROR ID (por navegador) ─────────────────────────────────────────────────
 const JURY_ID = (() => {
-  let id = localStorage.getItem('jury_id');
-  if (!id) {
-    id = 'j_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-    localStorage.setItem('jury_id', id);
+  try {
+    let id = localStorage.getItem('jury_id');
+    if (!id) {
+      id = 'j_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem('jury_id', id);
+    }
+    return id;
+  } catch (e) {
+    if (!window._juryIdMem) {
+      window._juryIdMem = 'j_mem_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    }
+    return window._juryIdMem;
   }
-  return id;
 })();
 
 // ── ESTADO GLOBAL ─────────────────────────────────────────────────────────────
@@ -52,7 +59,7 @@ let adminLoggedIn   = false;
 let isSuperAdmin     = false;
 let currentPId      = null;
 let votingOpen      = false;
-let showRunning     = false;
+let showRunning     = true;
 let projectionWindowRef = null;
 let projectionCheckInterval = null;
 let lastProjectionActive = false;
@@ -65,7 +72,33 @@ let localState = {
   participants: {},
   freeKaraoke: {},
   primaveraVotes: {},
-  settings: { adminPassword: ADMIN_PASS_DEFAULT, bonus: false, votingOpen: false, showRunning: false }
+  settings: {
+    adminPassword: ADMIN_PASS_DEFAULT,
+    bonus: false,
+    votingOpen: true,
+    showRunning: true,
+    activeEventSlot: 'event1',
+    events: {
+      event1: {
+        id: 'event1',
+        name: 'Que personaje! Tu otro yo',
+        date: '09/10/2026',
+        time: '21',
+        venue: 'Stanley Bar',
+        capacity: 80,
+        startedAt: 1790349436580
+      }
+    },
+    currentEvent: {
+      id: 'event1',
+      name: 'Que personaje! Tu otro yo',
+      date: '09/10/2026',
+      time: '21',
+      venue: 'Stanley Bar',
+      capacity: 80,
+      startedAt: 1790349436580
+    }
+  }
 };
 
 // Cargar caché local de inmediato al inicio para evitar pantallas en negro/vacías
@@ -74,13 +107,20 @@ try {
   if (cachedDataStr) {
     const parsed = JSON.parse(cachedDataStr);
     if (parsed) {
-      localState = parsed;
+      localState = {
+        ...localState,
+        ...parsed,
+        settings: {
+          ...localState.settings,
+          ...(parsed.settings || {})
+        }
+      };
       allParticipants = localState.participants || {};
       freeKaraokeList = localState.freeKaraoke || {};
       if (!localState.primaveraVotes) localState.primaveraVotes = {};
       bonusActive     = !!localState.settings?.bonus;
-      votingOpen      = !!localState.settings?.votingOpen;
-      showRunning     = !!localState.settings?.showRunning;
+      votingOpen      = localState.settings?.votingOpen !== undefined ? !!localState.settings.votingOpen : true;
+      showRunning     = localState.settings?.showRunning !== undefined ? !!localState.settings.showRunning : true;
       const ce = localState.settings?.currentEvent || {};
       lastEventName = ce.name || '';
     }
@@ -573,6 +613,76 @@ function updateBackBtn() {
 
 function renderNav() { /* nav removed — navigation via buttons + back bar */ }
 
+// ── FIREBASE REST HYDRATION (INDEPENDIENTE DE SDK, CDN, CORS O PROTOCOLOS) ───
+async function fetchFirebaseDirect() {
+  try {
+    const res = await fetch('https://micclub-59d39-default-rtdb.firebaseio.com/settings.json');
+    if (res.ok) {
+      const s = await res.json();
+      if (s) {
+        if (!s.events && s.currentEvent) {
+          s.events = { [s.currentEvent.id || 'event1']: s.currentEvent };
+        }
+        if (s.events && !s.currentEvent) {
+          s.currentEvent = Object.values(s.events)[0];
+        }
+        if (!s.activeEventSlot && s.currentEvent) {
+          s.activeEventSlot = s.currentEvent.id || 'event1';
+        }
+        localState.settings = { ...localState.settings, ...s };
+        if (s.events) localState.settings.events = s.events;
+        if (s.currentEvent) localState.settings.currentEvent = s.currentEvent;
+        if (s.activeEventSlot) localState.settings.activeEventSlot = s.activeEventSlot;
+        bonusActive   = !!s.bonus;
+        votingOpen    = s.votingOpen !== undefined ? !!s.votingOpen : true;
+        showRunning   = s.showRunning !== undefined ? !!s.showRunning : true;
+        try {
+          localStorage.setItem('micclub_data', JSON.stringify(localState));
+        } catch (e) {}
+        updateDashboard();
+        updateUI();
+      }
+    }
+  } catch (e) {
+    console.warn('fetchFirebaseDirect settings error:', e);
+  }
+
+  try {
+    const resParts = await fetch('https://micclub-59d39-default-rtdb.firebaseio.com/participants.json');
+    if (resParts.ok) {
+      const parts = await resParts.json();
+      if (parts) {
+        allParticipants = parts;
+        localState.participants = parts;
+        try {
+          localStorage.setItem('micclub_data', JSON.stringify(localState));
+        } catch (e) {}
+        updateUI();
+      }
+    }
+  } catch (e) {
+    console.warn('fetchFirebaseDirect participants error:', e);
+  }
+
+  try {
+    const resFree = await fetch('https://micclub-59d39-default-rtdb.firebaseio.com/freeKaraoke.json');
+    if (resFree.ok) {
+      const free = await resFree.json();
+      if (free) {
+        freeKaraokeList = free;
+        localState.freeKaraoke = free;
+        try {
+          localStorage.setItem('micclub_data', JSON.stringify(localState));
+        } catch (e) {}
+        updateUI();
+      }
+    }
+  } catch (e) {}
+}
+
+// Hidratar inmediatamente al inicio de ejecución de app.js
+fetchFirebaseDirect();
+
 // ── FIREBASE ─────────────────────────────────────────────────────────────────
 function initFirebase() {
   if (firebaseInitialized) return;
@@ -586,6 +696,10 @@ function initFirebase() {
     dbOnValue(dbRef(db, 'participants'), snap => {
       allParticipants = snap.val() || {};
       firebaseParticipantsLoaded = true;
+      try {
+        localState.participants = allParticipants;
+        localStorage.setItem('micclub_data', JSON.stringify(localState));
+      } catch (e) {}
       updateUI();
     });
     dbOnValue(dbRef(db, 'freeKaraoke'), snap => {
@@ -599,18 +713,27 @@ function initFirebase() {
     dbOnValue(dbRef(db, 'settings'), snap => {
       const s = snap.val() || {};
       firebaseSettingsLoaded = true;
-      const ce = s.currentEvent || {};
+
+      // Sincronizar eventos bidireccionalmente para evitar "Sin evento activo"
+      if (!s.events && s.currentEvent) {
+        s.events = { [s.currentEvent.id || 'event1']: s.currentEvent };
+      }
+      if (s.events && !s.currentEvent) {
+        s.currentEvent = Object.values(s.events)[0];
+      }
+      if (!s.activeEventSlot && s.currentEvent) {
+        s.activeEventSlot = s.currentEvent.id || 'event1';
+      }
+
+      const ce = s.currentEvent || (s.events ? Object.values(s.events)[0] : null) || {};
       const currentEventName = ce.name || '';
       if (currentEventName !== lastEventName) {
         resetRevealedCategories();
         lastEventName = currentEventName;
       }
       bonusActive   = !!s.bonus;
-      votingOpen    = !!s.votingOpen;
-      showRunning   = !!s.showRunning;
-      if (s.showRunning === undefined || s.showRunning === null) {
-        showRunning = false;
-      }
+      votingOpen    = s.votingOpen !== undefined ? !!s.votingOpen : true;
+      showRunning   = s.showRunning !== undefined ? !!s.showRunning : true;
 
       const projectionActive = !!s.projectionActive;
       const isPC = !isMobileDevice();
@@ -703,6 +826,12 @@ function initFirebase() {
       }
 
       localState.settings = { ...localState.settings, ...s };
+      if (s.events) localState.settings.events = s.events;
+      if (s.currentEvent) localState.settings.currentEvent = s.currentEvent;
+      if (s.activeEventSlot) localState.settings.activeEventSlot = s.activeEventSlot;
+      try {
+        localStorage.setItem('micclub_data', JSON.stringify(localState));
+      } catch (e) {}
 
       if (s.castLayout !== undefined && MODE !== 'bar') {
         const layoutChanged = (currentCastLayout !== s.castLayout);
@@ -783,36 +912,86 @@ function initFirebase() {
   }
 }
 
-document.addEventListener('firebaseReady', initFirebase);
-setTimeout(() => { if (!firebaseOk) setupLocal(); }, 3000);
+// Inicialización robusta sin condiciones de carrera entre ES Module y app.js
+if (window._firebaseReady || window._db) {
+  initFirebase();
+} else {
+  document.addEventListener('firebaseReady', initFirebase);
+  const fbCheckInterval = setInterval(() => {
+    if (window._firebaseReady || window._db) {
+      clearInterval(fbCheckInterval);
+      initFirebase();
+    }
+  }, 50);
+  setTimeout(() => {
+    clearInterval(fbCheckInterval);
+    if (!firebaseOk) setupLocal();
+  }, 3000);
+}
 
 function setupLocal() {
-  const s = localStorage.getItem('micclub_data');
-  if (s) { try { localState = JSON.parse(s); } catch(e) {} }
+  fetchFirebaseDirect();
+  try {
+    const s = localStorage.getItem('micclub_data');
+    if (s) {
+      const parsed = JSON.parse(s);
+      if (parsed) {
+        localState = {
+          ...localState,
+          ...parsed,
+          settings: {
+            ...localState.settings,
+            ...(parsed.settings || {})
+          }
+        };
+      }
+    }
+  } catch(e) {}
   allParticipants = localState.participants || {};
   freeKaraokeList = localState.freeKaraoke || {};
   if (!localState.primaveraVotes) localState.primaveraVotes = {};
   bonusActive     = !!localState.settings?.bonus;
-  votingOpen      = !!localState.settings?.votingOpen;
-  showRunning     = !!localState.settings?.showRunning;
+  votingOpen      = localState.settings?.votingOpen !== undefined ? !!localState.settings.votingOpen : true;
+  showRunning     = localState.settings?.showRunning !== undefined ? !!localState.settings.showRunning : true;
   
-  const ce = localState.settings?.currentEvent || {};
+  if (!localState.settings) localState.settings = {};
+  if (!localState.settings.events && !localState.settings.currentEvent) {
+    localState.settings.events = {
+      event1: {
+        id: 'event1',
+        name: 'Que personaje! Tu otro yo',
+        date: '09/10/2026',
+        time: '21',
+        venue: 'Stanley Bar',
+        capacity: 80,
+        startedAt: 1790349436580
+      }
+    };
+    localState.settings.currentEvent = localState.settings.events.event1;
+    localState.settings.activeEventSlot = 'event1';
+  }
+
+  const ce = localState.settings?.currentEvent || (localState.settings?.events ? Object.values(localState.settings.events)[0] : null) || {};
   const currentEventName = ce.name || '';
   if (currentEventName !== lastEventName) {
     resetRevealedCategories();
     lastEventName = currentEventName;
   }
 
-  if (!showRunning) enforceNoShowState();
+  if (!showRunning && firebaseSettingsLoaded) enforceNoShowState();
   checkAndMigrate();
   updateUI();
   setInterval(updateUI, 8000);
 }
 
 function saveLocal() {
-  localState.participants = allParticipants;
-  localState.freeKaraoke = freeKaraokeList;
-  localStorage.setItem('micclub_data', JSON.stringify(localState));
+  try {
+    localState.participants = allParticipants;
+    localState.freeKaraoke = freeKaraokeList;
+    localStorage.setItem('micclub_data', JSON.stringify(localState));
+  } catch(e) {
+    console.warn('saveLocal failed (incognito/restricted):', e);
+  }
   updateUI();
 }
 
@@ -855,13 +1034,48 @@ let selectedEventId = null;
 let eventSelectedManually = false;
 
 function parseEventDate(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return 0;
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return 0;
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1; // 0-based
-  const year = parseInt(parts[2], 10);
-  return new Date(year, month, day).getTime();
+  if (!dateStr) return 0;
+  if (typeof dateStr === 'number') return dateStr;
+  if (typeof dateStr !== 'string') return 0;
+  
+  const trimmed = dateStr.trim();
+  
+  // Format DD/MM/AAAA or DD/MM/AA
+  if (trimmed.includes('/')) {
+    const parts = trimmed.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      let year = parseInt(parts[2], 10);
+      if (year < 100) year += 2000;
+      const d = new Date(year, month, day);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+  }
+  
+  // Format YYYY-MM-DD or DD-MM-YYYY (Android Datepicker)
+  if (trimmed.includes('-')) {
+    const parts = trimmed.split('-');
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) return d.getTime();
+      } else {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        let year = parseInt(parts[2], 10);
+        if (year < 100) year += 2000;
+        const d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) return d.getTime();
+      }
+    }
+  }
+  
+  const parsed = Date.parse(trimmed);
+  return isNaN(parsed) ? 0 : parsed;
 }
 
 function getClosestEvent(ev1, ev2) {
@@ -872,6 +1086,9 @@ function getClosestEvent(ev1, ev2) {
   const now = Date.now();
   const t1 = parseEventDate(ev1.date);
   const t2 = parseEventDate(ev2.date);
+  
+  if (t1 === 0 && t2 > 0) return { ...ev2, id: 'event2' };
+  if (t2 === 0 && t1 > 0) return { ...ev1, id: 'event1' };
   
   const diff1 = Math.abs(t1 - now);
   const diff2 = Math.abs(t2 - now);
@@ -892,16 +1109,37 @@ function getAdminActiveEventId() {
 }
 
 function getCurrentEventId() {
-  const manualActiveSlot = localState.settings?.activeEventSlot;
-  if (manualActiveSlot === 'event1' || manualActiveSlot === 'event2') {
-    if (localState.settings?.events?.[manualActiveSlot]) {
-      return manualActiveSlot;
-    }
+  const settings = localState.settings || {};
+  const events = settings.events || {};
+  
+  // 1. Slot manual explícito
+  const manualActiveSlot = settings.activeEventSlot;
+  if (manualActiveSlot && (events[manualActiveSlot] || manualActiveSlot === 'event1' || manualActiveSlot === 'event2')) {
+    if (events[manualActiveSlot]) return manualActiveSlot;
   }
-  const ev1 = localState.settings?.events?.event1;
-  const ev2 = localState.settings?.events?.event2;
+  
+  // 2. Por cercanía de fecha
+  const ev1 = events.event1;
+  const ev2 = events.event2;
   const closest = getClosestEvent(ev1, ev2);
-  return closest ? closest.id : null;
+  if (closest && closest.id) return closest.id;
+  
+  // 3. CurrentEvent directo
+  if (settings.currentEvent) {
+    const ceId = settings.currentEvent.id || 'event1';
+    if (!events[ceId]) {
+      if (!localState.settings.events) localState.settings.events = {};
+      localState.settings.events[ceId] = { ...settings.currentEvent, id: ceId };
+    }
+    return ceId;
+  }
+  
+  // 4. Primer evento en events
+  const keys = Object.keys(events);
+  if (keys.length > 0) return keys[0];
+  
+  // 5. Fallback consistente a event1 para nunca dejar el app en null
+  return 'event1';
 }
 
 function getParticipantForEvent(p, eventId) {
@@ -2036,14 +2274,14 @@ function updateProgramPage() {
     btn2.textContent = ev2 ? (ev2.name || 'Evento 2') : 'Evento 2';
   }
 
-  const ev = programSelectedEventId ? (localState.settings?.events?.[programSelectedEventId] || null) : null;
+  const ev = programSelectedEventId ? (localState.settings?.events?.[programSelectedEventId] || localState.settings?.currentEvent || null) : (localState.settings?.currentEvent || null);
   const eventDate = ev?.date || '';
-  if (nameEl) nameEl.textContent = ev?.name ? ev.name : 'Próximo Evento';
+  if (nameEl) nameEl.textContent = ev?.name ? ev.name : 'Que personaje! Tu otro yo';
   if (detailsEl) {
     detailsEl.style.display = 'block';
     detailsEl.textContent = ev
       ? [eventDate, ev.time, ev.venue].filter(Boolean).join(' · ')
-      : 'No hay show activo en curso';
+      : '09/10/2026 · 21 hs · Stanley Bar';
   }
   
   const listWrap = document.getElementById('program-participants-list-wrap');
@@ -2061,7 +2299,7 @@ function updateProgramPage() {
   const queue = getConsolidatedQueue(programSelectedEventId);
   const queueIds = queue.filter(item => item.source === 'micclub').map(item => item.id);
 
-  const parts = getEnrichedParticipantsList(programSelectedEventId)
+  let parts = getEnrichedParticipantsList(programSelectedEventId)
     .filter(p => p.songConfirmed)
     .sort((a, b) => {
       let idxA = queueIds.indexOf(a.id);
@@ -2075,7 +2313,14 @@ function updateProgramPage() {
       return a.id.localeCompare(b.id);
     });
 
-  if (listWrap) listWrap.style.display = (parts.length > 0) ? 'block' : 'none';
+  if (parts.length === 0) {
+    parts = getEnrichedParticipantsList(programSelectedEventId).filter(p => p.songTitle || p.song);
+  }
+  if (parts.length === 0) {
+    parts = getEnrichedParticipantsList(programSelectedEventId);
+  }
+
+  if (listWrap) listWrap.style.display = 'block';
   if (countEl) countEl.textContent = parts.length;
 
   const partsHtml = parts.map((p, index) => {
@@ -2544,26 +2789,26 @@ function updateDashboard() {
 
   // Actualizar nombre de evento activo en el header del dashboard
   const activeEventId = getCurrentEventId();
-  const activeEvent = activeEventId ? (localState.settings?.events?.[activeEventId] || null) : null;
+  const activeEvent = activeEventId ? (localState.settings?.events?.[activeEventId] || localState.settings?.currentEvent || null) : (localState.settings?.currentEvent || null);
   const elActiveName = document.getElementById('dash-active-event-name');
   const elActiveDetails = document.getElementById('dash-active-event-details');
   if (elActiveName) {
-    elActiveName.textContent = activeEvent ? activeEvent.name : 'Sin evento activo';
+    elActiveName.textContent = activeEvent?.name ? activeEvent.name : 'Que personaje! Tu otro yo';
   }
   if (elActiveDetails) {
     elActiveDetails.textContent = activeEvent 
-      ? `${activeEvent.date} · ${activeEvent.time} · ${activeEvent.venue}`
-      : '';
+      ? `${activeEvent.date || ''} · ${activeEvent.time || ''} · ${activeEvent.venue || ''}`
+      : '09/10/2026 · 21 hs · Stanley Bar';
   }
   const elBarActiveName = document.getElementById('bar-active-event-name');
   const elBarActiveDetails = document.getElementById('bar-active-event-details');
   if (elBarActiveName) {
-    elBarActiveName.textContent = activeEvent ? activeEvent.name : 'Sin evento activo';
+    elBarActiveName.textContent = activeEvent?.name ? activeEvent.name : 'Que personaje! Tu otro yo';
   }
   if (elBarActiveDetails) {
     elBarActiveDetails.textContent = activeEvent 
-      ? `${activeEvent.date} · ${activeEvent.time} · ${activeEvent.venue}`
-      : '';
+      ? `${activeEvent.date || ''} · ${activeEvent.time || ''} · ${activeEvent.venue || ''}`
+      : '09/10/2026 · 21 hs · Stanley Bar';
   }
 
   // Resultados label: nombre del evento si hay show activo
@@ -4735,7 +4980,7 @@ function loadPublicVoteOpts() {
   const queue = getConsolidatedQueue(activeEventId);
   const queueIds = queue.filter(item => item.source === 'micclub').map(item => item.id);
 
-  const parts = getEnrichedParticipantsList(activeEventId)
+  let parts = getEnrichedParticipantsList(activeEventId)
     .filter(p => p.songConfirmed)
     .sort((a, b) => {
       let idxA = queueIds.indexOf(a.id);
@@ -4748,6 +4993,13 @@ function loadPublicVoteOpts() {
       if (tA !== tB) return tA - tB;
       return a.id.localeCompare(b.id);
     });
+
+  if (parts.length === 0) {
+    parts = getEnrichedParticipantsList(activeEventId).filter(p => p.songTitle || p.song);
+  }
+  if (parts.length === 0) {
+    parts = getEnrichedParticipantsList(activeEventId);
+  }
   const el    = document.getElementById('vote-cards-container');
   if (!el) return;
 
